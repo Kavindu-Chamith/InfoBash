@@ -15,7 +15,7 @@ import {
 import ParticleField from "@/components/ParticleField";
 import ScoreTicker from "@/components/ScoreTicker";
 import Countdown from "@/components/Countdown";
-import StatCounter from "@/components/StatCounter";
+import MemoriesGallery from "@/components/MemoriesGallery";
 import { TOURNAMENT_INFO } from "@/lib/config";
 
 /* ─── Reveal on scroll ─── */
@@ -50,14 +50,14 @@ const container = {
 };
 const item = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 export default function Home() {
   return (
     <>
       {/* ══════════════════════════════════════
-          HERO  —  Full-height, side-by-side
+          HERO  
       ══════════════════════════════════════ */}
       <section className="relative flex h-[calc(100vh-64px)] min-h-[580px] items-center overflow-hidden">
 
@@ -201,9 +201,6 @@ export default function Home() {
               sizes="50vw"
             />
 
-            {/* Left-edge blend: merges seamlessly into the dark left panel */}
-            <div className="absolute inset-y-0 left-0 z-10 w-48 bg-gradient-to-r from-[#060c1a] via-[#060c1a]/75 to-transparent" />
-
             {/* Top-edge blend */}
             <div className="absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#060c1a]/70 to-transparent" />
 
@@ -245,6 +242,8 @@ export default function Home() {
         </div>
       </section>
 
+      <ScoreTicker />
+
       {/* ══════════════════════════════════════
           COUNTDOWN  —  Big, centered, standalone
       ══════════════════════════════════════ */}
@@ -260,22 +259,6 @@ export default function Home() {
           </span>
           <div className="mt-8 w-full">
             <Countdown />
-          </div>
-        </Reveal>
-      </section>
-
-      <ScoreTicker />
-
-      {/* ══════════════════════════════════════
-          STATS
-      ══════════════════════════════════════ */}
-      <section className="relative bg-navy-950 py-14">
-        <Reveal>
-          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-10 px-6 sm:grid-cols-4">
-            <StatCounter value={5} suffix="" label="Editions Strong" />
-            <StatCounter value={15} suffix="+" label="Teams Expected" />
-            <StatCounter value={4} suffix="" label="Batches Competing" />
-            <StatCounter value={11} suffix="" label="Players Per Squad" />
           </div>
         </Reveal>
       </section>
@@ -347,6 +330,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════
+          MEMORIES GALLERY
+      ══════════════════════════════════════ */}
+      <MemoriesGallery />
 
       {/* ══════════════════════════════════════
           VENUE / CTA
