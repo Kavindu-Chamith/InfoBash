@@ -8,7 +8,7 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import { Star, Shield, ChevronDown, Calendar, Crown, Hash } from "lucide-react";
+import { Star, Shield, ChevronDown, Calendar, Crown } from "lucide-react";
 import gsap from "gsap";
 import type { PublicTeam } from "@/app/api/teams/route";
 
@@ -190,14 +190,6 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
           style={{ background: `linear-gradient(90deg, ${theme.color}, transparent)` }}
         />
 
-        {/* Registration order badge — unique per card, replaces the constant "11 Players" pill */}
-        <div
-          className="absolute right-4 top-4 flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono-score text-[10px] tracking-widest"
-          style={{ borderColor: `${theme.color}30`, color: theme.color }}
-        >
-          <Hash size={10} /> {String(index + 1).padStart(2, "0")}
-        </div>
-
         <div className="p-6">
           {/* Batch badge */}
           <span
@@ -229,14 +221,8 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             <span className="text-sm">Capt. {team.captain_name}</span>
           </div>
 
-          {/* Stats row — only info that actually varies between teams */}
+          {/* Stats row */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 rounded-lg border border-pink-400/20 bg-pink-400/5 px-3 py-1.5">
-              <Shield size={13} className="text-pink-300" />
-              <span className="font-mono-score text-xs text-pink-300">
-                {team.female_count} Female
-              </span>
-            </div>
             <div className="ml-auto flex items-center gap-1.5 text-ivory-500">
               <Calendar size={11} />
               <span className="font-mono-score text-[10px] tracking-wide">
