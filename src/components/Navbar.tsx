@@ -9,12 +9,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const LINKS = [
   { href: "/", label: "Home" },
-  { href: "/register", label: "Register" },
   { href: "/teams", label: "Teams" },
+  { href: "/matches", label: "Matches" },
   { href: "/rules", label: "Rules" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/sponsors", label: "Sponsors" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -37,10 +34,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
         scrolled
-          ? "border-b border-cyan-400/10 bg-navy-950/85 backdrop-blur-md"
-          : "bg-transparent"
+          ? "border-cyan-400/10 bg-navy-950/85 backdrop-blur-md"
+          : "border-transparent bg-transparent"
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8">

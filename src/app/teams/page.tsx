@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TeamsClient from "./TeamsClient";
+import TeamsClient from "@/app/teams/TeamsClient";
 import type { PublicTeam } from "@/app/api/teams/route";
 
 export const metadata: Metadata = {
