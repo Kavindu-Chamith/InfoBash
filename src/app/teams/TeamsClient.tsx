@@ -2,9 +2,30 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Users, Search } from "lucide-react";
+import { Users, Search } from "lucide-react";
 import { TeamCard, FilterPill } from "@/components/TeamCard";
 import type { PublicTeam } from "@/app/api/teams/route";
+
+function FontAwesomeTrophyIcon({
+  className,
+  size = 36,
+}: {
+  className?: string;
+  size?: number;
+}) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 576 512"
+      width={size}
+      height={size}
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M552 64H448V24c0-13.3-10.7-24-24-24H152c-13.3 0-24 10.7-24 24v40H24C10.7 64 0 74.7 0 88v56c0 35.7 22.5 72.4 61.9 100.7 31.5 22.7 69.8 37.1 110 41.7C203.3 338.5 240 360 240 360v72h-48c-35.3 0-64 20.7-64 56v12c0 6.6 5.4 12 12 12h296c6.6 0 12-5.4 12-12v-12c0-35.3-28.7-56-64-56h-48v-72s36.7-21.5 68.1-77.6c40.2-4.6 78.5-19 110-41.7C553.5 216.4 576 179.7 576 144v-56c0-13.3-10.7-24-24-24z" />
+    </svg>
+  );
+}
 
 const BATCH_COLORS: Record<string, string> = {
   "1st Year": "#22d3ee",
@@ -173,7 +194,7 @@ export default function TeamsClient({
                 {initialTeams.length === 0 ? (
                   <>
                     <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/5">
-                      <Trophy size={36} className="text-cyan-400/60" />
+                      <FontAwesomeTrophyIcon size={36} className="text-cyan-400/60" />
                     </div>
                     <div>
                       <p className="font-display text-2xl text-ivory-300">

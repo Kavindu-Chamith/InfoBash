@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Users, Star, Shield, ChevronDown, Calendar } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+  useSpring,
+} from "framer-motion";
+import { Star, Shield, ChevronDown, Calendar, Crown, Hash } from "lucide-react";
+import gsap from "gsap";
 import type { PublicTeam } from "@/app/api/teams/route";
 
 /* ── Batch colour system ─────────────────────────────────── */
@@ -53,7 +60,7 @@ const DEFAULT_THEME = {
   text: "text-slate-400",
 };
 
-/* ── Date formatter ──────────────────────────────────────── */
+/* ── Helpers ──────────────────────────────────────────────── */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -62,10 +69,86 @@ function formatDate(iso: string) {
   });
 }
 
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 /* ── Single Team Card ────────────────────────────────────── */
 export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+
+  /* ── 3D tilt + glare, driven by cursor position ── */
+  const px = useMotionValue(0.5);
+  const py = useMotionValue(0.5);
+  const rotateX = useSpring(useTransform(py, [0, 1], [9, -9]), {
+    stiffness: 260,
+    damping: 22,
+  });
+  const rotateY = useSpring(useTransform(px, [0, 1], [-9, 9]), {
+    stiffness: 260,
+    damping: 22,
+  });
+  const glareX = useTransform(px, (v) => `${v * 100}%`);
+  const glareY = useTransform(py, (v) => `${v * 100}%`);
+  const glareBackground = useTransform([glareX, glareY], ([gx, gy]) =>
+    `radial-gradient(circle at ${gx} ${gy}, ${theme.color}28, transparent 55%)`
+  );
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    px.set((e.clientX - rect.left) / rect.width);
+    py.set((e.clientY - rect.top) / rect.height);
+  }
+  function handleMouseLeave() {
+    setHovered(false);
+    px.set(0.5);
+    py.set(0.5);
+  }
+
+  /* ── GSAP scramble-reveal on the team name ── */
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el) return;
+    const finalText = team.team_name;
+
+    if (!hovered) {
+      gsap.killTweensOf(el);
+      el.innerText = finalText;
+      return;
+    }
+
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+";
+    const obj = { p: 0 };
+    const tween = gsap.to(obj, {
+      p: finalText.length,
+      duration: 0.5,
+      ease: "power2.out",
+      onUpdate: () => {
+        const revealed = Math.floor(obj.p);
+        el.innerText = finalText
+          .split("")
+          .map((c, i) =>
+            i < revealed || c === " " ? c : chars[Math.floor(Math.random() * chars.length)]
+          )
+          .join("");
+      },
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [hovered, team.team_name]);
 
   return (
     <motion.div
@@ -74,63 +157,69 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
       layout
+      style={{ perspective: 1200 }}
     >
       <motion.div
-        className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300"
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        onClick={() => setExpanded((v) => !v)}
         style={{
-          background: `linear-gradient(135deg, ${theme.bg}, rgba(6,12,26,0.8))`,
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          background: `linear-gradient(135deg, ${theme.bg}, rgba(6,12,26,0.85))`,
           borderColor: theme.border,
         }}
+        className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-shadow duration-300"
         whileHover={{
-          y: -6,
-          boxShadow: `0 20px 60px -10px ${theme.glow}, 0 0 0 1px ${theme.color}55`,
+          boxShadow: `0 24px 70px -12px ${theme.glow}, 0 0 0 1px ${theme.color}55`,
         }}
         transition={{ duration: 0.25 }}
-        onClick={() => setExpanded((v) => !v)}
       >
+        {/* Holographic glare that tracks the cursor */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: glareBackground }}
+        />
+
         {/* Top accent bar */}
         <div
           className="h-[3px] w-full"
           style={{ background: `linear-gradient(90deg, ${theme.color}, transparent)` }}
         />
 
-        {/* Glow orb */}
+        {/* Registration order badge — unique per card, replaces the constant "11 Players" pill */}
         <div
-          className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-20 blur-3xl transition-opacity duration-300 group-hover:opacity-40"
-          style={{ background: theme.color }}
-        />
+          className="absolute right-4 top-4 flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono-score text-[10px] tracking-widest"
+          style={{ borderColor: `${theme.color}30`, color: theme.color }}
+        >
+          <Hash size={10} /> {String(index + 1).padStart(2, "0")}
+        </div>
 
         <div className="p-6">
-          {/* Header row */}
-          <div className="mb-4 flex items-start justify-between gap-3">
-            {/* Batch badge */}
+          {/* Batch badge */}
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+            style={{
+              background: `${theme.color}18`,
+              border: `1px solid ${theme.color}40`,
+              color: theme.color,
+            }}
+          >
             <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
-              style={{
-                background: `${theme.color}18`,
-                border: `1px solid ${theme.color}40`,
-                color: theme.color,
-              }}
-            >
-              <span
-                className="h-1.5 w-1.5 animate-pulse rounded-full"
-                style={{ background: theme.color }}
-              />
-              {team.batch}
-            </span>
+              className="h-1.5 w-1.5 animate-pulse rounded-full"
+              style={{ background: theme.color }}
+            />
+            {team.batch}
+          </span>
 
-            {/* Expand chevron */}
-            <motion.div
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-0.5 text-ivory-500"
-            >
-              <ChevronDown size={16} />
-            </motion.div>
-          </div>
-
-          {/* Team name */}
-          <h3 className="mb-1 font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white">
+          {/* Team name — GSAP scrambles into place on hover */}
+          <h3
+            ref={nameRef}
+            className="mb-1 mt-4 font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white"
+          >
             {team.team_name}
           </h3>
 
@@ -140,25 +229,14 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             <span className="text-sm">Capt. {team.captain_name}</span>
           </div>
 
-          {/* Stats row */}
+          {/* Stats row — only info that actually varies between teams */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Player count */}
-            <div className="flex items-center gap-1.5 rounded-lg border border-white/8 bg-white/5 px-3 py-1.5">
-              <Users size={13} className="text-ivory-400" />
-              <span className="font-mono-score text-xs text-ivory-300">
-                {team.player_count} Players
-              </span>
-            </div>
-
-            {/* Female count */}
             <div className="flex items-center gap-1.5 rounded-lg border border-pink-400/20 bg-pink-400/5 px-3 py-1.5">
               <Shield size={13} className="text-pink-300" />
               <span className="font-mono-score text-xs text-pink-300">
                 {team.female_count} Female
               </span>
             </div>
-
-            {/* Date */}
             <div className="ml-auto flex items-center gap-1.5 text-ivory-500">
               <Calendar size={11} />
               <span className="font-mono-score text-[10px] tracking-wide">
@@ -166,9 +244,20 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
               </span>
             </div>
           </div>
+
+          {/* Expand hint */}
+          <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-ivory-500">
+            <motion.span
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown size={12} />
+            </motion.span>
+            {expanded ? "Hide Squad" : "View Full Squad"}
+          </div>
         </div>
 
-        {/* Expandable squad info */}
+        {/* Expandable — the real, per-team squad roster */}
         <AnimatePresence>
           {expanded && (
             <motion.div
@@ -180,34 +269,39 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             >
               <div
                 className="mx-6 mb-6 rounded-xl border p-4"
-                style={{
-                  background: "rgba(0,0,0,0.3)",
-                  borderColor: `${theme.color}20`,
-                }}
+                style={{ background: "rgba(0,0,0,0.3)", borderColor: `${theme.color}20` }}
               >
-                <p className="font-mono-score text-[10px] uppercase tracking-[0.3em] text-ivory-500">
-                  Squad Summary
+                <p className="mb-3 font-mono-score text-[10px] uppercase tracking-[0.3em] text-ivory-500">
+                  Full Squad ({team.players.length})
                 </p>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-ivory-500">Total Players</p>
-                    <p
-                      className="font-display text-2xl"
-                      style={{ color: theme.color }}
-                    >
-                      {team.player_count}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-ivory-500">Female Players</p>
-                    <p className="font-display text-2xl text-pink-300">
-                      {team.female_count}
-                    </p>
-                  </div>
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                  {team.players.map((p, i) => {
+                    const isCaptain = p.fullName === team.captain_name;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.025 }}
+                        className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1.5"
+                      >
+                        <span
+                          className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[9px] font-bold"
+                          style={{ background: `${theme.color}22`, color: theme.color }}
+                        >
+                          {initials(p.fullName)}
+                        </span>
+                        <span className="flex-1 truncate text-xs text-ivory-200">
+                          {p.fullName}
+                        </span>
+                        {isCaptain && <Crown size={11} className="shrink-0 text-gold-400" />}
+                        {p.gender === "female" && (
+                          <Shield size={10} className="shrink-0 text-pink-300" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-ivory-500">
-                  Click a team card to collapse the squad summary.
-                </p>
               </div>
             </motion.div>
           )}
