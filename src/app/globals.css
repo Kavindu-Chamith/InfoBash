@@ -165,6 +165,15 @@ body {
   background-size: 42px 42px;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* focus visibility */
 a:focus-visible,
 button:focus-visible,

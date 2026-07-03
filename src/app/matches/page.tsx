@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 
 export default function MatchesPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#060c1a]">
+    <main
+      className="relative bg-[#060c1a]"
+      style={{ height: "calc(100vh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column" }}
+    >
       {/* ── Background grid + glow ─────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0">
         <div
@@ -26,32 +29,31 @@ export default function MatchesPage() {
       </div>
 
       {/* ── Page header ────────────────────────────────────────── */}
-      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-12 pt-14 text-center">
+      <div className="relative z-10 shrink-0 border-b border-white/[0.06] px-6 pb-5 pt-8 text-center">
         <span className="font-mono-score text-[11px] uppercase tracking-[0.45em] text-gold-400">
           InfoBash V5.0 · Faculty of Computing · SUSL
         </span>
 
-        <h1 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
+        <h1 className="mt-2 font-display text-4xl tracking-wide text-ivory-50 sm:text-5xl">
           Match{" "}
           <span className="text-gradient-cyan">Bracket</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ivory-400">
-          Single-elimination knockout draw. Fixtures will be updated once the
-          official schedule is announced.
+        <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed text-ivory-400">
+          Single-elimination knockout draw. Fixtures will be updated once the official schedule is announced.
         </p>
 
         {/* Status badge */}
-        <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-gold-400/20 bg-gold-400/5 px-4 py-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-gold-400" />
-          <span className="font-mono-score text-xs tracking-widest text-gold-300">
+        <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold-400/20 bg-gold-400/5 px-4 py-1.5">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold-400" />
+          <span className="font-mono-score text-[10px] tracking-widest text-gold-300">
             Fixtures Coming Soon
           </span>
         </div>
       </div>
 
-      {/* ── Bracket ────────────────────────────────────────────── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6">
+      {/* ── Bracket — fills remaining space, no scroll ──────────── */}
+      <div className="relative z-10 flex flex-1 items-center justify-center overflow-hidden px-4 py-2 sm:px-6">
         <Bracket />
       </div>
     </main>

@@ -1,20 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Trophy } from "lucide-react";
+import { Clock } from "lucide-react";
 import gsap from "gsap";
 
-/* ── Isomorphic layout effect (avoids the SSR warning) ───────── */
+/* ── Isomorphic layout effect ─────────────────────────────── */
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-/* ── Bracket data ──────────────────────────────────────────────
-   Placeholder single-elimination draw. Once the official fixtures
-   are announced, replace `teamA` / `teamB` with real team objects
-   (e.g. { name: "Batch 21 Strikers" }) — the layout, spacing and
-   connector lines all recompute automatically, no matter the size
-   of each card or the viewport width.
-------------------------------------------------------------- */
+/* ── Types ─────────────────────────────────────────────────── */
 type Slot = { name: string } | null;
 
 interface MatchNode {
@@ -47,18 +42,18 @@ const ROUNDS = [0, 1, 2, 3].map((r) => MATCHES.filter((m) => m.round === r));
 function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   if (!team) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-3 py-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-        <span className="font-mono-score text-[10px] uppercase tracking-[0.25em] text-ivory-500">
+      <div className="flex items-center gap-2 rounded-md border border-dashed border-white/10 bg-white/[0.02] px-2.5 py-1.5">
+        <span className="h-1 w-1 rounded-full bg-white/20" />
+        <span className="font-mono-score text-[9px] uppercase tracking-[0.25em] text-ivory-400 opacity-60">
           TBD
         </span>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2">
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
-      <span className="truncate text-sm font-medium text-ivory-100">{team.name}</span>
+    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.05] px-2.5 py-1.5">
+      <span className="h-1 w-1 rounded-full" style={{ background: accent }} />
+      <span className="truncate text-xs font-medium text-ivory-100">{team.name}</span>
     </div>
   );
 }
@@ -76,27 +71,39 @@ function MatchCard({
   return (
     <motion.div
       ref={innerRef}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
-      whileHover={{ y: -3, transition: { duration: 0.18 } }}
-      className="glass-card w-60 shrink-0 rounded-2xl p-4 transition-colors sm:w-64"
-      style={{ borderColor: `${accent}30` }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
+      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+      className="relative w-44 shrink-0 rounded-xl p-3 transition-all"
+      style={{
+        background: "linear-gradient(145deg, rgba(16,28,66,0.85), rgba(8,14,36,0.9))",
+        border: `1px solid ${accent}28`,
+        backdropFilter: "blur(14px)",
+        boxShadow: `0 0 20px -8px ${accent}30, inset 0 1px 0 rgba(255,255,255,0.04)`,
+      }}
     >
-      <div className="mb-3 flex items-center justify-between">
+      {/* Top accent bar */}
+      <div
+        className="absolute inset-x-0 top-0 h-[2px] rounded-t-xl"
+        style={{ background: `linear-gradient(90deg, ${accent}80, transparent)` }}
+      />
+
+      <div className="mb-2 flex items-center justify-between">
         <span
-          className="font-mono-score text-[10px] uppercase tracking-[0.3em]"
+          className="font-mono-score text-[9px] uppercase tracking-[0.3em]"
           style={{ color: accent }}
         >
           {match.label}
         </span>
-        <Clock size={11} className="text-ivory-500" />
+        <Clock size={9} className="text-ivory-400 opacity-50" />
       </div>
-      <div className="space-y-2">
+
+      <div className="space-y-1.5">
         <TeamSlot team={match.teamA} accent={accent} />
-        <div className="flex items-center justify-center">
-          <span className="font-mono-score text-[9px] tracking-widest text-ivory-600">VS</span>
+        <div className="flex items-center justify-center py-0.5">
+          <span className="font-mono-score text-[8px] tracking-widest text-ivory-400 opacity-40">VS</span>
         </div>
         <TeamSlot team={match.teamB} accent={accent} />
       </div>
@@ -104,17 +111,18 @@ function MatchCard({
   );
 }
 
-/* ── Champion card (GSAP-driven glow + spin) ─────────────────── */
+/* ── Champion card ───────────────────────────────────────────── */
 function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => void }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<SVGSVGElement>(null);
+  const trophyRef = useRef<HTMLDivElement>(null);
 
   useIsoLayoutEffect(() => {
     const glowTween = glowRef.current
       ? gsap.to(glowRef.current, {
-          opacity: 0.9,
-          scale: 1.15,
-          duration: 1.8,
+          opacity: 0.95,
+          scale: 1.2,
+          duration: 2,
           ease: "sine.inOut",
           repeat: -1,
           yoyo: true,
@@ -125,54 +133,106 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
       ? gsap.to(ringRef.current, {
           rotate: 360,
           transformOrigin: "50% 50%",
-          duration: 16,
+          duration: 14,
           ease: "none",
           repeat: -1,
+        })
+      : null;
+
+    const trophyTween = trophyRef.current
+      ? gsap.to(trophyRef.current, {
+          y: -6,
+          duration: 2.5,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
         })
       : null;
 
     return () => {
       glowTween?.kill();
       ringTween?.kill();
+      trophyTween?.kill();
     };
   }, []);
 
   return (
     <motion.div
       ref={innerRef}
-      initial={{ opacity: 0, scale: 0.85 }}
+      initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-60px" }}
+      viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-      className="relative flex w-60 shrink-0 flex-col items-center gap-3 sm:w-64"
+      className="relative flex w-44 shrink-0 flex-col items-center gap-2"
     >
+      {/* Outer glow pulse */}
       <div
         ref={glowRef}
-        className="pointer-events-none absolute h-32 w-32 rounded-full bg-gold-400/25 opacity-60 blur-[42px]"
+        className="pointer-events-none absolute top-0 h-24 w-24 rounded-full opacity-60 blur-[36px]"
+        style={{ background: "radial-gradient(circle, #f5b94280, #f59b0040)" }}
       />
+
+      {/* Spinning ring */}
       <svg
         ref={ringRef}
         viewBox="0 0 100 100"
-        className="pointer-events-none absolute h-28 w-28 opacity-40"
+        className="pointer-events-none absolute top-0 h-24 w-24 opacity-50"
       >
         <circle
           cx="50"
           cy="50"
           r="46"
           fill="none"
-          stroke="#f5b942"
-          strokeWidth="1"
-          strokeDasharray="4 8"
+          stroke="url(#goldGrad)"
+          strokeWidth="1.2"
+          strokeDasharray="3 7"
         />
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f5b942" stopOpacity="1" />
+            <stop offset="50%" stopColor="#ffd479" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#f5b942" stopOpacity="1" />
+          </linearGradient>
+        </defs>
       </svg>
-      <div className="glass-card relative grid h-20 w-20 place-items-center rounded-full border-gold-400/40">
-        <Trophy size={30} className="text-gold-400" />
+
+      {/* Trophy circle */}
+      <div
+        className="relative grid h-20 w-20 place-items-center rounded-full"
+        style={{
+          background: "radial-gradient(circle at 40% 35%, rgba(245,185,66,0.18), rgba(10,17,40,0.95))",
+          border: "1px solid rgba(245,185,66,0.4)",
+          boxShadow: "0 0 30px -8px rgba(245,185,66,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+        }}
+      >
+        <div ref={trophyRef} className="relative h-12 w-12">
+          <Image
+            src="/images/Trophy.png"
+            alt="Trophy"
+            fill
+            sizes="48px"
+            className="object-contain drop-shadow-[0_0_12px_rgba(245,185,66,0.8)]"
+          />
+        </div>
       </div>
-      <div className="glass-card w-full rounded-2xl border-gold-400/30 px-4 py-3 text-center">
-        <p className="font-mono-score text-[10px] uppercase tracking-[0.3em] text-gold-400">
+
+      {/* Winner info card */}
+      <div
+        className="w-full rounded-xl px-3 py-2.5 text-center"
+        style={{
+          background: "linear-gradient(145deg, rgba(16,28,66,0.9), rgba(8,14,36,0.95))",
+          border: "1px solid rgba(245,185,66,0.3)",
+          boxShadow: "0 0 24px -8px rgba(245,185,66,0.25), inset 0 1px 0 rgba(255,255,255,0.04)",
+        }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-[2px] rounded-t-xl"
+          style={{ background: "linear-gradient(90deg, #f5b94280, transparent)" }}
+        />
+        <p className="font-mono-score text-[9px] uppercase tracking-[0.3em] text-gold-400">
           Winner
         </p>
-        <p className="mt-1 font-display text-xl tracking-wide text-ivory-100">TBD</p>
+        <p className="mt-0.5 font-display text-lg tracking-wide text-ivory-100">TBD</p>
       </div>
     </motion.div>
   );
@@ -229,7 +289,7 @@ export default function Bracket() {
 
   useIsoLayoutEffect(() => {
     computePaths();
-    const settleTimeout = window.setTimeout(computePaths, 250); // let fonts/layout settle
+    const settleTimeout = window.setTimeout(computePaths, 250);
     const ro = new ResizeObserver(() => computePaths());
     if (containerRef.current) ro.observe(containerRef.current);
     window.addEventListener("resize", computePaths);
@@ -241,20 +301,55 @@ export default function Bracket() {
   }, [computePaths]);
 
   return (
-    <div ref={containerRef} className="relative overflow-x-auto pb-4">
+    <div
+      ref={containerRef}
+      className="relative"
+      style={{ overflow: "hidden" }}
+    >
+      {/* SVG connector lines with glow */}
       <svg
         className="pointer-events-none absolute left-0 top-0"
         width={dims.width}
         height={dims.height}
         style={{ opacity: paths.length ? 1 : 0, transition: "opacity 0.4s ease" }}
       >
+        <defs>
+          {ROUND_ACCENTS.map((accent, i) => (
+            <filter key={i} id={`glow-${i}`}>
+              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          ))}
+        </defs>
+
+        {/* Glow layer */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={`glow-${p.id}`}
+            d={p.d}
+            fill="none"
+            stroke={p.accent}
+            strokeOpacity={0.25}
+            strokeWidth={4}
+            filter={`url(#glow-${i % 4})`}
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
+          />
+        ))}
+
+        {/* Crisp line layer */}
         {paths.map((p) => (
           <motion.path
             key={p.id}
             d={p.d}
             fill="none"
             stroke={p.accent}
-            strokeOpacity={0.45}
+            strokeOpacity={0.7}
             strokeWidth={1.5}
             initial={{ pathLength: 0 }}
             whileInView={{ pathLength: 1 }}
@@ -262,18 +357,47 @@ export default function Bracket() {
             transition={{ duration: 0.7, ease: "easeInOut" }}
           />
         ))}
+
+        {/* Animated travelling dash highlight */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={`travel-${p.id}`}
+            d={p.d}
+            fill="none"
+            stroke={p.accent}
+            strokeOpacity={0.9}
+            strokeWidth={2}
+            strokeDasharray="6 200"
+            initial={{ strokeDashoffset: 0 }}
+            animate={{ strokeDashoffset: -300 }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "linear", delay: i * 0.35 }}
+          />
+        ))}
       </svg>
 
-      <div className="relative flex min-w-max gap-16 px-6 py-4 sm:gap-24">
+      {/* Rounds */}
+      <div className="relative flex min-w-max items-center gap-10 px-4 py-2 sm:gap-14">
         {ROUNDS.map((round, ri) => (
-          <div key={ri} className="flex flex-col items-center gap-3">
-            <span
-              className="mb-2 font-mono-score text-[11px] uppercase tracking-[0.35em]"
-              style={{ color: ROUND_ACCENTS[ri] }}
-            >
-              {ROUND_TITLES[ri]}
-            </span>
-            <div className="flex flex-1 flex-col justify-around gap-10">
+          <div key={ri} className="flex flex-col items-center gap-2">
+            {/* Round title */}
+            <div className="mb-1 flex items-center gap-1.5">
+              <div
+                className="h-px w-4"
+                style={{ background: `linear-gradient(90deg, transparent, ${ROUND_ACCENTS[ri]})` }}
+              />
+              <span
+                className="font-mono-score text-[9px] uppercase tracking-[0.35em]"
+                style={{ color: ROUND_ACCENTS[ri] }}
+              >
+                {ROUND_TITLES[ri]}
+              </span>
+              <div
+                className="h-px w-4"
+                style={{ background: `linear-gradient(90deg, ${ROUND_ACCENTS[ri]}, transparent)` }}
+              />
+            </div>
+
+            <div className="flex flex-1 flex-col justify-around gap-6">
               {round.map((match) =>
                 match.champion ? (
                   <ChampionCard key={match.id} innerRef={getRefCallback(match.id)} />
