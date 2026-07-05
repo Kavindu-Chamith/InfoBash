@@ -23,10 +23,10 @@ interface MatchNode {
 }
 
 const ROUND_TITLES = ["Quarterfinals", "Semifinals", "Final", "Champion"];
-const ROUND_ACCENTS = ["#35d7ff", "#3f82ff", "#f5b942", "#f5b942"];
-const CONNECTOR_BLUE = "#2f7dff";
-const CARD_BORDER = "rgba(53, 130, 255, 0.55)";
-const CARD_BORDER_GLOW = "rgba(47, 125, 255, 0.35)";
+const ROUND_ACCENTS = ["#f5b942", "#f5b942", "#f5b942", "#f5b942"];
+const CONNECTOR_GOLD = "#f5b942";
+const CARD_BORDER = "rgba(245, 185, 66, 0.45)";
+const CARD_BORDER_GLOW = "rgba(245, 185, 66, 0.25)";
 
 const MATCHES: MatchNode[] = [
   { id: "qf1", round: 0, label: "Game 1", teamA: null, teamB: null, feeds: "sf1" },
@@ -145,27 +145,23 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-      className="relative flex shrink-0 items-center gap-4"
+      className="relative w-44 shrink-0"
     >
       {/* ── Winner card (left — connector line feeds into its left edge) ── */}
       <div
-        className="relative w-44 shrink-0 rounded-xl px-4 py-3 text-center"
+        className="w-full rounded-xl px-4 py-3 text-center"
         style={{
           background: "linear-gradient(145deg, rgba(16,28,66,0.9), rgba(8,14,36,0.95))",
-          border: "1px solid rgba(245,185,66,0.4)",
-          boxShadow: "0 0 28px -8px rgba(245,185,66,0.28), inset 0 1px 0 rgba(255,255,255,0.04)",
+          border: `1px solid ${CARD_BORDER}`,
+          boxShadow: `0 0 28px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}
       >
-        <div
-          className="absolute inset-x-0 top-0 h-[2px] rounded-t-xl"
-          style={{ background: "linear-gradient(90deg, #f5b94280, transparent)" }}
-        />
-        <p className="font-mono-score text-[10px] uppercase tracking-[0.3em] text-gold-400">Winner</p>
+        <p className="font-mono-score text-[10px] uppercase tracking-[0.3em]" style={{ color: "#f5b942" }}>Winner</p>
         <p className="mt-1 font-display text-xl tracking-wide text-ivory-100">TBD</p>
       </div>
 
-      {/* ── Trophy (right of winner card) ── glow + ring share same 80×80 box ── */}
-      <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+      {/* ── Trophy (right of winner card) ── absolute positioned to sit outside layout flow ── */}
+      <div className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 flex h-20 w-20 shrink-0 items-center justify-center">
         {/* Pulsing glow fills the box */}
         <div
           ref={glowRef}
@@ -242,16 +238,16 @@ export default function Bracket() {
     for (const match of MATCHES) {
       if (!match.feeds) continue;
       const fromEl = nodeRefs.current.get(match.id);
-      const toEl   = nodeRefs.current.get(match.feeds);
+      const toEl = nodeRefs.current.get(match.feeds);
       if (!fromEl || !toEl) continue;
 
       const fRect = fromEl.getBoundingClientRect();
       const tRect = toEl.getBoundingClientRect();
 
-      const ax = fRect.right  - cRect.left + container.scrollLeft;
-      const ay = fRect.top + fRect.height / 2 - cRect.top  + container.scrollTop;
-      const tx = tRect.left   - cRect.left + container.scrollLeft;
-      const ty = tRect.top + tRect.height / 2 - cRect.top  + container.scrollTop;
+      const ax = fRect.right - cRect.left + container.scrollLeft;
+      const ay = fRect.top + fRect.height / 2 - cRect.top + container.scrollTop;
+      const tx = tRect.left - cRect.left + container.scrollLeft;
+      const ty = tRect.top + tRect.height / 2 - cRect.top + container.scrollTop;
 
       next.push({ id: `${match.id}-${match.feeds}`, d: buildElbow(ax, ay, tx, ty) });
     }
@@ -277,42 +273,78 @@ export default function Bracket() {
         style={{ opacity: paths.length ? 1 : 0, transition: "opacity 0.4s ease" }}
       >
         <defs>
-          <filter id="lineGlow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-            <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          {/* Outer diffuse glow — large stdDeviation for a wide bloom */}
+          <filter id="outerGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+          </filter>
+          {/* Mid bloom — tighter, brighter core glow */}
+          <filter id="midGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
           </filter>
         </defs>
 
-        {/* Glow backing */}
-        {paths.map((p) => (
-          <motion.path
-            key={`glow-${p.id}`} d={p.d} fill="none"
-            stroke={CONNECTOR_BLUE} strokeOpacity={0.3} strokeWidth={8}
-            strokeLinecap="round" filter="url(#lineGlow)"
-            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }}
-            viewport={{ once: true }} transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-        ))}
-
-        {/* Crisp line */}
-        {paths.map((p) => (
-          <motion.path
-            key={p.id} d={p.d} fill="none"
-            stroke={CONNECTOR_BLUE} strokeOpacity={0.9} strokeWidth={2.5}
-            strokeLinecap="round"
-            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }}
-            viewport={{ once: true }} transition={{ duration: 0.7, ease: "easeInOut" }}
-          />
-        ))}
-
-        {/* Travelling flash */}
+        {/* ── Layer 1: outer wide diffuse bloom ── */}
         {paths.map((p, i) => (
           <motion.path
-            key={`travel-${p.id}`} d={p.d} fill="none"
-            stroke="#bfe8ff" strokeOpacity={0.9} strokeWidth={2.5}
-            strokeLinecap="round" strokeDasharray="10 220"
-            initial={{ strokeDashoffset: 0 }} animate={{ strokeDashoffset: -320 }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "linear", delay: i * 0.35 }}
+            key={`bloom-${p.id}`} d={p.d} fill="none"
+            stroke="#f5b942" strokeOpacity={0.45} strokeWidth={2.5}
+            strokeLinecap="round" filter="url(#outerGlow)"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.06, ease: "easeOut" }}
+          />
+        ))}
+
+        {/* ── Layer 2: mid core bloom ── */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={`mid-${p.id}`} d={p.d} fill="none"
+            stroke="#ffd479" strokeOpacity={0.75} strokeWidth={2.5}
+            strokeLinecap="round" filter="url(#midGlow)"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.06, ease: "easeOut" }}
+          />
+        ))}
+
+        {/* ── Layer 3: bright crisp core ── */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={p.id} d={p.d} fill="none"
+            stroke="#ffe099" strokeOpacity={1} strokeWidth={2.5}
+            strokeLinecap="round"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.06, ease: "easeOut" }}
+          />
+        ))}
+
+        {/* ── Layer 4: white-hot center thread ── */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={`hot-${p.id}`} d={p.d} fill="none"
+            stroke="rgba(255,255,255,0.75)" strokeWidth={2.5}
+            strokeLinecap="round"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.06, ease: "easeOut" }}
+          />
+        ))}
+
+        {/* ── Layer 5: travelling shimmer dash ── */}
+        {paths.map((p, i) => (
+          <motion.path
+            key={`shimmer-${p.id}`} d={p.d} fill="none"
+            stroke="#ffffff" strokeOpacity={0.95} strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeDasharray="14 260"
+            initial={{ strokeDashoffset: 20 }}
+            animate={{ strokeDashoffset: -360 }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "linear", delay: i * 0.4 }}
           />
         ))}
       </svg>
