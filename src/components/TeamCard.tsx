@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   motion,
   AnimatePresence,
@@ -9,7 +9,6 @@ import {
   useSpring,
 } from "framer-motion";
 import { Star, Shield, ChevronDown, Calendar, Crown } from "lucide-react";
-import gsap from "gsap";
 import type { PublicTeam } from "@/app/api/teams/route";
 
 /* ── Batch colour system ─────────────────────────────────── */
@@ -81,11 +80,9 @@ function initials(name: string) {
 /* ── Single Team Card ────────────────────────────────────── */
 export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   const [expanded, setExpanded] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
 
   const cardRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLHeadingElement>(null);
 
   /* ── 3D tilt + glare, driven by cursor position ── */
   const px = useMotionValue(0.5);
@@ -111,44 +108,9 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
     py.set((e.clientY - rect.top) / rect.height);
   }
   function handleMouseLeave() {
-    setHovered(false);
     px.set(0.5);
     py.set(0.5);
   }
-
-  /* ── GSAP scramble-reveal on the team name ── */
-  useEffect(() => {
-    const el = nameRef.current;
-    if (!el) return;
-    const finalText = team.team_name;
-
-    if (!hovered) {
-      gsap.killTweensOf(el);
-      el.innerText = finalText;
-      return;
-    }
-
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+";
-    const obj = { p: 0 };
-    const tween = gsap.to(obj, {
-      p: finalText.length,
-      duration: 0.5,
-      ease: "power2.out",
-      onUpdate: () => {
-        const revealed = Math.floor(obj.p);
-        el.innerText = finalText
-          .split("")
-          .map((c, i) =>
-            i < revealed || c === " " ? c : chars[Math.floor(Math.random() * chars.length)]
-          )
-          .join("");
-      },
-    });
-
-    return () => {
-      tween.kill();
-    };
-  }, [hovered, team.team_name]);
 
   return (
     <motion.div
@@ -162,7 +124,6 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
-        onMouseEnter={() => setHovered(true)}
         onMouseLeave={handleMouseLeave}
         onClick={() => setExpanded((v) => !v)}
         style={{
@@ -184,11 +145,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
           style={{ background: glareBackground }}
         />
 
-        {/* Top accent bar */}
-        <div
-          className="h-[3px] w-full"
-          style={{ background: `linear-gradient(90deg, ${theme.color}, transparent)` }}
-        />
+
 
         <div className="p-6">
           {/* Batch badge */}
@@ -207,9 +164,8 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             {team.batch}
           </span>
 
-          {/* Team name — GSAP scrambles into place on hover */}
+          {/* Team name */}
           <h3
-            ref={nameRef}
             className="mb-1 mt-4 font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white"
           >
             {team.team_name}
