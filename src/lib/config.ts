@@ -5,7 +5,7 @@ export const TOURNAMENT_DATE = new Date("2026-09-19T08:00:00+05:30");
 export const TOURNAMENT_INFO = {
   edition: "v5.0",
   format: "One-day, knockout, tape-ball cricket",
-  venue: "Faculty of Computing Grounds, Sabaragamuwa University of Sri Lanka",
+  venue: "Hunduwa Ground, Sabaragamuwa University of Sri Lanka",
   teamsExpected: "10 – 15 teams",
   squadSize: 11,
   minFemalePlayers: 2,
