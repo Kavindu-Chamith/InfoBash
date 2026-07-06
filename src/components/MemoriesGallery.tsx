@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 
@@ -19,7 +19,7 @@ const MEMORIES: Memory[] = [
     title: "Inaugural Lighting",
     description: "Traditional oil lamp ceremony to open InfoBash.",
     src: "/images/gallery-1.jpg",
-    span: "col-span-1 row-span-2 md:row-span-2",
+    span: "col-span-1 row-span-1 md:row-span-2",
   },
   {
     id: 2,
@@ -61,13 +61,41 @@ const MEMORIES: Memory[] = [
     title: "Official Kits",
     description: "Player jersey displaying sponsors and tournament branding.",
     src: "/images/gallery-7.jpg",
-    span: "col-span-1 row-span-1",
+    span: "col-span-1 row-span-1 md:row-span-2",
   },
   {
     id: 8,
     title: "Grand Finale",
     description: "Teams and spectators gathering at the main pavilion.",
     src: "/images/gallery-8.jpg",
+    span: "col-span-1 row-span-1",
+  },
+  {
+    id: 9,
+    title: "Field Action",
+    description: "High-intensity athletic moments on the pitch.",
+    src: "/images/gallery-9.jpg",
+    span: "col-span-1 row-span-1 md:row-span-2",
+  },
+  {
+    id: 10,
+    title: "Co-Working Hub",
+    description: "Developing the tournament's live scoring app.",
+    src: "/images/gallery-10.jpg",
+    span: "col-span-1 row-span-1",
+  },
+  {
+    id: 11,
+    title: "Cheering Fans",
+    description: "Spectators bringing unmatched energy to the stands.",
+    src: "/images/gallery-11.jpg",
+    span: "col-span-1 row-span-1",
+  },
+  {
+    id: 12,
+    title: "Keynote Address",
+    description: "Chief guest delivering the opening remarks.",
+    src: "/images/gallery-12.jpg",
     span: "col-span-1 row-span-1",
   },
 ];
@@ -93,8 +121,6 @@ function CricketOverlay() {
 
 /* ── Single tile ───────────────────────────────────────────── */
 function Tile({ memory, index }: { memory: Memory; index: number }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <motion.div
       className={`group relative cursor-pointer overflow-hidden rounded-2xl border border-white/5 bg-navy-900/40 ${memory.span}`}
@@ -102,8 +128,6 @@ function Tile({ memory, index }: { memory: Memory; index: number }) {
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, margin: "-30px" }}
       transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
       whileHover={{ scale: 1.015, transition: { duration: 0.3 } }}
     >
       {/* Background image */}
@@ -114,21 +138,6 @@ function Tile({ memory, index }: { memory: Memory; index: number }) {
         className="object-cover filter grayscale contrast-110 brightness-95 transition-all duration-500 ease-in-out group-hover:grayscale-0 group-hover:scale-105 group-hover:brightness-100"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
-
-      {/* Bottom fade for captions - fades in on hover */}
-      <div 
-        className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 opacity-0 group-hover:opacity-100" 
-      />
-
-      {/* Title & Description - fades and slides in on hover */}
-      <div className="absolute inset-x-0 bottom-0 p-5 z-20 flex flex-col justify-end translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
-        <h3 className="font-sans font-bold text-lg text-white tracking-wide leading-tight">
-          {memory.title}
-        </h3>
-        <p className="font-sans text-xs text-ivory-200 mt-1 font-normal leading-relaxed">
-          {memory.description}
-        </p>
-      </div>
 
       {/* Glow border on hover */}
       <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/0 group-hover:border-cyan-400/30 transition-colors duration-300" />
