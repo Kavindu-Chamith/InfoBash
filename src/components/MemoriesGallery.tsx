@@ -2,120 +2,72 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Camera, ZoomIn } from "lucide-react";
 import Image from "next/image";
 
 /* ── Memory tile data ──────────────────────────────────────── */
 interface Memory {
   id: number;
-  year: string;
-  caption: string;
-  src: string | null;
-  gradient: string;
-  /** Responsive Tailwind grid span classes */
+  title: string;
+  description: string;
+  src: string;
   span: string;
 }
 
 const MEMORIES: Memory[] = [
-  /* ── Group 1: Bento block (rows 1-3) ── */
   {
     id: 1,
-    year: "InfoBash IV",
-    caption: "Champions lift the trophy",
-    src: null,
-    gradient: "from-blue-900 via-blue-800 to-cyan-700",
-    span: "col-span-2 row-span-2 sm:row-span-3",
+    title: "Inaugural Lighting",
+    description: "Traditional oil lamp ceremony to open InfoBash.",
+    src: "/images/gallery-1.jpg",
+    span: "col-span-1 row-span-2 md:row-span-2",
   },
   {
     id: 2,
-    year: "InfoBash IV",
-    caption: "Opening ceremony",
-    src: null,
-    gradient: "from-indigo-900 via-violet-800 to-purple-800",
+    title: "Strategic Planning",
+    description: "Students collaborating on match statistics and line-ups.",
+    src: "/images/gallery-2.jpg",
     span: "col-span-1 row-span-1",
   },
   {
     id: 3,
-    year: "InfoBash IV",
-    caption: "Wicket celebrations",
-    src: null,
-    gradient: "from-sky-900 via-blue-800 to-indigo-800",
-    span: "col-span-1 row-span-2 sm:row-span-3",
+    title: "Committee Briefing",
+    description: "Organizing committee finalizing event logistics.",
+    src: "/images/gallery-3.jpg",
+    span: "col-span-1 row-span-1",
   },
   {
     id: 4,
-    year: "InfoBash III",
-    caption: "Match-winning six",
-    src: null,
-    gradient: "from-cyan-900 via-teal-800 to-emerald-800",
+    title: "Team Showcase",
+    description: "Confident innovators ready to make an impact.",
+    src: "/images/gallery-4.jpg",
     span: "col-span-1 row-span-1",
   },
   {
     id: 5,
-    year: "InfoBash III",
-    caption: "The tense final over",
-    src: null,
-    gradient: "from-slate-800 via-blue-900 to-cyan-900",
+    title: "Guests Dinner",
+    description: "Dignitaries and guests enjoying the post-tournament banquet.",
+    src: "/images/gallery-5.jpg",
     span: "col-span-1 row-span-1",
   },
-
-  /* ── Group 2: Medium row (rows 4-5) ── */
   {
     id: 6,
-    year: "InfoBash III",
-    caption: "Fielding masterclass",
-    src: null,
-    gradient: "from-blue-950 via-indigo-900 to-blue-800",
-    span: "col-span-1 row-span-1 sm:row-span-2",
+    title: "Champions Parade",
+    description: "InfoBash tournament winners celebrating with the trophy.",
+    src: "/images/gallery-6.jpg",
+    span: "col-span-1 row-span-1",
   },
   {
     id: 7,
-    year: "InfoBash II",
-    caption: "Team photo — Batch 2022",
-    src: null,
-    gradient: "from-[#0d1340] via-slate-800 to-blue-900",
-    span: "col-span-2 row-span-1 sm:row-span-2",
+    title: "Official Kits",
+    description: "Player jersey displaying sponsors and tournament branding.",
+    src: "/images/gallery-7.jpg",
+    span: "col-span-1 row-span-1",
   },
   {
     id: 8,
-    year: "InfoBash II",
-    caption: "Victory lap",
-    src: null,
-    gradient: "from-indigo-950 via-blue-900 to-cyan-900",
-    span: "col-span-1 row-span-1 sm:row-span-2",
-  },
-
-  /* ── Group 3: Small strip (row 6) ── */
-  {
-    id: 9,
-    year: "InfoBash II",
-    caption: "Crowd goes wild",
-    src: null,
-    gradient: "from-blue-900 via-cyan-900 to-teal-900",
-    span: "col-span-1 row-span-1",
-  },
-  {
-    id: 10,
-    year: "InfoBash I",
-    caption: "The first edition",
-    src: null,
-    gradient: "from-purple-900 via-indigo-900 to-blue-900",
-    span: "col-span-1 row-span-1",
-  },
-  {
-    id: 11,
-    year: "InfoBash I",
-    caption: "The inaugural trophy",
-    src: null,
-    gradient: "from-slate-900 via-blue-950 to-indigo-900",
-    span: "col-span-1 row-span-1",
-  },
-  {
-    id: 12,
-    year: "InfoBash I",
-    caption: "Where it all began",
-    src: null,
-    gradient: "from-cyan-950 via-blue-900 to-slate-900",
+    title: "Grand Finale",
+    description: "Teams and spectators gathering at the main pavilion.",
+    src: "/images/gallery-8.jpg",
     span: "col-span-1 row-span-1",
   },
 ];
@@ -145,83 +97,41 @@ function Tile({ memory, index }: { memory: Memory; index: number }) {
 
   return (
     <motion.div
-      className={`group relative cursor-pointer overflow-hidden rounded-2xl ${memory.span}`}
-      initial={{ opacity: 0, scale: 0.93, y: 18 }}
+      className={`group relative cursor-pointer overflow-hidden rounded-2xl border border-white/5 bg-navy-900/40 ${memory.span}`}
+      initial={{ opacity: 0, scale: 0.95, y: 15 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, margin: "-30px" }}
-      transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
+      transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
-      whileHover={{ scale: 1.025, transition: { duration: 0.25 } }}
+      whileHover={{ scale: 1.015, transition: { duration: 0.3 } }}
     >
-      {/* Background — real photo or gradient placeholder */}
-      {memory.src ? (
-        <Image
-          src={memory.src}
-          alt={memory.caption}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-          sizes="(max-width: 640px) 50vw, 25vw"
-        />
-      ) : (
-        <div className={`absolute inset-0 bg-gradient-to-br ${memory.gradient}`}>
-          <CricketOverlay />
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-25">
-            <Camera size={28} className="text-white" />
-            <span className="font-mono-score text-[9px] uppercase tracking-widest text-white">
-              Photo Coming Soon
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom fade for captions */}
-      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-      {/* Hover: cyan tint */}
-      <motion.div
-        className="absolute inset-0 bg-cyan-400/8 backdrop-blur-[0.5px]"
-        animate={{ opacity: hovered ? 1 : 0 }}
-        transition={{ duration: 0.2 }}
+      {/* Background image */}
+      <Image
+        src={memory.src}
+        alt={memory.title}
+        fill
+        className="object-cover filter grayscale contrast-110 brightness-95 transition-all duration-500 ease-in-out group-hover:grayscale-0 group-hover:scale-105 group-hover:brightness-100"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
 
-      {/* Zoom icon */}
-      <motion.div
-        className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm"
-        animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.6 }}
-        transition={{ duration: 0.2 }}
-      >
-        <ZoomIn size={13} className="text-white" />
-      </motion.div>
+      {/* Bottom fade for captions - fades in on hover */}
+      <div 
+        className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 opacity-0 group-hover:opacity-100" 
+      />
 
-      {/* Year badge */}
-      <div className="absolute left-2.5 top-2.5 rounded-full border border-cyan-400/25 bg-black/40 px-2 py-0.5 backdrop-blur-sm">
-        <span className="font-mono-score text-[9px] uppercase tracking-widest text-cyan-300">
-          {memory.year}
-        </span>
+      {/* Title & Description - fades and slides in on hover */}
+      <div className="absolute inset-x-0 bottom-0 p-5 z-20 flex flex-col justify-end translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+        <h3 className="font-sans font-bold text-lg text-white tracking-wide leading-tight">
+          {memory.title}
+        </h3>
+        <p className="font-sans text-xs text-ivory-200 mt-1 font-normal leading-relaxed">
+          {memory.description}
+        </p>
       </div>
 
-      {/* Caption */}
-      <motion.div
-        className="absolute inset-x-0 bottom-0 p-3"
-        animate={{ y: hovered ? 0 : 5, opacity: hovered ? 1 : 0.7 }}
-        transition={{ duration: 0.2 }}
-      >
-        <p className="font-display text-xs tracking-wide text-ivory-50 drop-shadow-lg sm:text-sm">
-          {memory.caption}
-        </p>
-      </motion.div>
-
-      {/* Glow border */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 rounded-2xl"
-        animate={{
-          boxShadow: hovered
-            ? "0 0 0 1.5px rgba(53,215,255,0.5)"
-            : "0 0 0 0px rgba(53,215,255,0)",
-        }}
-        transition={{ duration: 0.2 }}
-      />
+      {/* Glow border on hover */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/0 group-hover:border-cyan-400/30 transition-colors duration-300" />
     </motion.div>
   );
 }
@@ -276,7 +186,7 @@ export default function MemoriesGallery() {
           │  9   │  10   │  11   │  12   │  row 6
           └──────┴───────┴───────┴───────┘
         */}
-        <div className="grid auto-rows-[140px] grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <div className="grid auto-rows-[200px] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {MEMORIES.map((memory, i) => (
             <Tile key={memory.id} memory={memory} index={i} />
           ))}
