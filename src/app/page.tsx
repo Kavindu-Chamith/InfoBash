@@ -293,41 +293,115 @@ export default function Home() {
                 icon: CalendarDays,
                 title: "One-Day Format",
                 desc: "A fast-paced, single-day knockout tournament — every over counts.",
+                accent: "from-cyan-400/20 to-blue-500/20",
+                glow: "rgba(53,215,255,0.35)",
+                iconColor: "text-cyan-300",
+                iconBg: "from-cyan-500/25 to-blue-600/25",
+                borderGlow: "rgba(53,215,255,0.5)",
               },
               {
                 icon: Users,
                 title: "11-A-Side Squads",
                 desc: "Full teams of 11 players, with at least 2 female players required per squad.",
+                accent: "from-gold-400/20 to-gold-300/10",
+                glow: "rgba(245,185,66,0.35)",
+                iconColor: "text-gold-300",
+                iconBg: "from-gold-400/25 to-gold-300/15",
+                borderGlow: "rgba(245,185,66,0.5)",
               },
               {
                 icon: ShieldCheck,
                 title: "4 Batches Compete",
                 desc: "2–3 teams register per batch, bringing rival years head-to-head.",
+                accent: "from-cyan-400/20 to-blue-500/20",
+                glow: "rgba(53,215,255,0.35)",
+                iconColor: "text-cyan-300",
+                iconBg: "from-cyan-500/25 to-blue-600/25",
+                borderGlow: "rgba(53,215,255,0.5)",
               },
               {
                 icon: Trophy,
                 title: "The InfoBash Trophy",
                 desc: "One champion team lifts the trophy and the faculty's respect.",
+                accent: "from-gold-400/20 to-gold-300/10",
+                glow: "rgba(245,185,66,0.35)",
+                iconColor: "text-gold-300",
+                iconBg: "from-gold-400/25 to-gold-300/15",
+                borderGlow: "rgba(245,185,66,0.5)",
               },
             ].map((f, i) => (
               <motion.div
                 key={f.title}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -5, transition: { duration: 0.18 } }}
-                className="glass-card rounded-2xl p-6 transition-colors hover:border-cyan-400/40"
+                transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ y: -6, transition: { duration: 0.22 } }}
+                className="group relative overflow-hidden rounded-2xl border border-white/8 cursor-pointer"
+                style={{
+                  background: "linear-gradient(145deg, rgba(13,19,52,0.95) 0%, rgba(8,13,38,0.98) 100%)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+                }}
               >
-                <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-400/20 text-cyan-300">
-                  <f.icon size={22} />
+                {/* Starfield dot pattern — hidden by default, spreads from bottom-left corner on hover */}
+                <div
+                  className="absolute inset-0 transition-all duration-700 ease-out"
+                  style={{
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+                    backgroundSize: "22px 22px",
+                    WebkitMaskImage: "radial-gradient(ellipse 0% 0% at 0% 100%, black 0%, transparent 70%)",
+                    maskImage: "radial-gradient(ellipse 0% 0% at 0% 100%, black 0%, transparent 70%)",
+                  }}
+                />
+                {/* Dot spread layer — expands on hover */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out"
+                  style={{
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+                    backgroundSize: "22px 22px",
+                    WebkitMaskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 40%, transparent 75%)",
+                    maskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 40%, transparent 75%)",
+                  }}
+                />
+
+                {/* Top glow blob */}
+                <div
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"
+                  style={{ background: f.glow }}
+                />
+
+                {/* Shimmer sweep on hover */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none" />
+
+                {/* Glowing border on hover */}
+                <div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{ boxShadow: `inset 0 0 0 1px ${f.borderGlow}` }}
+                />
+
+                {/* Content */}
+                <div className="relative z-10 p-7 flex flex-col gap-5">
+                  {/* Icon badge */}
+                  <div
+                    className={`h-14 w-14 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center border border-white/10 shadow-lg`}
+                    style={{ boxShadow: `0 0 20px ${f.glow}` }}
+                  >
+                    <f.icon size={24} className={f.iconColor} />
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-2xl tracking-wide text-ivory-50 leading-tight">
+                      {f.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ivory-400 group-hover:text-ivory-200 transition-colors duration-300">
+                      {f.desc}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-display text-xl tracking-wide text-ivory-50">
-                  {f.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ivory-400">
-                  {f.desc}
-                </p>
+
+                {/* Bottom spacer */}
+                <div className="relative z-10 px-7 pb-2">
+                </div>
               </motion.div>
             ))}
           </div>
