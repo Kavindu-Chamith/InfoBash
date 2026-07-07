@@ -343,39 +343,29 @@ export default function Home() {
                   boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
               >
-                {/* Starfield dot pattern — hidden by default, spreads from bottom-left corner on hover */}
+                {/* Starfield dot pattern — spreads from bottom-left corner on hover */}
                 <div
-                  className="absolute inset-0 transition-all duration-700 ease-out"
+                  className="absolute inset-0 z-[0] opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out pointer-events-none"
                   style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)`,
                     backgroundSize: "22px 22px",
-                    WebkitMaskImage: "radial-gradient(ellipse 0% 0% at 0% 100%, black 0%, transparent 70%)",
-                    maskImage: "radial-gradient(ellipse 0% 0% at 0% 100%, black 0%, transparent 70%)",
-                  }}
-                />
-                {/* Dot spread layer — expands on hover */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out"
-                  style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)`,
-                    backgroundSize: "22px 22px",
-                    WebkitMaskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 40%, transparent 75%)",
-                    maskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 40%, transparent 75%)",
+                    WebkitMaskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
+                    maskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
                   }}
                 />
 
                 {/* Top glow blob */}
                 <div
-                  className="absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 z-[0] rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none"
                   style={{ background: f.glow }}
                 />
 
                 {/* Shimmer sweep on hover */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none" />
+                <div className="absolute inset-0 z-[0] -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none" />
 
                 {/* Glowing border on hover */}
                 <div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  className="absolute inset-0 z-[1] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                   style={{ boxShadow: `inset 0 0 0 1px ${f.borderGlow}` }}
                 />
 
