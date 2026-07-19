@@ -117,7 +117,7 @@ export default function RulesPage() {
                     key={i}
                     className="flex gap-3 text-sm leading-relaxed text-ivory-50/70 sm:text-base"
                   >
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400/60" />
+                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400/60 " />
                     <span>{rule}</span>
                   </li>
                 ))}
