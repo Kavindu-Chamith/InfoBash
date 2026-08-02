@@ -72,7 +72,7 @@ export default function TeamsClient({
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#060c1a]">
-      {/* ── Background ────────────────────────────────────── */}
+      {/* -- Background -------------------------------------- */}
       <div className="pointer-events-none absolute inset-0">
         {/* Grid */}
         <div
@@ -89,7 +89,7 @@ export default function TeamsClient({
         <div className="absolute bottom-0 left-1/3 h-[300px] w-[300px] rounded-full bg-amber-500/6 blur-[140px]" />
       </div>
 
-      {/* ── Page header ───────────────────────────────────── */}
+      {/* -- Page header ------------------------------------- */}
       <div className="relative z-10 border-b border-white/[0.06] px-6 pb-12 pt-14 text-center">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -121,7 +121,7 @@ export default function TeamsClient({
         </motion.div>
       </div>
 
-      {/* ── Controls ──────────────────────────────────────── */}
+      {/* -- Controls ---------------------------------------- */}
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Filter pills */}
@@ -170,7 +170,7 @@ export default function TeamsClient({
           </motion.div>
         </div>
 
-        {/* ── Cards grid ──────────────────────────────────── */}
+        {/* -- Cards grid ------------------------------------ */}
         <div className="mt-8">
           <AnimatePresence mode="popLayout">
             {filtered.length > 0 ? (

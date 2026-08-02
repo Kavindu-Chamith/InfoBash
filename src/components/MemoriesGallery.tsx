@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 
-/* ── Memory tile data ──────────────────────────────────────── */
+/* -- Memory tile data ---------------------------------------- */
 interface Memory {
   id: number;
   title: string;
@@ -100,7 +100,7 @@ const MEMORIES: Memory[] = [
   },
 ];
 
-/* ── Cricket seam pattern overlay ─────────────────────────── */
+/* -- Cricket seam pattern overlay --------------------------- */
 function CricketOverlay() {
   return (
     <svg
@@ -119,7 +119,7 @@ function CricketOverlay() {
   );
 }
 
-/* ── Single tile ───────────────────────────────────────────── */
+/* -- Single tile --------------------------------------------- */
 function Tile({ memory, index }: { memory: Memory; index: number }) {
   return (
     <motion.div
@@ -145,7 +145,7 @@ function Tile({ memory, index }: { memory: Memory; index: number }) {
   );
 }
 
-/* ── Main section ──────────────────────────────────────────── */
+/* -- Main section -------------------------------------------- */
 export default function MemoriesGallery() {
   const headingRef = useRef<HTMLDivElement>(null);
   const headingInView = useInView(headingRef, { once: true, margin: "-60px" });
@@ -182,18 +182,18 @@ export default function MemoriesGallery() {
 
         {/* 
           Grid layout (4 cols, auto-rows-[140px]):
-          ┌────────────┬──────┬──────────┐
-          │            │  2   │          │
-          │     1      ├──────┤    3     │  rows 1-3
-          │  (2×3)     │  4   │  (1×3)   │
-          │            ├──────┤          │
-          │            │  5   │          │
-          ├──────┬─────┴─┬────┴──────────┤
-          │  6   │   7   │       8       │  rows 4-5
-          │      │ (2×2) │               │
-          ├──────┼───────┼───────┬───────┤
-          │  9   │  10   │  11   │  12   │  row 6
-          └──────┴───────┴───────┴───────┘
+          +------------+------+----------+
+          |            |  2   |          |
+          |     1      +------+    3     |  rows 1-3
+          |  (2×3)     |  4   |  (1×3)   |
+          |            +------+          |
+          |            |  5   |          |
+          +------+-----+-+----+----------+
+          |  6   |   7   |       8       |  rows 4-5
+          |      | (2×2) |               |
+          +------+-------+-------+-------+
+          |  9   |  10   |  11   |  12   |  row 6
+          +------+-------+-------+-------+
         */}
         <div className="grid auto-rows-[200px] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {MEMORIES.map((memory, i) => (

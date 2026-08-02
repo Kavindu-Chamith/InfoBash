@@ -15,6 +15,8 @@ export interface PublicTeam {
   female_count: number;
   registered_at: string;
   players: Player[];
+  group_name: string | null;
+  has_logo: boolean;
 }
 
 export async function GET() {
@@ -34,10 +36,13 @@ export async function GET() {
             ORDER BY p.position
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'
-        ) AS players
+        ) AS players,
+        g.name AS group_name,
+        (t.logo IS NOT NULL) AS has_logo
       FROM teams t
       LEFT JOIN players p ON p.team_id = t.id
-      GROUP BY t.id
+      LEFT JOIN groups g ON g.id = t.group_id
+      GROUP BY t.id, g.name
       ORDER BY t.created_at ASC
     `);
 

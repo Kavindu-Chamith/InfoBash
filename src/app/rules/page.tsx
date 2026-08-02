@@ -60,7 +60,7 @@ const ruleSections = [
 export default function RulesPage() {
   return (
     <main className="relative min-h-screen bg-[#060c1a]">
-      {/* ── Background grid + glow ─────────────────────────────── */}
+      {/* -- Background grid + glow ------------------------------- */}
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0 opacity-[0.04]"
@@ -75,7 +75,7 @@ export default function RulesPage() {
         <div className="absolute bottom-0 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-gold-400/6 blur-[140px]" />
       </div>
 
-      {/* ── Page header ────────────────────────────────────────── */}
+      {/* -- Page header ------------------------------------------ */}
       <div className="relative z-10 border-b border-white/[0.06] px-6 pb-10 pt-14 text-center">
         <span className="font-mono-score text-[11px] uppercase tracking-[0.45em] text-gold-400">
           InfoBash V5.0 · Faculty of Computing · SUSL
@@ -94,7 +94,7 @@ export default function RulesPage() {
         </div>
       </div>
 
-      {/* ── Rule sections ──────────────────────────────────────── */}
+      {/* -- Rule sections ---------------------------------------- */}
       <div className="relative z-10 mx-auto max-w-4xl px-6 py-16">
         <div className="space-y-6">
           {ruleSections.map((section) => (
@@ -126,7 +126,7 @@ export default function RulesPage() {
           ))}
         </div>
 
-        {/* ── Footnote ──────────────────────────────────────────── */}
+        {/* -- Footnote -------------------------------------------- */}
         <p className="mt-10 text-center font-mono-score text-xs tracking-wider text-ivory-50/40">
           The organizing committee reserves the right to amend these rules at
           any time. Final rulebook will be shared before the opening match.

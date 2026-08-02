@@ -27,3 +27,46 @@ CREATE TABLE IF NOT EXISTS players (
 
 CREATE INDEX IF NOT EXISTS idx_players_team_id ON players(team_id);
 CREATE INDEX IF NOT EXISTS idx_teams_batch ON teams(batch);
+
+-- v5.1: captain accounts, group allocation, match scheduling, team logos
+CREATE TABLE IF NOT EXISTS captains (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS captain_id UUID REFERENCES captains(id) ON DELETE SET NULL;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES groups(id) ON DELETE SET NULL;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo BYTEA;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_mime TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_captain_id ON teams(captain_id) WHERE captain_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_teams_group_id ON teams(group_id);
+
+CREATE TABLE IF NOT EXISTS matches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stage TEXT NOT NULL CHECK (stage IN ('group', 'semifinal', 'final', 'custom')),
+  group_id UUID REFERENCES groups(id) ON DELETE SET NULL,
+  round SMALLINT NOT NULL DEFAULT 1,
+  label TEXT,
+  team_a_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+  team_b_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+  team_a_score SMALLINT,
+  team_b_score SMALLINT,
+  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'live', 'completed')),
+  winner_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+  scheduled_at TIMESTAMPTZ,
+  venue TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_matches_group_id ON matches(group_id);
+CREATE INDEX IF NOT EXISTS idx_matches_stage ON matches(stage);

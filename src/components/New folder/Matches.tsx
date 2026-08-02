@@ -6,10 +6,10 @@ import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import gsap from "gsap";
 
-/* ── Isomorphic layout effect ─────────────────────────────── */
+/* -- Isomorphic layout effect ------------------------------- */
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-/* ── Types ─────────────────────────────────────────────────── */
+/* -- Types --------------------------------------------------- */
 type Slot = { name: string } | null;
 
 interface MatchNode {
@@ -38,7 +38,7 @@ const MATCHES: MatchNode[] = [
 
 const ROUNDS = [0, 1, 2, 3].map((r) => MATCHES.filter((m) => m.round === r));
 
-/* ── Team slot ─────────────────────────────────────────────── */
+/* -- Team slot ----------------------------------------------- */
 function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   if (!team) {
     return (
@@ -58,7 +58,7 @@ function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   );
 }
 
-/* ── Standard match card ──────────────────────────────────── */
+/* -- Standard match card ------------------------------------ */
 function MatchCard({
   match,
   accent,
@@ -111,7 +111,7 @@ function MatchCard({
   );
 }
 
-/* ── Champion card ───────────────────────────────────────────── */
+/* -- Champion card --------------------------------------------- */
 function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => void }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<SVGSVGElement>(null);
@@ -238,22 +238,16 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
   );
 }
 
-/* ── Bracket ───────────────────────────────────────────────── */
+/* -- Bracket ------------------------------------------------- */
 export default function Bracket() {
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const refCallbacks = useRef<Map<string, (el: HTMLDivElement | null) => void>>(new Map());
   const [paths, setPaths] = useState<{ id: string; d: string; accent: string }[]>([]);
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
-  const getRefCallback = useCallback((id: string) => {
-    if (!refCallbacks.current.has(id)) {
-      refCallbacks.current.set(id, (el: HTMLDivElement | null) => {
-        if (el) nodeRefs.current.set(id, el);
-        else nodeRefs.current.delete(id);
-      });
-    }
-    return refCallbacks.current.get(id)!;
+  const setNodeRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) nodeRefs.current.set(id, el);
+    else nodeRefs.current.delete(id);
   }, []);
 
   const computePaths = useCallback(() => {
@@ -400,13 +394,13 @@ export default function Bracket() {
             <div className="flex flex-1 flex-col justify-around gap-6">
               {round.map((match) =>
                 match.champion ? (
-                  <ChampionCard key={match.id} innerRef={getRefCallback(match.id)} />
+                  <ChampionCard key={match.id} innerRef={(el) => setNodeRef(match.id, el)} />
                 ) : (
                   <MatchCard
                     key={match.id}
                     match={match}
                     accent={ROUND_ACCENTS[match.round]}
-                    innerRef={getRefCallback(match.id)}
+                    innerRef={(el) => setNodeRef(match.id, el)}
                   />
                 )
               )}
