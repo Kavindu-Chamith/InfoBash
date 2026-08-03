@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, ShieldCheck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LINKS = [
@@ -79,12 +79,21 @@ export default function Navbar() {
           })}
         </ul>
 
-        <Link
-          href="/register"
-          className="hidden rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-5 py-2 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-5px_rgba(53,215,255,0.7)] transition-transform hover:scale-105 lg:inline-block"
-        >
-          Register Now
-        </Link>
+        <div className="hidden items-center gap-3 lg:flex">
+          <Link
+            href="/admin/login"
+            title="Organiser Dashboard"
+            className="text-ivory-400 transition-colors hover:text-cyan-300"
+          >
+            <ShieldCheck size={18} />
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-5 py-2 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-5px_rgba(53,215,255,0.7)] transition-transform hover:scale-105"
+          >
+            Register Now
+          </Link>
+        </div>
 
         <button
           onClick={() => setOpen((v) => !v)}
@@ -126,6 +135,14 @@ export default function Navbar() {
                   className="block rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-4 py-3 text-center text-sm font-semibold text-navy-950"
                 >
                   Register Now
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/login"
+                  className="flex items-center justify-center gap-1.5 py-3 text-xs text-ivory-500"
+                >
+                  <ShieldCheck size={13} /> Organiser Dashboard
                 </Link>
               </li>
             </ul>

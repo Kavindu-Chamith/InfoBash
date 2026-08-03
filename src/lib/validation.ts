@@ -9,6 +9,18 @@ export const BATCHES = [
 
 export const TEAM_SIZE = 11;
 export const MIN_FEMALE_PLAYERS = 2;
+export const MAX_LOGO_BYTES = 1.5 * 1024 * 1024;
+
+export const captainSignupSchema = z.object({
+  name: z.string().trim().min(2, "Enter your full name"),
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const captainLoginSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(1, "Enter your password"),
+});
 
 export const playerSchema = z.object({
   fullName: z.string().trim().min(2, "Enter the player's full name"),
@@ -24,18 +36,17 @@ export const registrationSchema = z
       .min(3, "Team name must be at least 3 characters")
       .max(60, "Team name must be under 60 characters"),
     batch: z.enum(BATCHES),
-    captainName: z.string().trim().min(2, "Enter the captain's full name"),
     captainContact: z
       .string()
       .trim()
       .regex(/^(0\d{9}|\+94\d{9})$/, "Enter a valid Sri Lankan phone number"),
-    captainEmail: z.string().trim().email("Enter a valid email address"),
     viceCaptainName: z.string().trim().optional().or(z.literal("")),
     notes: z.string().trim().max(500).optional().or(z.literal("")),
     players: z.array(playerSchema).length(
       TEAM_SIZE,
       `A squad must have exactly ${TEAM_SIZE} players`
     ),
+    logoKey: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     const femaleCount = data.players.filter((p) => p.gender === "female").length;

@@ -3,6 +3,8 @@ import { Teko, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Preloader from "@/components/Preloader";
+import CricketFab from "@/components/CricketFab";
 
 const teko = Teko({
   variable: "--font-teko",
@@ -39,9 +41,11 @@ export default function RootLayout({
       <body
         className={`${teko.variable} ${manrope.variable} ${jetbrainsMono.variable} antialiased bg-navy-950 text-ivory-50`}
       >
+        <Preloader />
         <Navbar />
         <main className="pt-[64px]">{children}</main>
         <Footer />
+        <CricketFab />
       </body>
     </html>
   );

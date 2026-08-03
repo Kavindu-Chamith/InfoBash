@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { registrationSchema } from "@/lib/validation";
+import { CAPTAIN_COOKIE, verifyCaptainSessionToken } from "@/lib/captainAuth";
 
 export async function POST(req: NextRequest) {
+  const token = req.cookies.get(CAPTAIN_COOKIE)?.value;
+  const session = verifyCaptainSessionToken(token);
+  if (!session) {
+    return NextResponse.json(
+      { error: "Sign in with your captain account before registering a team." },
+      { status: 401 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -23,18 +33,41 @@ export async function POST(req: NextRequest) {
   try {
     await client.query("BEGIN");
 
+    const captainResult = await client.query(
+      `SELECT name, email FROM captains WHERE id = $1`,
+      [session.captainId]
+    );
+    const captain = captainResult.rows[0] as { name: string; email: string } | undefined;
+    if (!captain) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
+    }
+
+    const existingTeam = await client.query(`SELECT id FROM teams WHERE captain_id = $1`, [
+      session.captainId,
+    ]);
+    if (existingTeam.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json(
+        { error: "You have already registered a team with this account." },
+        { status: 409 }
+      );
+    }
+
     const teamResult = await client.query(
-      `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes, captain_id, logo_s3_key)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         data.teamName,
         data.batch,
-        data.captainName,
+        captain.name,
         data.captainContact,
-        data.captainEmail,
+        captain.email,
         data.viceCaptainName || null,
         data.notes || null,
+        session.captainId,
+        data.logoKey || null,
       ]
     );
 
@@ -55,10 +88,10 @@ export async function POST(req: NextRequest) {
     await client.query("ROLLBACK");
     const pgError = err as { code?: string; constraint?: string };
     if (pgError.code === "23505") {
-      return NextResponse.json(
-        { error: "A team with this name has already registered." },
-        { status: 409 }
-      );
+      const message = pgError.constraint?.includes("captain")
+        ? "You have already registered a team with this account."
+        : "A team with this name has already registered.";
+      return NextResponse.json({ error: message }, { status: 409 });
     }
     console.error("Registration error:", err);
     return NextResponse.json(

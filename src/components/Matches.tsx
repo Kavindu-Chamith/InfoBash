@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import gsap from "gsap";
 
-/* ── Isomorphic layout effect ─────────────────────────────── */
+/* -- Isomorphic layout effect ------------------------------- */
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-/* ── Types ─────────────────────────────────────────────────── */
+/* -- Types --------------------------------------------------- */
 type Slot = { name: string } | null;
 
 interface MatchNode {
@@ -22,24 +22,49 @@ interface MatchNode {
   champion?: boolean;
 }
 
-const ROUND_TITLES = ["Quarterfinals", "Semifinals", "Final", "Champion"];
-const ROUND_ACCENTS = ["#f5b942", "#f5b942", "#f5b942", "#f5b942"];
-const CONNECTOR_GOLD = "#f5b942";
+export interface PlayoffMatch {
+  id: string;
+  stage: "semifinal" | "final";
+  label: string | null;
+  team_a_name: string | null;
+  team_b_name: string | null;
+  status: "scheduled" | "live" | "completed";
+  winner_name: string | null;
+}
+
+const ROUND_TITLES = ["Semifinals", "Final", "Champion"];
+const ROUND_ACCENTS = ["#f5b942", "#f5b942", "#f5b942"];
 const CARD_BORDER = "rgba(245, 185, 66, 0.45)";
 const CARD_BORDER_GLOW = "rgba(245, 185, 66, 0.25)";
 
-const MATCHES: MatchNode[] = [
-  { id: "qf1", round: 0, label: "Game 1", teamA: null, teamB: null, feeds: "sf1" },
-  { id: "qf2", round: 0, label: "Game 2", teamA: null, teamB: null, feeds: "sf1" },
-  { id: "qf3", round: 0, label: "Game 3", teamA: null, teamB: null, feeds: "sf2" },
-  { id: "qf4", round: 0, label: "Game 4", teamA: null, teamB: null, feeds: "sf2" },
-  { id: "sf1", round: 1, label: "Game 5", teamA: null, teamB: null, feeds: "final" },
-  { id: "sf2", round: 1, label: "Game 6", teamA: null, teamB: null, feeds: "final" },
-  { id: "final", round: 2, label: "Game 7", teamA: null, teamB: null, feeds: "champion" },
-  { id: "champion", round: 3, label: "Champion", teamA: null, teamB: null, champion: true },
-];
+function buildMatchNodes(playoffMatches: PlayoffMatch[]): { matches: MatchNode[]; championName: string | null } {
+  const semifinals = playoffMatches.filter((m) => m.stage === "semifinal");
+  const final = playoffMatches.find((m) => m.stage === "final") ?? null;
 
-const ROUNDS = [0, 1, 2, 3].map((r) => MATCHES.filter((m) => m.round === r));
+  const matches: MatchNode[] = semifinals.map((m, i) => ({
+    id: m.id,
+    round: 0,
+    label: m.label || `Semifinal ${i + 1}`,
+    teamA: m.team_a_name ? { name: m.team_a_name } : null,
+    teamB: m.team_b_name ? { name: m.team_b_name } : null,
+    feeds: "final",
+  }));
+
+  matches.push({
+    id: "final",
+    round: 1,
+    label: final?.label || "Final",
+    teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+    teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+    feeds: "champion",
+  });
+
+  matches.push({ id: "champion", round: 2, label: "Champion", teamA: null, teamB: null, champion: true });
+
+  const championName = final?.status === "completed" ? final.winner_name : null;
+
+  return { matches, championName };
+}
 
 /* Rounded-corner elbow connector */
 function buildElbow(ax: number, ay: number, tx: number, ty: number) {
@@ -58,7 +83,7 @@ function buildElbow(ax: number, ay: number, tx: number, ty: number) {
   ].join(" ");
 }
 
-/* ── Team slot ─────────────────────────────────────────────── */
+/* -- Team slot ----------------------------------------------- */
 function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   if (!team) {
     return (
@@ -76,7 +101,7 @@ function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   );
 }
 
-/* ── Standard match card ──────────────────────────────────── */
+/* -- Standard match card ------------------------------------ */
 function MatchCard({
   match,
   accent,
@@ -119,8 +144,14 @@ function MatchCard({
   );
 }
 
-/* ── Champion card ── Trophy RIGHT of Winner rectangle ─────── */
-function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => void }) {
+/* -- Champion card -- Trophy RIGHT of Winner rectangle ------- */
+function ChampionCard({
+  innerRef,
+  championName,
+}: {
+  innerRef: (el: HTMLDivElement | null) => void;
+  championName: string | null;
+}) {
   const glowRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<SVGSVGElement>(null);
   const trophyRef = useRef<HTMLDivElement>(null);
@@ -147,7 +178,7 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
       className="relative w-44 shrink-0"
     >
-      {/* ── Winner card (left — connector line feeds into its left edge) ── */}
+      {/* -- Winner card (left — connector line feeds into its left edge) -- */}
       <div
         className="w-full rounded-xl px-4 py-3 text-center"
         style={{
@@ -157,10 +188,10 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
         }}
       >
         <p className="font-mono-score text-[10px] uppercase tracking-[0.3em]" style={{ color: "#f5b942" }}>Winner</p>
-        <p className="mt-1 font-display text-xl tracking-wide text-ivory-100">TBD</p>
+        <p className="mt-1 font-display text-xl tracking-wide text-ivory-100">{championName ?? "TBD"}</p>
       </div>
 
-      {/* ── Trophy (right of winner card) ── absolute positioned to sit outside layout flow ── */}
+      {/* -- Trophy (right of winner card) -- absolute positioned to sit outside layout flow -- */}
       <div className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 flex h-20 w-20 shrink-0 items-center justify-center">
         {/* Pulsing glow fills the box */}
         <div
@@ -207,24 +238,24 @@ function ChampionCard({ innerRef }: { innerRef: (el: HTMLDivElement | null) => v
   );
 }
 
-/* ── Bracket ─────────────────────────────────────────────────
+/* -- Bracket -------------------------------------------------
    Simple, natural layout — no scaling. The page scrolls to show it.
-──────────────────────────────────────────────────────────── */
-export default function Bracket() {
+------------------------------------------------------------ */
+export default function Bracket({ matches: playoffMatches }: { matches: PlayoffMatch[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const refCallbacks = useRef<Map<string, (el: HTMLDivElement | null) => void>>(new Map());
   const [paths, setPaths] = useState<{ id: string; d: string }[]>([]);
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
-  const getRefCallback = useCallback((id: string) => {
-    if (!refCallbacks.current.has(id)) {
-      refCallbacks.current.set(id, (el: HTMLDivElement | null) => {
-        if (el) nodeRefs.current.set(id, el);
-        else nodeRefs.current.delete(id);
-      });
-    }
-    return refCallbacks.current.get(id)!;
+  const { matches: MATCHES, championName } = useMemo(() => buildMatchNodes(playoffMatches), [playoffMatches]);
+  const ROUNDS = useMemo(
+    () => [0, 1, 2].map((r) => MATCHES.filter((m) => m.round === r)),
+    [MATCHES]
+  );
+
+  const setNodeRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) nodeRefs.current.set(id, el);
+    else nodeRefs.current.delete(id);
   }, []);
 
   const computePaths = useCallback(() => {
@@ -252,7 +283,7 @@ export default function Bracket() {
       next.push({ id: `${match.id}-${match.feeds}`, d: buildElbow(ax, ay, tx, ty) });
     }
     setPaths(next);
-  }, []);
+  }, [MATCHES]);
 
   useIsoLayoutEffect(() => {
     computePaths();
@@ -283,7 +314,7 @@ export default function Bracket() {
           </filter>
         </defs>
 
-        {/* ── Layer 1: outer wide diffuse bloom ── */}
+        {/* -- Layer 1: outer wide diffuse bloom -- */}
         {paths.map((p, i) => (
           <motion.path
             key={`bloom-${p.id}`} d={p.d} fill="none"
@@ -296,7 +327,7 @@ export default function Bracket() {
           />
         ))}
 
-        {/* ── Layer 2: mid core bloom ── */}
+        {/* -- Layer 2: mid core bloom -- */}
         {paths.map((p, i) => (
           <motion.path
             key={`mid-${p.id}`} d={p.d} fill="none"
@@ -309,7 +340,7 @@ export default function Bracket() {
           />
         ))}
 
-        {/* ── Layer 3: bright crisp core ── */}
+        {/* -- Layer 3: bright crisp core -- */}
         {paths.map((p, i) => (
           <motion.path
             key={p.id} d={p.d} fill="none"
@@ -322,7 +353,7 @@ export default function Bracket() {
           />
         ))}
 
-        {/* ── Layer 4: white-hot center thread ── */}
+        {/* -- Layer 4: white-hot center thread -- */}
         {paths.map((p, i) => (
           <motion.path
             key={`hot-${p.id}`} d={p.d} fill="none"
@@ -335,7 +366,7 @@ export default function Bracket() {
           />
         ))}
 
-        {/* ── Layer 5: travelling shimmer dash ── */}
+        {/* -- Layer 5: travelling shimmer dash -- */}
         {paths.map((p, i) => (
           <motion.path
             key={`shimmer-${p.id}`} d={p.d} fill="none"
@@ -365,13 +396,17 @@ export default function Bracket() {
             <div className="flex flex-1 flex-col justify-around gap-10">
               {round.map((match) =>
                 match.champion ? (
-                  <ChampionCard key={match.id} innerRef={getRefCallback(match.id)} />
+                  <ChampionCard
+                    key={match.id}
+                    innerRef={(el) => setNodeRef(match.id, el)}
+                    championName={championName}
+                  />
                 ) : (
                   <MatchCard
                     key={match.id}
                     match={match}
                     accent={ROUND_ACCENTS[match.round]}
-                    innerRef={getRefCallback(match.id)}
+                    innerRef={(el) => setNodeRef(match.id, el)}
                   />
                 )
               )}

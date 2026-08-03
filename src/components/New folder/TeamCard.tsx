@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Users, Star, Shield, ChevronDown, Calendar } from "lucide-react";
 import type { PublicTeam } from "@/app/api/teams/route";
 
-/* ── Batch colour system ─────────────────────────────────── */
+/* -- Batch colour system ----------------------------------- */
 const BATCH_THEME: Record<
   string,
   { label: string; color: string; glow: string; bg: string; border: string; text: string }
@@ -53,7 +53,7 @@ const DEFAULT_THEME = {
   text: "text-slate-400",
 };
 
-/* ── Date formatter ──────────────────────────────────────── */
+/* -- Date formatter ---------------------------------------- */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -62,7 +62,7 @@ function formatDate(iso: string) {
   });
 }
 
-/* ── Single Team Card ────────────────────────────────────── */
+/* -- Single Team Card -------------------------------------- */
 export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
@@ -217,7 +217,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   );
 }
 
-/* ── Filter pill ─────────────────────────────────────────── */
+/* -- Filter pill ------------------------------------------- */
 export function FilterPill({
   label,
   active,

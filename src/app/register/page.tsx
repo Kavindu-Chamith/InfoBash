@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#060c1a]">
-      {/* ── Ambient background ── */}
+      {/* -- Ambient background -- */}
       <div className="pointer-events-none absolute inset-0">
         {/* Grid */}
         <div
@@ -26,7 +26,7 @@ export default function RegisterPage() {
         <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-400/10 blur-[140px]" />
       </div>
 
-      {/* ── Page header ── */}
+      {/* -- Page header -- */}
       <div className="relative z-10 border-b border-cyan-400/10 px-6 py-14 text-center">
         <span className="font-mono-score text-[11px] uppercase tracking-[0.45em] text-gold-400">
           InfoBash V5.0 · Faculty of Computing · SUSL
@@ -41,7 +41,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* ── Form ── */}
+      {/* -- Form -- */}
       <div className="relative z-10 px-4 py-16 sm:px-6">
         <RegistrationForm />
       </div>

@@ -11,7 +11,7 @@ import {
 import { Star, Shield, ChevronDown, Calendar, Crown } from "lucide-react";
 import type { PublicTeam } from "@/app/api/teams/route";
 
-/* ── Batch colour system ─────────────────────────────────── */
+/* -- Batch colour system ----------------------------------- */
 const BATCH_THEME: Record<
   string,
   { label: string; color: string; glow: string; bg: string; border: string; text: string }
@@ -59,7 +59,7 @@ const DEFAULT_THEME = {
   text: "text-slate-400",
 };
 
-/* ── Helpers ──────────────────────────────────────────────── */
+/* -- Helpers ------------------------------------------------ */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -77,14 +77,14 @@ function initials(name: string) {
     .join("");
 }
 
-/* ── Single Team Card ────────────────────────────────────── */
+/* -- Single Team Card -------------------------------------- */
 export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  /* ── 3D tilt + glare, driven by cursor position ── */
+  /* -- 3D tilt + glare, driven by cursor position -- */
   const px = useMotionValue(0.5);
   const py = useMotionValue(0.5);
   const rotateX = useSpring(useTransform(py, [0, 1], [9, -9]), {
@@ -148,28 +148,43 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
 
 
         <div className="p-6">
-          {/* Batch badge */}
-          <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
-            style={{
-              background: `${theme.color}18`,
-              border: `1px solid ${theme.color}40`,
-              color: theme.color,
-            }}
-          >
+          {/* Batch + group badges */}
+          <div className="flex flex-wrap items-center gap-2">
             <span
-              className="h-1.5 w-1.5 animate-pulse rounded-full"
-              style={{ background: theme.color }}
-            />
-            {team.batch}
-          </span>
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+              style={{
+                background: `${theme.color}18`,
+                border: `1px solid ${theme.color}40`,
+                color: theme.color,
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 animate-pulse rounded-full"
+                style={{ background: theme.color }}
+              />
+              {team.batch}
+            </span>
+            {team.group_name && (
+              <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-ivory-300">
+                {team.group_name}
+              </span>
+            )}
+          </div>
 
-          {/* Team name */}
-          <h3
-            className="mb-1 mt-4 font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white"
-          >
-            {team.team_name}
-          </h3>
+          {/* Team name + logo */}
+          <div className="mb-1 mt-4 flex items-center gap-3">
+            {team.has_logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/teams/${team.id}/logo`}
+                alt={`${team.team_name} logo`}
+                className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
+              />
+            )}
+            <h3 className="font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white">
+              {team.team_name}
+            </h3>
+          </div>
 
           {/* Captain */}
           <div className="mb-5 flex items-center gap-1.5 text-ivory-400">
@@ -253,7 +268,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   );
 }
 
-/* ── Filter pill ─────────────────────────────────────────── */
+/* -- Filter pill ------------------------------------------- */
 export function FilterPill({
   label,
   active,
