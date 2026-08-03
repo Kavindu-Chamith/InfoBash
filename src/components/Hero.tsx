@@ -6,10 +6,7 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ParticleField from "@/components/ParticleField";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /* --- Stagger variants for hero text --- */
 const container = {
@@ -47,6 +44,12 @@ const ROW1 = pickRow(0, 16);
 const ROW2 = pickRow(4, 16);
 const ROW3 = pickRow(8, 16);
 
+// Doubled so the row can loop seamlessly: animating x from 0 to -50% of this
+// doubled track lines the second copy up exactly where the first started.
+const ROW1_LOOP = [...ROW1, ...ROW1];
+const ROW2_LOOP = [...ROW2, ...ROW2];
+const ROW3_LOOP = [...ROW3, ...ROW3];
+
 const TILE_SIZE = "calc((100dvh - 64px - 24px) / 3)";
 
 function PhotoTile({ src }: { src: string }) {
@@ -69,37 +72,34 @@ function PhotoTile({ src }: { src: string }) {
 }
 
 export default function Hero() {
-  const outerRef = useRef<HTMLDivElement>(null);
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
 
-  // Full-bleed row parallax — pinned + scroll-driven on all breakpoints.
-  // ignoreMobileResize stops GSAP from re-pinning every time the mobile
-  // address bar shows/hides mid-scroll, which is what broke this on touch.
+  // Continuous auto-scrolling photo rows — time-based, not scroll-linked.
+  // Earlier this was a GSAP ScrollTrigger pin+scrub, which never worked
+  // reliably (fought the preloader's temporary body scroll-lock, the global
+  // `overflow-x` rule, and touch scroll on mobile). A duration-based loop
+  // sidesteps all of that since it doesn't care about scroll position at all.
   useEffect(() => {
-    ScrollTrigger.config({ ignoreMobileResize: true });
-    const mm = gsap.matchMedia();
+    const anims: gsap.core.Tween[] = [];
 
-    mm.add(
-      { isMobile: "(max-width: 1023.98px)" },
-      (context) => {
-        const { isMobile } = context.conditions as { isMobile: boolean };
-        const scale = isMobile ? 0.5 : 1;
-        const scrollOpts = { trigger: outerRef.current, start: "top top", end: "bottom bottom" };
+    if (row1Ref.current) {
+      anims.push(gsap.fromTo(row1Ref.current, { x: 0 }, { x: "-50%", duration: 25, ease: "none", repeat: -1 }));
+    }
+    if (row2Ref.current) {
+      gsap.set(row2Ref.current, { x: "-50%" });
+      anims.push(gsap.to(row2Ref.current, { x: 0, duration: 22, ease: "none", repeat: -1 }));
+    }
+    if (row3Ref.current) {
+      anims.push(gsap.fromTo(row3Ref.current, { x: 0 }, { x: "-50%", duration: 28, ease: "none", repeat: -1 }));
+    }
 
-        gsap.fromTo(row1Ref.current, { x: 0 }, { x: -640 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.6 } });
-        gsap.fromTo(row2Ref.current, { x: -640 * scale }, { x: 80 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.1 } });
-        gsap.fromTo(row3Ref.current, { x: 60 * scale }, { x: -720 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 0.8 } });
-      }
-    );
-
-    return () => mm.revert();
+    return () => anims.forEach((a) => a.kill());
   }, []);
 
   return (
-    <div ref={outerRef} className="relative h-[180vh] lg:h-[220vh]">
-      <section className="sticky top-16 flex h-[calc(100dvh-64px)] min-h-[580px] items-center justify-center overflow-hidden">
+    <section className="relative flex h-[calc(100dvh-64px)] min-h-[580px] items-center justify-center overflow-hidden">
 
         {/* -- Background -- */}
         <div className="absolute inset-0 bg-[#060c1a]" />
@@ -108,17 +108,17 @@ export default function Hero() {
         <div className="absolute inset-0 flex flex-col justify-center gap-3">
           <div className="overflow-hidden">
             <div ref={row1Ref} className="flex w-max gap-3">
-              {ROW1.map((src, i) => <PhotoTile key={`r1-${i}`} src={src} />)}
+              {ROW1_LOOP.map((src, i) => <PhotoTile key={`r1-${i}`} src={src} />)}
             </div>
           </div>
           <div className="overflow-hidden">
             <div ref={row2Ref} className="flex w-max gap-3">
-              {ROW2.map((src, i) => <PhotoTile key={`r2-${i}`} src={src} />)}
+              {ROW2_LOOP.map((src, i) => <PhotoTile key={`r2-${i}`} src={src} />)}
             </div>
           </div>
           <div className="overflow-hidden">
             <div ref={row3Ref} className="flex w-max gap-3">
-              {ROW3.map((src, i) => <PhotoTile key={`r3-${i}`} src={src} />)}
+              {ROW3_LOOP.map((src, i) => <PhotoTile key={`r3-${i}`} src={src} />)}
             </div>
           </div>
         </div>
@@ -271,7 +271,6 @@ export default function Hero() {
             <circle cx="7" cy="6" r="1.4" fill="rgba(53,215,255,0.7)" />
           </svg>
         </motion.div>
-      </section>
-    </div>
+    </section>
   );
 }
