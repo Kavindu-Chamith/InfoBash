@@ -47,7 +47,7 @@ const ROW1 = pickRow(0, 16);
 const ROW2 = pickRow(4, 16);
 const ROW3 = pickRow(8, 16);
 
-const TILE_SIZE = "calc((100vh - 64px - 24px) / 3)";
+const TILE_SIZE = "calc((100dvh - 64px - 24px) / 3)";
 
 function PhotoTile({ src }: { src: string }) {
   return (
@@ -74,25 +74,32 @@ export default function Hero() {
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
 
-  // Full-bleed row parallax — pinned + scroll-driven on desktop only.
-  // (sticky-pin fights touch scroll on mobile, so below lg the rows stay static.)
+  // Full-bleed row parallax — pinned + scroll-driven on all breakpoints.
+  // ignoreMobileResize stops GSAP from re-pinning every time the mobile
+  // address bar shows/hides mid-scroll, which is what broke this on touch.
   useEffect(() => {
+    ScrollTrigger.config({ ignoreMobileResize: true });
     const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 1024px)", () => {
-      const scrollOpts = { trigger: outerRef.current, start: "top top", end: "bottom bottom" };
+    mm.add(
+      { isMobile: "(max-width: 1023.98px)" },
+      (context) => {
+        const { isMobile } = context.conditions as { isMobile: boolean };
+        const scale = isMobile ? 0.5 : 1;
+        const scrollOpts = { trigger: outerRef.current, start: "top top", end: "bottom bottom" };
 
-      gsap.fromTo(row1Ref.current, { x: 0 }, { x: -640, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.6 } });
-      gsap.fromTo(row2Ref.current, { x: -640 }, { x: 80, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.1 } });
-      gsap.fromTo(row3Ref.current, { x: 60 }, { x: -720, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 0.8 } });
-    });
+        gsap.fromTo(row1Ref.current, { x: 0 }, { x: -640 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.6 } });
+        gsap.fromTo(row2Ref.current, { x: -640 * scale }, { x: 80 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 1.1 } });
+        gsap.fromTo(row3Ref.current, { x: 60 * scale }, { x: -720 * scale, ease: "none", scrollTrigger: { ...scrollOpts, scrub: 0.8 } });
+      }
+    );
 
     return () => mm.revert();
   }, []);
 
   return (
-    <div ref={outerRef} className="relative lg:h-[220vh]">
-      <section className="relative flex h-[calc(100vh-64px)] min-h-[580px] items-center justify-center overflow-hidden lg:sticky lg:top-16">
+    <div ref={outerRef} className="relative h-[180vh] lg:h-[220vh]">
+      <section className="sticky top-16 flex h-[calc(100dvh-64px)] min-h-[580px] items-center justify-center overflow-hidden">
 
         {/* -- Background -- */}
         <div className="absolute inset-0 bg-[#060c1a]" />

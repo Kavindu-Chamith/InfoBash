@@ -54,11 +54,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const logoBuffer = data.logoBase64 ? Buffer.from(data.logoBase64, "base64") : null;
-
     const teamResult = await client.query(
-      `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes, captain_id, logo, logo_mime)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes, captain_id, logo_s3_key)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         data.teamName,
@@ -69,8 +67,7 @@ export async function POST(req: NextRequest) {
         data.viceCaptainName || null,
         data.notes || null,
         session.captainId,
-        logoBuffer,
-        data.logoMime || null,
+        data.logoKey || null,
       ]
     );
 

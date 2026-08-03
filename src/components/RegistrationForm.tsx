@@ -181,8 +181,9 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     | { status: "error"; message: string }
   >({ status: "idle" });
 
-  const [logo, setLogo] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [logo, setLogo] = useState<{ previewUrl: string; key: string } | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   const {
     register,
@@ -209,7 +210,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
   const players = watch("players");
   const femaleCount = players?.filter((p) => p.gender === "female").length ?? 0;
 
-  function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
@@ -221,19 +222,33 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       return;
     }
     setLogoError(null);
-    setLogo({ file, previewUrl: URL.createObjectURL(file) });
-  }
+    const previewUrl = URL.createObjectURL(file);
+    setLogo(null);
+    setLogoUploading(true);
+    try {
+      const presignRes = await fetch(
+        `/api/register/logo-upload-url?contentType=${encodeURIComponent(file.type)}`
+      );
+      const presignJson = await presignRes.json();
+      if (!presignRes.ok) {
+        throw new Error(presignJson.error ?? "Couldn't prepare the upload");
+      }
 
-  function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(",")[1] ?? "");
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+      const uploadRes = await fetch(presignJson.url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!uploadRes.ok) {
+        throw new Error("Logo upload failed. Try again.");
+      }
+
+      setLogo({ previewUrl, key: presignJson.key });
+    } catch (err) {
+      setLogoError(err instanceof Error ? err.message : "Logo upload failed. Try again.");
+    } finally {
+      setLogoUploading(false);
+    }
   }
 
   async function goNext() {
@@ -243,7 +258,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       [],
     ];
     const valid = await trigger(fieldsForStep[step]);
-    if (valid) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (valid && !logoUploading) setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
   function goBack() {
@@ -254,8 +269,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     setSubmitState({ status: "submitting" });
     try {
       if (logo) {
-        data.logoBase64 = await fileToBase64(logo.file);
-        data.logoMime = logo.file.type as RegistrationInput["logoMime"];
+        data.logoKey = logo.key;
       }
 
       const res = await fetch("/api/register", {
@@ -423,7 +437,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 <div className="flex items-center gap-4">
                   <label
                     htmlFor="logo"
-                    className="flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/15 bg-navy-900/70 text-ivory-400 hover:border-cyan-400/50"
+                    className="relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/15 bg-navy-900/70 text-ivory-400 hover:border-cyan-400/50"
                   >
                     {logo ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -431,9 +445,16 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     ) : (
                       <ImagePlus size={20} />
                     )}
+                    {logoUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-navy-950/70">
+                        <Loader2 size={18} className="animate-spin text-cyan-300" />
+                      </div>
+                    )}
                   </label>
-                  <input id="logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={onLogoChange} className="hidden" />
-                  <p className="text-xs text-ivory-400">PNG, JPEG, or WebP. Max 1.5MB.</p>
+                  <input id="logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={onLogoChange} className="hidden" disabled={logoUploading} />
+                  <p className="text-xs text-ivory-400">
+                    {logoUploading ? "Uploading…" : "PNG, JPEG, or WebP. Max 1.5MB."}
+                  </p>
                 </div>
                 {logoError && <p className={errorClass}>{logoError}</p>}
               </div>
@@ -591,7 +612,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
           ) : (
             <button
               type="submit"
-              disabled={submitState.status === "submitting"}
+              disabled={submitState.status === "submitting" || logoUploading}
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-7 py-2.5 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-6px_rgba(53,215,255,0.8)] transition-transform hover:scale-105 disabled:opacity-70"
             >
               {submitState.status === "submitting" ? (

@@ -10,7 +10,6 @@ export const BATCHES = [
 export const TEAM_SIZE = 11;
 export const MIN_FEMALE_PLAYERS = 2;
 export const MAX_LOGO_BYTES = 1.5 * 1024 * 1024;
-const ALLOWED_LOGO_MIME = ["image/png", "image/jpeg", "image/webp"] as const;
 
 export const captainSignupSchema = z.object({
   name: z.string().trim().min(2, "Enter your full name"),
@@ -47,8 +46,7 @@ export const registrationSchema = z
       TEAM_SIZE,
       `A squad must have exactly ${TEAM_SIZE} players`
     ),
-    logoBase64: z.string().optional(),
-    logoMime: z.enum(ALLOWED_LOGO_MIME).optional(),
+    logoKey: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     const femaleCount = data.players.filter((p) => p.gender === "female").length;
@@ -65,20 +63,6 @@ export const registrationSchema = z
         code: "custom",
         path: ["players"],
         message: "Each player must have a unique registration number",
-      });
-    }
-    if (data.logoBase64 && data.logoBase64.length * 0.75 > MAX_LOGO_BYTES) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["logoBase64"],
-        message: "Team logo must be under 1.5MB",
-      });
-    }
-    if (data.logoBase64 && !data.logoMime) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["logoMime"],
-        message: "Logo file type could not be determined",
       });
     }
   });
