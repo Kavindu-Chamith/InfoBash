@@ -60,12 +60,12 @@ const TILE_SIZE = "calc((100dvh - 64px - 24px) / 3)";
 function PhotoTile({ src }: { src: string }) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-xl border border-cyan-400/20 bg-[#070e1c]"
+      className="relative shrink-0 overflow-hidden rounded-xl border border-cyan-400/20 bg-[#070e1c] shadow-lg"
       style={{ height: TILE_SIZE, width: "calc(TILE_SIZE * 1.35)" }}
     >
       <Image
         src={src}
-        alt=""
+        alt="InfoBash Action"
         fill
         unoptimized
         className="object-cover object-center transition-transform duration-700 hover:scale-105"
@@ -81,10 +81,6 @@ export default function Hero() {
   const row3Ref = useRef<HTMLDivElement>(null);
 
   // Continuous auto-scrolling photo rows — time-based, not scroll-linked.
-  // Earlier this was a GSAP ScrollTrigger pin+scrub, which never worked
-  // reliably (fought the preloader's temporary body scroll-lock, the global
-  // `overflow-x` rule, and touch scroll on mobile). A duration-based loop
-  // sidesteps all of that since it doesn't care about scroll position at all.
   useEffect(() => {
     const anims: gsap.core.Tween[] = [];
 
@@ -127,30 +123,20 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Radial vignette — dark centre so the headline stays readable, fades to the photos at the edges */}
+      {/* Radial vignette — subtle center darkener so headline text is readable over photo wall */}
       <div
         className="pointer-events-none absolute inset-0 z-[6]"
         style={{
           background:
-            "radial-gradient(ellipse 62% 68% at 50% 50%, rgba(6,12,26,0.9) 0%, rgba(6,12,26,0.72) 32%, rgba(6,12,26,0.32) 62%, transparent 100%)",
+            "radial-gradient(ellipse 65% 70% at 50% 50%, rgba(6,12,26,0.72) 0%, rgba(6,12,26,0.5) 45%, transparent 100%)",
         }}
       />
 
-      {/* Edge fades — blend the wall into the page background */}
+      {/* Edge fades — blend the wall smoothly into page background */}
       <div className="pointer-events-none absolute inset-y-0 left-0 z-[7] w-24 bg-gradient-to-r from-[#060c1a] to-transparent sm:w-40" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-[7] w-24 bg-gradient-to-l from-[#060c1a] to-transparent sm:w-40" />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[7] h-20 bg-gradient-to-b from-[#060c1a] to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[7] h-20 bg-gradient-to-t from-[#060c1a] to-transparent" />
-
-      {/* Pitch grid — subtle texture over the wall */}
-      <div
-        className="pointer-events-none absolute inset-0 z-[8] opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(53,215,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(53,215,255,1) 1px,transparent 1px)",
-          backgroundSize: "44px 44px",
-        }}
-      />
 
       {/* Ambient particles */}
       <div className="absolute inset-0 z-[8]">
