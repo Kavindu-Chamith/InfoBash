@@ -19,6 +19,10 @@ export async function PATCH(
     teamBId?: string | null;
     teamAScore?: number | null;
     teamBScore?: number | null;
+    teamAWickets?: number | null;
+    teamBWickets?: number | null;
+    teamAOvers?: string | null;
+    teamBOvers?: string | null;
     status?: string;
     winnerId?: string | null;
     scheduledAt?: string | null;
@@ -56,6 +60,10 @@ export async function PATCH(
   if (body.teamBId !== undefined) set("team_b_id", body.teamBId);
   if (body.teamAScore !== undefined) set("team_a_score", body.teamAScore);
   if (body.teamBScore !== undefined) set("team_b_score", body.teamBScore);
+  if (body.teamAWickets !== undefined) set("team_a_wickets", body.teamAWickets);
+  if (body.teamBWickets !== undefined) set("team_b_wickets", body.teamBWickets);
+  if (body.teamAOvers !== undefined) set("team_a_overs", body.teamAOvers);
+  if (body.teamBOvers !== undefined) set("team_b_overs", body.teamBOvers);
   if (body.status !== undefined) set("status", body.status);
   if (winnerId !== undefined) set("winner_id", winnerId);
   if (body.scheduledAt !== undefined) set("scheduled_at", body.scheduledAt);

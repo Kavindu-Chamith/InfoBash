@@ -3,6 +3,15 @@ import { pool } from "@/lib/db";
 
 export async function GET() {
   try {
+    // Ensure wickets and overs columns exist if not created yet
+    await pool.query(`
+      ALTER TABLE matches 
+      ADD COLUMN IF NOT EXISTS team_a_wickets SMALLINT,
+      ADD COLUMN IF NOT EXISTS team_b_wickets SMALLINT,
+      ADD COLUMN IF NOT EXISTS team_a_overs TEXT,
+      ADD COLUMN IF NOT EXISTS team_b_overs TEXT;
+    `).catch(() => {});
+
     const result = await pool.query(`
       SELECT
         m.id,
@@ -12,6 +21,10 @@ export async function GET() {
         m.status,
         m.team_a_score,
         m.team_b_score,
+        m.team_a_wickets,
+        m.team_b_wickets,
+        m.team_a_overs,
+        m.team_b_overs,
         m.scheduled_at,
         m.venue,
         m.group_id,
@@ -28,7 +41,7 @@ export async function GET() {
       LEFT JOIN teams tb ON tb.id = m.team_b_id
       LEFT JOIN teams tw ON tw.id = m.winner_id
       ORDER BY
-        CASE m.stage WHEN 'group' THEN 0 WHEN 'semifinal' THEN 1 WHEN 'final' THEN 2 ELSE 3 END,
+        CASE m.stage WHEN 'group' THEN 0 WHEN 'round1' THEN 1 WHEN 'semifinal' THEN 2 WHEN 'final' THEN 3 ELSE 4 END,
         m.round ASC,
         m.scheduled_at ASC NULLS LAST,
         m.created_at ASC
