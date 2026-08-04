@@ -10,6 +10,7 @@ import {
   Plus,
   Shuffle,
   Trash2,
+  ChevronRight,
 } from "lucide-react";
 
 type Tab = "teams" | "groups" | "matches";
@@ -901,40 +902,17 @@ function CompactAdminMatchCard({
   }
 
   return (
-    <div className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/90 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]">
-      {/* Card Header Tag */}
-      <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-1.5">
-        <span className="font-mono-score text-[10px] font-bold uppercase tracking-wider text-cyan-400 truncate">
-          {match.label || match.stage.toUpperCase()}
-        </span>
-        <span
-          className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold uppercase ${
-            match.status === "live"
-              ? "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse"
-              : match.status === "completed"
-              ? "bg-gold-400/20 text-gold-300"
-              : "bg-white/5 text-ivory-400"
-          }`}
-        >
-          {match.status === "live" ? "LIVE NOW" : match.status}
-        </span>
-      </div>
-
-      {/* Teams Row (Compact & Narrow like user side) */}
-      <div className="my-2 flex items-center justify-between gap-1.5 text-center">
+    <div className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]">
+      {/* Top Teams Row (Exact Match to User Side Screenshot) */}
+      <div className="my-1 flex items-center justify-between gap-1.5 text-center">
         {/* Team A */}
         <div className="flex-1 min-w-0">
           <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
             {match.team_a_name ?? "TEAM A"}
           </span>
-          {match.team_a_score !== null && match.team_a_score !== undefined && (
-            <span className="font-mono-score text-[11px] font-bold text-emerald-400">
-              {match.team_a_score}/{match.team_a_wickets ?? 0}
-            </span>
-          )}
         </div>
 
-        {/* VS Badge */}
+        {/* VS Badge Pill */}
         <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[9px] text-ivory-300">
           VS
         </div>
@@ -944,30 +922,27 @@ function CompactAdminMatchCard({
           <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
             {match.team_b_name ?? "TEAM B"}
           </span>
-          {match.team_b_score !== null && match.team_b_score !== undefined && (
-            <span className="font-mono-score text-[11px] font-bold text-emerald-400">
-              {match.team_b_score}/{match.team_b_wickets ?? 0}
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Card Footer Actions */}
-      <div className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2 text-[11px]">
+      {/* Card Footer Divider & Actions */}
+      <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2.5">
         <button
           type="button"
           onClick={() => onSelectLive(match.id)}
-          className="inline-flex items-center gap-1 font-mono-score font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+          className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-emerald-400 transition-colors hover:text-emerald-300"
+          title="Select for Live Scoreboard Control"
         >
-          <span>⚡ Live Score</span>
+          <span>View Details</span>
+          <ChevronRight size={12} />
         </button>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowEdit(!showEdit)}
-            className="text-ivory-300 hover:text-white"
-            title="Edit Match Details"
+            className="text-ivory-300 hover:text-white text-xs"
+            title="Edit Fixture"
           >
             ✏️
           </button>
