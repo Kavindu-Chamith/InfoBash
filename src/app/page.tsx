@@ -79,22 +79,20 @@ export default function Home() {
               What is InfoBash
             </span>
             <h2 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
-              Batch vs Batch.{" "}
-              <span className="text-gradient-gold">Bragging Rights</span> On The Line.
+              Unity, Sportsmanship &amp;{" "}
+              <span className="text-gradient-gold">Healthy Competition</span>
             </h2>
             <p className="mt-5 text-ivory-300">
-              InfoBash is the Faculty of Computing&apos;s flagship cricket tournament —
-              a one-day battle between teams from every batch. Now in its fifth
-              edition, it&apos;s bigger, faster, and more competitive than ever.
+              INFO BASH 5.0 is the annual cricket tournament organized by the Sports Sub Committee of the Students&apos; Union, Faculty of Computing, Sabaragamuwa University of Sri Lanka. Bringing together undergraduates and academic staff in a spirit of teamwork and sportsmanship.
             </p>
           </Reveal>
 
           <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: CalendarDays,
-                title: "One-Day Format",
-                desc: "A fast-paced, single-day knockout tournament — every over counts.",
+                icon: ShieldCheck,
+                title: "12 Teams & 4 Groups",
+                desc: "12 teams randomly divided into 4 groups (Group A, B, C, D) with 3 teams per group.",
                 accent: "from-cyan-400/20 to-blue-500/20",
                 glow: "rgba(53,215,255,0.35)",
                 iconColor: "text-cyan-300",
@@ -103,8 +101,8 @@ export default function Home() {
               },
               {
                 icon: Users,
-                title: "11-A-Side Squads",
-                desc: "Full teams of 11 players, with at least 2 female players required per squad.",
+                title: "10-Player Squads",
+                desc: "Each squad consists of 10 players — 7 Boys & 3 Girls, uniting students and academic staff.",
                 accent: "from-gold-400/20 to-gold-300/10",
                 glow: "rgba(245,185,66,0.35)",
                 iconColor: "text-gold-300",
@@ -112,9 +110,9 @@ export default function Home() {
                 borderGlow: "rgba(245,185,66,0.5)",
               },
               {
-                icon: ShieldCheck,
-                title: "4 Batches Compete",
-                desc: "2–3 teams register per batch, bringing rival years head-to-head.",
+                icon: CalendarDays,
+                title: "5-Over Match Format",
+                desc: "Group matches feature 5 overs (4 balls/over); Semi-Finals & Finals play 5 overs (6 balls/over).",
                 accent: "from-cyan-400/20 to-blue-500/20",
                 glow: "rgba(53,215,255,0.35)",
                 iconColor: "text-cyan-300",
@@ -123,8 +121,8 @@ export default function Home() {
               },
               {
                 icon: Trophy,
-                title: "The InfoBash Trophy",
-                desc: "One champion team lifts the trophy and the faculty's respect.",
+                title: "Mandatory Female Overs",
+                desc: "The first over of both batting and bowling in every match is played by female team members.",
                 accent: "from-gold-400/20 to-gold-300/10",
                 glow: "rgba(245,185,66,0.35)",
                 iconColor: "text-gold-300",
