@@ -838,17 +838,23 @@ function MatchesTab({
           Match List for {adminRound.toUpperCase()}
         </h3>
 
-        {/* Upcoming / Live Matches list */}
+        {/* Upcoming / Live Matches list (Compact Cards like User Side) */}
         <div>
           <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-400">
             • Live & Scheduled Fixtures ({upcomingRoundMatches.length})
           </h4>
-          <div className="space-y-3">
+          <div className="flex flex-wrap gap-3.5">
             {upcomingRoundMatches.length === 0 ? (
               <p className="text-xs text-ivory-400">No scheduled or live matches in this round.</p>
             ) : (
               upcomingRoundMatches.map((m) => (
-                <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
+                <CompactAdminMatchCard
+                  key={m.id}
+                  match={m}
+                  teams={teams}
+                  onSelectLive={(id) => handleLiveSelect(id)}
+                  onChanged={onChanged}
+                />
               ))
             )}
           </div>
@@ -870,6 +876,118 @@ function MatchesTab({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CompactAdminMatchCard({
+  match,
+  teams,
+  onSelectLive,
+  onChanged,
+}: {
+  match: MatchRow;
+  teams: AdminTeam[];
+  onSelectLive: (id: string) => void;
+  onChanged: (message: string) => void;
+}) {
+  const [showEdit, setShowEdit] = useState(false);
+
+  async function remove() {
+    if (!confirm(`Are you sure you want to delete fixture "${match.team_a_name ?? 'Team A'} vs ${match.team_b_name ?? 'Team B'}"?`)) return;
+    const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
+    const json = await res.json();
+    onChanged(res.ok ? "Match fixture deleted." : json.error);
+  }
+
+  return (
+    <div className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/90 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]">
+      {/* Card Header Tag */}
+      <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-1.5">
+        <span className="font-mono-score text-[10px] font-bold uppercase tracking-wider text-cyan-400 truncate">
+          {match.label || match.stage.toUpperCase()}
+        </span>
+        <span
+          className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold uppercase ${
+            match.status === "live"
+              ? "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse"
+              : match.status === "completed"
+              ? "bg-gold-400/20 text-gold-300"
+              : "bg-white/5 text-ivory-400"
+          }`}
+        >
+          {match.status === "live" ? "LIVE NOW" : match.status}
+        </span>
+      </div>
+
+      {/* Teams Row (Compact & Narrow like user side) */}
+      <div className="my-2 flex items-center justify-between gap-1.5 text-center">
+        {/* Team A */}
+        <div className="flex-1 min-w-0">
+          <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+            {match.team_a_name ?? "TEAM A"}
+          </span>
+          {match.team_a_score !== null && match.team_a_score !== undefined && (
+            <span className="font-mono-score text-[11px] font-bold text-emerald-400">
+              {match.team_a_score}/{match.team_a_wickets ?? 0}
+            </span>
+          )}
+        </div>
+
+        {/* VS Badge */}
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[9px] text-ivory-300">
+          VS
+        </div>
+
+        {/* Team B */}
+        <div className="flex-1 min-w-0">
+          <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+            {match.team_b_name ?? "TEAM B"}
+          </span>
+          {match.team_b_score !== null && match.team_b_score !== undefined && (
+            <span className="font-mono-score text-[11px] font-bold text-emerald-400">
+              {match.team_b_score}/{match.team_b_wickets ?? 0}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Card Footer Actions */}
+      <div className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2 text-[11px]">
+        <button
+          type="button"
+          onClick={() => onSelectLive(match.id)}
+          className="inline-flex items-center gap-1 font-mono-score font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+        >
+          <span>⚡ Live Score</span>
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowEdit(!showEdit)}
+            className="text-ivory-300 hover:text-white"
+            title="Edit Match Details"
+          >
+            ✏️
+          </button>
+          <button
+            type="button"
+            onClick={remove}
+            className="text-red-400 hover:text-red-300"
+            title="Delete Fixture"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Popover Inline Editor when clicking edit */}
+      {showEdit && (
+        <div className="mt-3 border-t border-white/10 pt-2">
+          <MatchEditor match={match} teams={teams} onChanged={onChanged} />
+        </div>
+      )}
     </div>
   );
 }
