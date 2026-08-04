@@ -102,7 +102,7 @@ export default function Home() {
               {
                 icon: Users,
                 title: "10-Player Squads",
-                desc: "Each squad consists of 10 players — 7 Boys & 3 Girls, uniting students and academic staff.",
+                desc: "Each squad consists of 10 players. 7 Boys & 3 Girls, uniting students and academic staff.",
                 accent: "from-gold-400/20 to-gold-300/10",
                 glow: "rgba(245,185,66,0.35)",
                 iconColor: "text-gold-300",
@@ -112,7 +112,7 @@ export default function Home() {
               {
                 icon: CalendarDays,
                 title: "5-Over Match Format",
-                desc: "Group matches feature 5 overs (4 balls/over); Semi-Finals & Finals play 5 overs (6 balls/over).",
+                desc: "Group matches feature 5 overs (4 balls per over). Semi-Finals & Finals play 5 overs (6 balls per over).",
                 accent: "from-cyan-400/20 to-blue-500/20",
                 glow: "rgba(53,215,255,0.35)",
                 iconColor: "text-cyan-300",

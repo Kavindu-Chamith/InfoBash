@@ -60,18 +60,17 @@ const TILE_SIZE = "calc((100dvh - 64px - 24px) / 3)";
 function PhotoTile({ src }: { src: string }) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-xl border border-cyan-400/10"
-      style={{ height: TILE_SIZE, width: TILE_SIZE }}
+      className="relative shrink-0 overflow-hidden rounded-xl border border-cyan-400/20 bg-[#070e1c]"
+      style={{ height: TILE_SIZE, width: "calc(TILE_SIZE * 1.35)" }}
     >
       <Image
         src={src}
         alt=""
         fill
-        sizes="280px"
-        className="object-cover"
-        style={{ filter: "saturate(0.6) contrast(1.05)" }}
+        unoptimized
+        className="object-cover object-center transition-transform duration-700 hover:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-navy-950/35 via-transparent to-cyan-400/10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-navy-950/20 via-transparent to-cyan-400/10" />
     </div>
   );
 }
