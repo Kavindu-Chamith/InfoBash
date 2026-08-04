@@ -517,18 +517,6 @@ export default function MatchesLive() {
               </div>
             </div>
           </div>
-
-          {/* Match Details & Date / Time Bar */}
-          <div className="mt-8 flex items-center justify-center gap-6 border-t border-white/10 pt-5 text-xs font-medium text-ivory-300 sm:text-sm">
-            <div className="flex items-center gap-1.5">
-              <Calendar size={16} className="text-emerald-400" />
-              <span>{formatDate(liveMatch.scheduled_at)}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={16} className="text-emerald-400" />
-              <span>{formatTime(liveMatch.scheduled_at)}</span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -545,49 +533,37 @@ export default function MatchesLive() {
           <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-emerald-500 sm:w-24" />
         </div>
 
-        {/* 1st Round Upcoming Matches Grid (Compact Cards) */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* 1st Round Upcoming Matches Flex Grid (Narrower Compact Cards) */}
+        <div className="mx-auto flex flex-wrap justify-center gap-3.5 max-w-4xl">
           {upcomingMatches.map((match) => (
             <div
               key={match.id}
-              className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-4 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
+              className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
             >
               {/* Top Teams Row (No logos - Compact) */}
-              <div className="flex items-center justify-between gap-2 text-center">
+              <div className="flex items-center justify-between gap-1.5 text-center">
                 {/* Team A */}
-                <div className="flex-1">
-                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                <div className="flex-1 min-w-0">
+                  <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
                     {match.team_a_name ?? "TEAM A"}
                   </span>
                 </div>
 
                 {/* VS Badge */}
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[10px] text-ivory-300">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[9px] text-ivory-300">
                   VS
                 </div>
 
                 {/* Team B */}
-                <div className="flex-1">
-                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                <div className="flex-1 min-w-0">
+                  <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
                     {match.team_b_name ?? "TEAM B"}
                   </span>
                 </div>
               </div>
 
-              {/* Date & Time Row */}
-              <div className="my-3 flex items-center justify-center gap-4 border-t border-white/10 pt-3 text-[11px] font-medium text-ivory-300">
-                <div className="flex items-center gap-1">
-                  <Calendar size={13} className="text-emerald-400" />
-                  <span>{formatShortDate(match.scheduled_at)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={13} className="text-emerald-400" />
-                  <span>{formatTime(match.scheduled_at)}</span>
-                </div>
-              </div>
-
               {/* View Details Link */}
-              <div className="flex justify-center">
+              <div className="mt-3 flex justify-center border-t border-white/10 pt-2.5">
                 <button
                   onClick={() => setSelectedMatch(match)}
                   className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-emerald-400 transition-colors hover:text-emerald-300"
@@ -712,19 +688,8 @@ export default function MatchesLive() {
               </div>
             </div>
 
-            {/* Footer schedule bar & Close button */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-[11px] text-ivory-400">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Calendar size={13} className="text-emerald-400" />
-                  {formatDate(selectedMatch.scheduled_at)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock size={13} className="text-emerald-400" />
-                  {formatTime(selectedMatch.scheduled_at)}
-                </span>
-              </div>
-
+            {/* Footer Close button */}
+            <div className="mt-4 flex items-center justify-end border-t border-white/10 pt-3">
               <button
                 onClick={() => setSelectedMatch(null)}
                 className="rounded-full bg-emerald-500 px-5 py-1.5 text-xs font-bold text-navy-950 hover:bg-emerald-400 transition-colors"
