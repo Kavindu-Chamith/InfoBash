@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { ADMIN_COOKIE, verifyAdminSessionToken } from "@/lib/adminAuth";
 
-const STAGES = ["group", "semifinal", "final", "custom"] as const;
+const STAGES = ["group", "round1", "quarterfinal", "semifinal", "final", "custom"] as const;
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get(ADMIN_COOKIE)?.value;

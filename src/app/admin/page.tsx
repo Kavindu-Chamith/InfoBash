@@ -42,12 +42,16 @@ interface Group {
 
 interface MatchRow {
   id: string;
-  stage: "group" | "semifinal" | "final" | "custom";
+  stage: "group" | "round1" | "quarterfinal" | "semifinal" | "final" | "custom";
   round: number;
   label: string | null;
   status: "scheduled" | "live" | "completed";
   team_a_score: number | null;
   team_b_score: number | null;
+  team_a_wickets?: number | null;
+  team_b_wickets?: number | null;
+  team_a_overs?: string | null;
+  team_b_overs?: string | null;
   scheduled_at: string | null;
   venue: string | null;
   group_name: string | null;
@@ -334,8 +338,15 @@ function MatchesTab({
   teams: AdminTeam[];
   onChanged: (message: string) => void;
 }) {
-  const [form, setForm] = useState({
-    stage: "semifinal" as MatchRow["stage"],
+  const [form, setForm] = useState<{
+    stage: MatchRow["stage"];
+    label: string;
+    teamAId: string;
+    teamBId: string;
+    scheduledAt: string;
+    venue: string;
+  }>({
+    stage: "round1",
     label: "",
     teamAId: "",
     teamBId: "",
@@ -343,6 +354,58 @@ function MatchesTab({
     venue: "",
   });
   const [creating, setCreating] = useState(false);
+
+  // Live Controller state
+  const liveMatchInDb = matches.find((m) => m.status === "live");
+  const [selectedLiveId, setSelectedLiveId] = useState<string>(liveMatchInDb?.id ?? "");
+  const [liveRunsA, setLiveRunsA] = useState<string>(liveMatchInDb?.team_a_score?.toString() ?? "");
+  const [liveWktsA, setLiveWktsA] = useState<string>(liveMatchInDb?.team_a_wickets?.toString() ?? "");
+  const [liveOversA, setLiveOversA] = useState<string>(liveMatchInDb?.team_a_overs?.toString() ?? "");
+  const [liveRunsB, setLiveRunsB] = useState<string>(liveMatchInDb?.team_b_score?.toString() ?? "");
+  const [liveWktsB, setLiveWktsB] = useState<string>(liveMatchInDb?.team_b_wickets?.toString() ?? "");
+  const [liveOversB, setLiveOversB] = useState<string>(liveMatchInDb?.team_b_overs?.toString() ?? "");
+  const [updatingLive, setUpdatingLive] = useState(false);
+
+  // Sync selected live match when dropdown changes
+  const handleLiveSelect = (matchId: string) => {
+    setSelectedLiveId(matchId);
+    const target = matches.find((m) => m.id === matchId);
+    if (target) {
+      setLiveRunsA(target.team_a_score?.toString() ?? "");
+      setLiveWktsA(target.team_a_wickets?.toString() ?? "");
+      setLiveOversA(target.team_a_overs?.toString() ?? "");
+      setLiveRunsB(target.team_b_score?.toString() ?? "");
+      setLiveWktsB(target.team_b_wickets?.toString() ?? "");
+      setLiveOversB(target.team_b_overs?.toString() ?? "");
+    }
+  };
+
+  async function updateLiveMatch(newStatus: "live" | "completed") {
+    if (!selectedLiveId) return;
+    setUpdatingLive(true);
+    const res = await fetch(`/api/admin/matches/${selectedLiveId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: newStatus,
+        teamAScore: liveRunsA === "" ? null : Number(liveRunsA),
+        teamAWickets: liveWktsA === "" ? null : Number(liveWktsA),
+        teamAOvers: liveOversA === "" ? null : liveOversA,
+        teamBScore: liveRunsB === "" ? null : Number(liveRunsB),
+        teamBWickets: liveWktsB === "" ? null : Number(liveWktsB),
+        teamBOvers: liveOversB === "" ? null : liveOversB,
+      }),
+    });
+    const json = await res.json();
+    setUpdatingLive(false);
+    onChanged(
+      res.ok
+        ? newStatus === "live"
+          ? "Live score updated & broadcasting!"
+          : "Match finished and added to Match Results!"
+        : json.error
+    );
+  }
 
   async function createMatch(e: React.FormEvent) {
     e.preventDefault();
@@ -362,34 +425,184 @@ function MatchesTab({
     const json = await res.json();
     setCreating(false);
     onChanged(res.ok ? "Match created." : json.error);
-    if (res.ok) setForm({ stage: "semifinal", label: "", teamAId: "", teamBId: "", scheduledAt: "", venue: "" });
+    if (res.ok) setForm({ stage: "round1", label: "", teamAId: "", teamBId: "", scheduledAt: "", venue: "" });
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* ══════════════════════════════════════════════════════════════
+          LIVE MATCH SCOREBOARD CONTROLLER (ADMIN SUPER CONTROL)
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="rounded-2xl border border-emerald-500/40 bg-[#070e1c]/90 p-6 shadow-xl relative overflow-hidden">
+        <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+            </span>
+            <h3 className="font-display text-xl font-bold tracking-wide text-emerald-400">
+              Live Scoreboard Controller
+            </h3>
+          </div>
+          <span className="font-mono-score text-xs tracking-wider text-ivory-300">
+            Broadcasting Real-Time Scorecard
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
+              Select Match to Control / Broadcast Live
+            </label>
+            <select
+              value={selectedLiveId}
+              onChange={(e) => handleLiveSelect(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">-- Select Match --</option>
+              {matches.map((m) => (
+                <option key={m.id} value={m.id}>
+                  [{m.stage.toUpperCase()}] {m.team_a_name ?? "TBD"} vs {m.team_b_name ?? "TBD"}{" "}
+                  ({m.status.toUpperCase()})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedLiveId && (
+            <div className="grid grid-cols-1 gap-4 rounded-xl bg-white/[0.03] p-4 sm:grid-cols-2">
+              {/* Team A Live Inputs */}
+              <div className="space-y-2 rounded-lg border border-white/10 p-3">
+                <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
+                  {matches.find((m) => m.id === selectedLiveId)?.team_a_name ?? "Team A"}
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Runs</label>
+                    <input
+                      type="number"
+                      value={liveRunsA}
+                      onChange={(e) => setLiveRunsA(e.target.value)}
+                      placeholder="142"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Wickets</label>
+                    <input
+                      type="number"
+                      value={liveWktsA}
+                      onChange={(e) => setLiveWktsA(e.target.value)}
+                      placeholder="4"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Overs</label>
+                    <input
+                      type="text"
+                      value={liveOversA}
+                      onChange={(e) => setLiveOversA(e.target.value)}
+                      placeholder="18.2"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Team B Live Inputs */}
+              <div className="space-y-2 rounded-lg border border-white/10 p-3">
+                <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
+                  {matches.find((m) => m.id === selectedLiveId)?.team_b_name ?? "Team B"}
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Runs</label>
+                    <input
+                      type="number"
+                      value={liveRunsB}
+                      onChange={(e) => setLiveRunsB(e.target.value)}
+                      placeholder="98"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Wickets</label>
+                    <input
+                      type="number"
+                      value={liveWktsB}
+                      onChange={(e) => setLiveWktsB(e.target.value)}
+                      placeholder="2"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-ivory-400">Overs</label>
+                    <input
+                      type="text"
+                      value={liveOversB}
+                      onChange={(e) => setLiveOversB(e.target.value)}
+                      placeholder="12.0"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="col-span-full flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={updatingLive}
+                  onClick={() => updateLiveMatch("live")}
+                  className={btnPrimary}
+                >
+                  {updatingLive ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                  ⚡ Update & Broadcast Live Score
+                </button>
+
+                <button
+                  type="button"
+                  disabled={updatingLive}
+                  onClick={() => updateLiveMatch("completed")}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gold-400 px-4 py-2 text-xs font-bold text-navy-950 hover:bg-gold-300"
+                >
+                  🏁 Finish Match & Move to Results
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          NEW UPCOMING MATCH FIXTURE CREATOR
+      ══════════════════════════════════════════════════════════════ */}
       <form onSubmit={createMatch} className={`${cardClass} grid grid-cols-1 gap-4 sm:grid-cols-2`}>
         <h3 className="col-span-full font-display text-xl tracking-wide text-ivory-50">
-          Create Match
+          Create Match Fixture
         </h3>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Stage</label>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Stage / Round</label>
           <select
             value={form.stage}
             onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value as MatchRow["stage"] }))}
             className={inputClass}
           >
+            <option value="round1">1st Round</option>
+            <option value="quarterfinal">Quarterfinal</option>
             <option value="semifinal">Semifinal</option>
             <option value="final">Final</option>
+            <option value="group">Group Stage</option>
             <option value="custom">Custom</option>
-            <option value="group">Group</option>
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Label</label>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Label / Name</label>
           <input
             value={form.label}
             onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-            placeholder="e.g. Semifinal 1"
+            placeholder="e.g. 1st Round · Match 02"
             className={inputClass}
           />
         </div>
@@ -419,38 +632,30 @@ function MatchesTab({
             ))}
           </select>
         </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Scheduled At</label>
-          <input
-            type="datetime-local"
-            value={form.scheduledAt}
-            onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Venue</label>
-          <input
-            value={form.venue}
-            onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))}
-            placeholder="Hunduwa Ground"
-            className={inputClass}
-          />
-        </div>
         <div className="col-span-full">
           <button type="submit" disabled={creating} className={btnPrimary}>
             {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-            Create Match
+            + Create Match Fixture
           </button>
         </div>
       </form>
 
-      <div className="space-y-3">
-        {matches.length === 0 ? (
-          <p className="text-sm text-ivory-400">No matches yet.</p>
-        ) : (
-          matches.map((m) => <MatchEditor key={m.id} match={m} onChanged={onChanged} />)
-        )}
+      {/* ══════════════════════════════════════════════════════════════
+          ALL MATCHES EDITOR LIST
+      ══════════════════════════════════════════════════════════════ */}
+      <div>
+        <h3 className="mb-4 font-display text-xl tracking-wide text-ivory-50">
+          All Match Fixtures & Results
+        </h3>
+        <div className="space-y-4">
+          {matches.length === 0 ? (
+            <p className="text-sm text-ivory-400">No matches created yet.</p>
+          ) : (
+            matches.map((m) => (
+              <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
@@ -458,14 +663,22 @@ function MatchesTab({
 
 function MatchEditor({
   match,
+  teams,
   onChanged,
 }: {
   match: MatchRow;
+  teams: AdminTeam[];
   onChanged: (message: string) => void;
 }) {
   const [status, setStatus] = useState(match.status);
+  const [stage, setStage] = useState(match.stage);
   const [scoreA, setScoreA] = useState(match.team_a_score?.toString() ?? "");
+  const [wktsA, setWktsA] = useState(match.team_a_wickets?.toString() ?? "");
+  const [oversA, setOversA] = useState(match.team_a_overs?.toString() ?? "");
   const [scoreB, setScoreB] = useState(match.team_b_score?.toString() ?? "");
+  const [wktsB, setWktsB] = useState(match.team_b_wickets?.toString() ?? "");
+  const [oversB, setOversB] = useState(match.team_b_overs?.toString() ?? "");
+  const [winnerId, setWinnerId] = useState(match.winner_id ?? "");
   const [saving, setSaving] = useState(false);
 
   async function save() {
@@ -476,12 +689,17 @@ function MatchEditor({
       body: JSON.stringify({
         status,
         teamAScore: scoreA === "" ? null : Number(scoreA),
+        teamAWickets: wktsA === "" ? null : Number(wktsA),
+        teamAOvers: oversA === "" ? null : oversA,
         teamBScore: scoreB === "" ? null : Number(scoreB),
+        teamBWickets: wktsB === "" ? null : Number(wktsB),
+        teamBOvers: oversB === "" ? null : oversB,
+        winnerId: winnerId === "" ? null : winnerId,
       }),
     });
     const json = await res.json();
     setSaving(false);
-    onChanged(res.ok ? "Match updated." : json.error);
+    onChanged(res.ok ? "Match updated successfully." : json.error);
   }
 
   async function remove() {
@@ -491,43 +709,140 @@ function MatchEditor({
   }
 
   return (
-    <div className={`${cardClass} flex flex-wrap items-center gap-4`}>
-      <div className="min-w-[160px] flex-1">
-        <span className="text-xs uppercase tracking-wide text-ivory-400">
-          {match.group_name ?? match.stage} {match.label ? `· ${match.label}` : ""}
-        </span>
-        <p className="mt-0.5 text-sm font-medium text-ivory-100">
-          {match.team_a_name ?? "TBD"} <span className="text-ivory-400">vs</span> {match.team_b_name ?? "TBD"}
-        </p>
+    <div className={`${cardClass} space-y-3`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-2">
+        <div>
+          <span className="font-mono-score text-xs uppercase tracking-wide text-cyan-400">
+            {match.stage.toUpperCase()} {match.label ? `· ${match.label}` : ""}
+          </span>
+          <h4 className="text-sm font-bold text-ivory-100">
+            {match.team_a_name ?? "TBD"} <span className="text-ivory-400">vs</span> {match.team_b_name ?? "TBD"}
+          </h4>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as MatchRow["status"])}
+            className={`${inputClass} w-32 font-semibold ${
+              status === "live"
+                ? "border-emerald-500 text-emerald-400"
+                : status === "completed"
+                ? "border-gold-400 text-gold-300"
+                : ""
+            }`}
+          >
+            <option value="scheduled">Scheduled</option>
+            <option value="live">Live Now</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
       </div>
 
-      <select value={status} onChange={(e) => setStatus(e.target.value as MatchRow["status"])} className={`${inputClass} w-32`}>
-        <option value="scheduled">Scheduled</option>
-        <option value="live">Live</option>
-        <option value="completed">Completed</option>
-      </select>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* Team A Details Inputs */}
+        <div className="rounded-lg bg-white/[0.02] p-2.5 border border-white/5 space-y-1.5">
+          <span className="text-xs font-semibold text-ivory-200">
+            Team A: {match.team_a_name ?? "TBD"}
+          </span>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-[10px] text-ivory-400">Runs</label>
+              <input
+                type="number"
+                value={scoreA}
+                onChange={(e) => setScoreA(e.target.value)}
+                placeholder="Runs"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-ivory-400">Wickets</label>
+              <input
+                type="number"
+                value={wktsA}
+                onChange={(e) => setWktsA(e.target.value)}
+                placeholder="Wkts"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-ivory-400">Overs</label>
+              <input
+                type="text"
+                value={oversA}
+                onChange={(e) => setOversA(e.target.value)}
+                placeholder="Ov"
+                className={inputClass}
+              />
+            </div>
+          </div>
+        </div>
 
-      <input
-        type="number"
-        value={scoreA}
-        onChange={(e) => setScoreA(e.target.value)}
-        placeholder="Score A"
-        className={`${inputClass} w-20`}
-      />
-      <input
-        type="number"
-        value={scoreB}
-        onChange={(e) => setScoreB(e.target.value)}
-        placeholder="Score B"
-        className={`${inputClass} w-20`}
-      />
+        {/* Team B Details Inputs */}
+        <div className="rounded-lg bg-white/[0.02] p-2.5 border border-white/5 space-y-1.5">
+          <span className="text-xs font-semibold text-ivory-200">
+            Team B: {match.team_b_name ?? "TBD"}
+          </span>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-[10px] text-ivory-400">Runs</label>
+              <input
+                type="number"
+                value={scoreB}
+                onChange={(e) => setScoreB(e.target.value)}
+                placeholder="Runs"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-ivory-400">Wickets</label>
+              <input
+                type="number"
+                value={wktsB}
+                onChange={(e) => setWktsB(e.target.value)}
+                placeholder="Wkts"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-ivory-400">Overs</label>
+              <input
+                type="text"
+                value={oversB}
+                onChange={(e) => setOversB(e.target.value)}
+                placeholder="Ov"
+                className={inputClass}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <button onClick={save} disabled={saving} className={btnPrimary}>
-        {saving ? <Loader2 size={14} className="animate-spin" /> : "Save"}
-      </button>
-      <button onClick={remove} className="text-red-400 hover:text-red-300">
-        <Trash2 size={16} />
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        {/* Winner selection */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-ivory-300">Winner:</label>
+          <select
+            value={winnerId}
+            onChange={(e) => setWinnerId(e.target.value)}
+            className={`${inputClass} w-44 text-xs`}
+          >
+            <option value="">Auto-Derive / None</option>
+            {match.team_a_id && <option value={match.team_a_id}>{match.team_a_name}</option>}
+            {match.team_b_id && <option value={match.team_b_id}>{match.team_b_name}</option>}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button onClick={save} disabled={saving} className={btnPrimary}>
+            {saving ? <Loader2 size={14} className="animate-spin" /> : "Save Changes"}
+          </button>
+          <button onClick={remove} className="text-red-400 hover:text-red-300">
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
