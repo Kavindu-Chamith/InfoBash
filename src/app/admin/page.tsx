@@ -468,6 +468,21 @@ function MatchesTab({
     if (res.ok) setForm((f) => ({ ...f, label: "", teamAId: "", teamBId: "" }));
   }
 
+  const [serverActiveRound, setServerActiveRound] = useState<MatchRow["stage"]>("round1");
+
+  // Fetch current active live round from PostgreSQL on mount
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.activeRound) {
+          setServerActiveRound(json.activeRound);
+          setAdminRound(json.activeRound);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [submittingRound, setSubmittingRound] = useState(false);
 
   async function submitActiveLiveRound() {
@@ -489,11 +504,12 @@ function MatchesTab({
         ? "Semifinals"
         : "Final";
 
-    onChanged(
-      res.ok
-        ? `Successfully published "${roundLabel}" as the Current Live Round on user matches page!`
-        : json.error
-    );
+    if (res.ok) {
+      setServerActiveRound(adminRound);
+      onChanged(`Successfully published "${roundLabel}" as the Current Live Round on user matches page!`);
+    } else {
+      onChanged(json.error);
+    }
   }
 
   const selectedMatchObj = matches.find((m) => m.id === selectedLiveId);
@@ -505,16 +521,30 @@ function MatchesTab({
       ══════════════════════════════════════════════════════════════ */}
       <div className="rounded-2xl border border-cyan-500/30 bg-[#070e1c]/90 p-5 shadow-xl">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
-          <label className="font-mono-score text-xs font-bold uppercase tracking-widest text-cyan-400">
-            SELECT TOURNAMENT ROUND TO VIEW & MANAGE
-          </label>
+          <div>
+            <label className="block font-mono-score text-xs font-bold uppercase tracking-widest text-cyan-400">
+              SELECT TOURNAMENT ROUND TO VIEW & MANAGE
+            </label>
+            <span className="text-[11px] text-ivory-400">
+              Current Live Round on User Page:{" "}
+              <strong className="text-emerald-400 font-bold uppercase">
+                {serverActiveRound === "round1"
+                  ? "1st Round"
+                  : serverActiveRound === "quarterfinal"
+                  ? "Quarterfinals"
+                  : serverActiveRound === "semifinal"
+                  ? "Semifinals"
+                  : "Final"}
+              </strong>
+            </span>
+          </div>
 
           {/* Submit Active Round Button on Right Corner */}
           <button
             type="button"
             disabled={submittingRound}
             onClick={submitActiveLiveRound}
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 px-4 py-1.5 font-mono-score text-xs font-bold uppercase tracking-wider text-navy-950 hover:from-emerald-400 hover:to-cyan-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
+            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider text-navy-950 hover:from-emerald-400 hover:to-cyan-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
           >
             {submittingRound ? (
               <Loader2 size={13} className="animate-spin" />
@@ -533,6 +563,8 @@ function MatchesTab({
             { id: "final", label: "Final" },
           ].map((r) => {
             const isSelected = adminRound === r.id;
+            const isLiveOnWebsite = serverActiveRound === r.id;
+
             return (
               <button
                 key={r.id}
@@ -541,13 +573,24 @@ function MatchesTab({
                   setAdminRound(r.id as MatchRow["stage"]);
                   setSelectedLiveId("");
                 }}
-                className={`rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                className={`relative inline-flex items-center gap-2 rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
                   isSelected
                     ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105"
                     : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-cyan-400/40 hover:text-white"
                 }`}
               >
-                {r.label}
+                <span>{r.label}</span>
+                {isLiveOnWebsite && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold tracking-wider ${
+                      isSelected
+                        ? "bg-navy-950/80 text-emerald-300 border border-emerald-400/40"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                    }`}
+                  >
+                    ● LIVE NOW
+                  </span>
+                )}
               </button>
             );
           })}

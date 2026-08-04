@@ -506,9 +506,10 @@ export default function MatchesLive() {
   const [loaded, setLoaded] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MatchApiRow | null>(null);
 
-  // Selected round tab state (defaults to 'round1', auto-switches if live match or server settings detected)
+  // Selected round tab state (defaults to server live round setting)
   const [selectedRound, setSelectedRound] = useState<StageRound>("round1");
   const [serverLiveRound, setServerLiveRound] = useState<StageRound>("round1");
+  const [userHasSelectedRound, setUserHasSelectedRound] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -533,15 +534,13 @@ export default function MatchesLive() {
         const activeRoundFromSettings: StageRound = (settingsJson.activeRound as StageRound) || "round1";
         setServerLiveRound(activeRoundFromSettings);
 
-        // Detect if any match is currently LIVE or use Admin configured active live round
-        const liveMatchInDb = dbMatches.find((m) => m.status === "live");
-        if (liveMatchInDb?.stage && ["round1", "quarterfinal", "semifinal", "final"].includes(liveMatchInDb.stage)) {
-          const liveStage = liveMatchInDb.stage as StageRound;
-          setServerLiveRound(liveStage);
-          setSelectedRound(liveStage);
-        } else if (activeRoundFromSettings) {
-          setSelectedRound(activeRoundFromSettings);
-        }
+        // If user hasn't manually clicked another round tab, auto-set selectedRound to active live round
+        setUserHasSelectedRound((userClicked) => {
+          if (!userClicked) {
+            setSelectedRound(activeRoundFromSettings);
+          }
+          return userClicked;
+        });
       } catch {
         if (!cancelled) setLoaded(true);
       }
@@ -558,9 +557,8 @@ export default function MatchesLive() {
   // Detect live match in current database
   const liveMatchInDb = matches.find((m) => m.status === "live");
 
-  // Determine current active LIVE round ID (from DB live match or Admin settings)
-  const liveRoundId: StageRound =
-    (liveMatchInDb?.stage as StageRound) || serverLiveRound || "round1";
+  // Active LIVE round ID set by Admin (or from live match stage)
+  const liveRoundId: StageRound = serverLiveRound || (liveMatchInDb?.stage as StageRound) || "round1";
 
   // Featured Live Score match for the selected round
   const liveMatch =
@@ -733,7 +731,10 @@ export default function MatchesLive() {
             return (
               <button
                 key={round.id}
-                onClick={() => setSelectedRound(round.id)}
+                onClick={() => {
+                  setSelectedRound(round.id);
+                  setUserHasSelectedRound(true);
+                }}
                 className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-300 sm:px-5 sm:py-2.5 ${
                   isSelected
                     ? "bg-gradient-to-r from-emerald-500 to-cyan-400 text-navy-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] scale-105"
