@@ -239,37 +239,6 @@ export default function Hero() {
               <ArrowRight size={13} className="-translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
             </Link>
           </motion.div>
-
-          {/* Stat pills */}
-          <motion.div variants={item} className="mt-6 flex flex-wrap justify-center gap-2">
-            {[
-              { label: "One-Day Format", dot: "bg-cyan-400" },
-              { label: "11-A-Side", dot: "bg-gold-400" },
-              { label: "4 Batches", dot: "bg-blue-500" },
-              { label: "Inter-Batch Rivalry", dot: "bg-cyan-300" },
-            ].map(({ label, dot }) => (
-              <span
-                key={label}
-                className="flex items-center gap-2 rounded-full border border-cyan-400/15 bg-navy-800/60 px-3 py-1.5 text-xs font-medium text-ivory-400 backdrop-blur-sm"
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-                {label}
-              </span>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* Scroll hint */}
-        <motion.div
-          className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <span className="font-mono-score text-[10px] uppercase tracking-[0.3em] text-ivory-500">Scroll</span>
-          <svg width="14" height="18" viewBox="0 0 14 18" fill="none" aria-hidden="true">
-            <rect x="1" y="1" width="12" height="16" rx="6" stroke="rgba(232,229,223,0.35)" strokeWidth="1.2" />
-            <circle cx="7" cy="6" r="1.4" fill="rgba(53,215,255,0.7)" />
-          </svg>
         </motion.div>
     </section>
   );

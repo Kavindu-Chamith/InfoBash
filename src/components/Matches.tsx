@@ -24,7 +24,7 @@ interface MatchNode {
 
 export interface PlayoffMatch {
   id: string;
-  stage: "semifinal" | "final";
+  stage: "round1" | "quarterfinal" | "semifinal" | "final";
   label: string | null;
   team_a_name: string | null;
   team_b_name: string | null;
@@ -32,38 +32,223 @@ export interface PlayoffMatch {
   winner_name: string | null;
 }
 
-const ROUND_TITLES = ["Semifinals", "Final", "Champion"];
-const ROUND_ACCENTS = ["#f5b942", "#f5b942", "#f5b942"];
 const CARD_BORDER = "rgba(245, 185, 66, 0.45)";
 const CARD_BORDER_GLOW = "rgba(245, 185, 66, 0.25)";
 
-function buildMatchNodes(playoffMatches: PlayoffMatch[]): { matches: MatchNode[]; championName: string | null } {
-  const semifinals = playoffMatches.filter((m) => m.stage === "semifinal");
-  const final = playoffMatches.find((m) => m.stage === "final") ?? null;
+function generateDefaultPlayoffs(totalTeams: number): PlayoffMatch[] {
+  // If 8 or more teams registered (e.g. 8, 12, 14, 16 teams):
+  if (totalTeams >= 8) {
+    const round1Count = totalTeams >= 14 ? 6 : 4;
+    const r1Matches: PlayoffMatch[] = Array.from({ length: round1Count }, (_, i) => ({
+      id: `r1-${i + 1}`,
+      stage: "round1",
+      label: `Round 1 · ${String.fromCharCode(65 + i)}`,
+      team_a_name: null,
+      team_b_name: null,
+      status: "scheduled",
+      winner_name: null,
+    }));
 
-  const matches: MatchNode[] = semifinals.map((m, i) => ({
-    id: m.id,
-    round: 0,
-    label: m.label || `Semifinal ${i + 1}`,
-    teamA: m.team_a_name ? { name: m.team_a_name } : null,
-    teamB: m.team_b_name ? { name: m.team_b_name } : null,
-    feeds: "final",
-  }));
+    // If 14 teams (12 play in Round 1, 2 top teams paired for Direct QF Entry):
+    const directSeedsPairing: PlayoffMatch[] = totalTeams >= 14 ? [
+      {
+        id: "r1-direct",
+        stage: "round1",
+        label: "Direct QF Entry",
+        team_a_name: "Direct Seed #1",
+        team_b_name: "Direct Seed #2",
+        status: "scheduled",
+        winner_name: null,
+      }
+    ] : [];
 
-  matches.push({
-    id: "final",
-    round: 1,
-    label: final?.label || "Final",
-    teamA: final?.team_a_name ? { name: final.team_a_name } : null,
-    teamB: final?.team_b_name ? { name: final.team_b_name } : null,
-    feeds: "champion",
-  });
+    return [
+      ...r1Matches,
+      ...directSeedsPairing,
+      { id: "qf-1", stage: "quarterfinal", label: "Game 1", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "qf-2", stage: "quarterfinal", label: "Game 2", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "qf-3", stage: "quarterfinal", label: "Game 3", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "qf-4", stage: "quarterfinal", label: "Game 4", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "sf-1", stage: "semifinal", label: "Game 5", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "sf-2", stage: "semifinal", label: "Game 6", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "final", stage: "final", label: "Game 7 (Final)", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    ];
+  }
+  return [
+    { id: "r1-1", stage: "round1", label: "Round 1 · A", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    { id: "r1-2", stage: "round1", label: "Round 1 · B", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    { id: "sf-1", stage: "semifinal", label: "Semifinal 1", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    { id: "sf-2", stage: "semifinal", label: "Semifinal 2", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    { id: "final", stage: "final", label: "Final", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+  ];
+}
 
-  matches.push({ id: "champion", round: 2, label: "Champion", teamA: null, teamB: null, champion: true });
+function buildMatchNodes(playoffMatches: PlayoffMatch[], totalTeams: number = 0): {
+  matches: MatchNode[];
+  championName: string | null;
+  roundTitles: string[];
+  roundAccents: string[];
+} {
+  const matchesData = playoffMatches.length > 0 ? playoffMatches : generateDefaultPlayoffs(totalTeams);
+  const round1List = matchesData.filter((m) => m.stage === "round1");
+  const quarterfinals = matchesData.filter((m) => m.stage === "quarterfinal");
+  const semifinals = matchesData.filter((m) => m.stage === "semifinal");
+  const final = matchesData.find((m) => m.stage === "final") ?? null;
+
+  const matches: MatchNode[] = [];
+  let roundTitles: string[];
+  let roundAccents: string[];
+
+  if (round1List.length > 0 && quarterfinals.length > 0) {
+    roundTitles = ["First Round", "Quarterfinals", "Semifinals", "Final", "Champion"];
+    roundAccents = ["#22d3ee", "#35d7ff", "#f5b942", "#f5b942", "#f5b942"];
+
+    // Round 1 (Round 0)
+    const normalR1 = round1List.filter((m) => m.id !== "r1-direct");
+    const directMatch = round1List.find((m) => m.id === "r1-direct");
+
+    normalR1.forEach((m, i) => {
+      const qfLimit = directMatch ? 3 : quarterfinals.length;
+      const qfIndex = Math.min(Math.floor((i * qfLimit) / normalR1.length), qfLimit - 1);
+      const qfTarget = quarterfinals[qfIndex]?.id || `qf-${qfIndex + 1}`;
+      matches.push({
+        id: m.id,
+        round: 0,
+        label: m.label || `Round 1 · ${String.fromCharCode(65 + i)}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: qfTarget,
+      });
+    });
+
+    if (directMatch) {
+      matches.push({
+        id: directMatch.id,
+        round: 0,
+        label: directMatch.label || "Direct QF Entry",
+        teamA: directMatch.team_a_name ? { name: directMatch.team_a_name } : { name: "Direct Seed #1" },
+        teamB: directMatch.team_b_name ? { name: directMatch.team_b_name } : { name: "Direct Seed #2" },
+        feeds: quarterfinals[3]?.id || "qf-4",
+      });
+    }
+
+    // Quarterfinals (Round 1)
+    quarterfinals.forEach((m, i) => {
+      const sfTarget = i < 2 ? (semifinals[0]?.id || "sf-1") : (semifinals[1]?.id || "sf-2");
+      matches.push({
+        id: m.id,
+        round: 1,
+        label: m.label || `Game ${i + 1}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: sfTarget,
+      });
+    });
+
+    // Semifinals (Round 2)
+    const sfList = semifinals.length > 0 ? semifinals : [
+      { id: "sf-1", stage: "semifinal" as const, label: "Game 5", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+      { id: "sf-2", stage: "semifinal" as const, label: "Game 6", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+    ];
+    sfList.forEach((m, i) => {
+      matches.push({
+        id: m.id,
+        round: 2,
+        label: m.label || `Game ${i + 5}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: "final",
+      });
+    });
+
+    // Final (Round 3)
+    matches.push({
+      id: final?.id || "final",
+      round: 3,
+      label: final?.label || "Game 7 (Final)",
+      teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+      teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+      feeds: "champion",
+    });
+
+    // Champion (Round 4)
+    matches.push({ id: "champion", round: 4, label: "Champion", teamA: null, teamB: null, champion: true });
+  } else if (quarterfinals.length > 0) {
+    roundTitles = ["Quarterfinals", "Semifinals", "Final", "Champion"];
+    roundAccents = ["#35d7ff", "#f5b942", "#f5b942", "#f5b942"];
+
+    quarterfinals.forEach((m, i) => {
+      const sfTarget = i < 2 ? (semifinals[0]?.id || "sf-1") : (semifinals[1]?.id || "sf-2");
+      matches.push({
+        id: m.id,
+        round: 0,
+        label: m.label || `Game ${i + 1}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: sfTarget,
+      });
+    });
+
+    const sfList = semifinals.length > 0 ? semifinals : [
+      { id: "sf-1", stage: "semifinal" as const, label: "Game 5", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+      { id: "sf-2", stage: "semifinal" as const, label: "Game 6", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+    ];
+    sfList.forEach((m, i) => {
+      matches.push({
+        id: m.id,
+        round: 1,
+        label: m.label || `Game ${i + 5}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: "final",
+      });
+    });
+
+    matches.push({
+      id: final?.id || "final",
+      round: 2,
+      label: final?.label || "Game 7 (Final)",
+      teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+      teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+      feeds: "champion",
+    });
+
+    matches.push({ id: "champion", round: 3, label: "Champion", teamA: null, teamB: null, champion: true });
+  } else {
+    roundTitles = ["Semifinals", "Final", "Champion"];
+    roundAccents = ["#f5b942", "#f5b942", "#f5b942"];
+
+    const sfList = semifinals.length > 0 ? semifinals : [
+      { id: "sf-1", stage: "semifinal" as const, label: "Semifinal 1", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+      { id: "sf-2", stage: "semifinal" as const, label: "Semifinal 2", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+    ];
+
+    sfList.forEach((m, i) => {
+      matches.push({
+        id: m.id,
+        round: 0,
+        label: m.label || `Semifinal ${i + 1}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: "final",
+      });
+    });
+
+    matches.push({
+      id: final?.id || "final",
+      round: 1,
+      label: final?.label || "Final",
+      teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+      teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+      feeds: "champion",
+    });
+
+    matches.push({ id: "champion", round: 2, label: "Champion", teamA: null, teamB: null, champion: true });
+  }
 
   const championName = final?.status === "completed" ? final.winner_name : null;
 
-  return { matches, championName };
+  return { matches, championName, roundTitles, roundAccents };
 }
 
 /* Rounded-corner elbow connector */
@@ -87,16 +272,16 @@ function buildElbow(ax: number, ay: number, tx: number, ty: number) {
 function TeamSlot({ team, accent }: { team: Slot; accent: string }) {
   if (!team) {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-dashed border-white/10 bg-white/[0.02] px-3 py-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-        <span className="font-mono-score text-[10px] uppercase tracking-[0.25em] text-ivory-400 opacity-60">TBD</span>
+      <div className="flex items-center gap-1.5 rounded-md border border-dashed border-white/10 bg-white/[0.02] px-2 py-1">
+        <span className="h-1 w-1 rounded-full bg-white/20" />
+        <span className="font-mono-score text-[9px] uppercase tracking-[0.2em] text-ivory-400 opacity-60">TBD</span>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.05] px-3 py-2">
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
-      <span className="truncate text-sm font-medium text-ivory-100">{team.name}</span>
+    <div className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.05] px-2 py-1">
+      <span className="h-1 w-1 rounded-full shrink-0" style={{ background: accent }} />
+      <span className="truncate text-xs font-medium text-ivory-100">{team.name}</span>
     </div>
   );
 }
@@ -119,24 +304,24 @@ function MatchCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
       whileHover={{ y: -3, transition: { duration: 0.18 } }}
-      className="relative w-56 shrink-0 rounded-xl p-4 transition-all"
+      className="relative w-44 shrink-0 rounded-xl p-2.5 transition-all"
       style={{
         background: "linear-gradient(145deg, rgba(16,28,66,0.85), rgba(8,14,36,0.9))",
         border: `1px solid ${CARD_BORDER}`,
         backdropFilter: "blur(14px)",
-        boxShadow: `0 0 24px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+        boxShadow: `0 0 20px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
       }}
     >
-      <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono-score text-[10px] uppercase tracking-[0.3em]" style={{ color: accent }}>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono-score text-[9px] uppercase tracking-[0.2em]" style={{ color: accent }}>
           {match.label}
         </span>
-        <Clock size={11} className="text-ivory-400 opacity-50" />
+        <Clock size={10} className="text-ivory-400 opacity-50" />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <TeamSlot team={match.teamA} accent={accent} />
-        <div className="flex items-center justify-center py-0.5">
-          <span className="font-mono-score text-[9px] tracking-widest text-ivory-400 opacity-40">VS</span>
+        <div className="flex items-center justify-center py-0.2">
+          <span className="font-mono-score text-[8px] tracking-widest text-ivory-400 opacity-40">VS</span>
         </div>
         <TeamSlot team={match.teamB} accent={accent} />
       </div>
@@ -176,27 +361,27 @@ function ChampionCard({
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-      className="relative w-44 shrink-0"
+      className="relative w-36 shrink-0"
     >
       {/* -- Winner card (left — connector line feeds into its left edge) -- */}
       <div
-        className="w-full rounded-xl px-4 py-3 text-center"
+        className="w-full rounded-xl px-3 py-2.5 text-center"
         style={{
           background: "linear-gradient(145deg, rgba(16,28,66,0.9), rgba(8,14,36,0.95))",
           border: `1px solid ${CARD_BORDER}`,
-          boxShadow: `0 0 28px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+          boxShadow: `0 0 24px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}
       >
-        <p className="font-mono-score text-[10px] uppercase tracking-[0.3em]" style={{ color: "#f5b942" }}>Winner</p>
-        <p className="mt-1 font-display text-xl tracking-wide text-ivory-100">{championName ?? "TBD"}</p>
+        <p className="font-mono-score text-[9px] uppercase tracking-[0.25em]" style={{ color: "#f5b942" }}>Winner</p>
+        <p className="mt-0.5 font-display text-lg tracking-wide text-ivory-100">{championName ?? "TBD"}</p>
       </div>
 
       {/* -- Trophy (right of winner card) -- absolute positioned to sit outside layout flow -- */}
-      <div className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 flex h-20 w-20 shrink-0 items-center justify-center">
+      <div className="absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 flex h-16 w-16 shrink-0 items-center justify-center">
         {/* Pulsing glow fills the box */}
         <div
           ref={glowRef}
-          className="pointer-events-none absolute inset-0 rounded-full opacity-60 blur-[28px]"
+          className="pointer-events-none absolute inset-0 rounded-full opacity-60 blur-[24px]"
           style={{ background: "radial-gradient(circle, rgba(245,185,66,0.55), rgba(245,155,0,0.12))" }}
         />
         {/* Spinning ring — inset-0 keeps it perfectly concentric */}
@@ -216,20 +401,20 @@ function ChampionCard({
         </svg>
         {/* Gold circle with trophy image */}
         <div
-          className="relative z-10 grid h-14 w-14 place-items-center rounded-full"
+          className="relative z-10 grid h-12 w-12 place-items-center rounded-full"
           style={{
             background: "radial-gradient(circle at 40% 35%, rgba(245,185,66,0.22), rgba(10,17,40,0.95))",
             border: "1px solid rgba(245,185,66,0.5)",
-            boxShadow: "0 0 22px -4px rgba(245,185,66,0.6), inset 0 1px 0 rgba(255,255,255,0.09)",
+            boxShadow: "0 0 18px -4px rgba(245,185,66,0.6), inset 0 1px 0 rgba(255,255,255,0.09)",
           }}
         >
-          <div ref={trophyRef} className="relative h-9 w-9">
+          <div ref={trophyRef} className="relative h-7 w-7">
             <Image
               src="/images/Trophy.png"
               alt="Trophy"
               fill
-              sizes="36px"
-              className="object-contain drop-shadow-[0_0_10px_rgba(245,185,66,0.85)]"
+              sizes="28px"
+              className="object-contain drop-shadow-[0_0_8px_rgba(245,185,66,0.85)]"
             />
           </div>
         </div>
@@ -241,16 +426,25 @@ function ChampionCard({
 /* -- Bracket -------------------------------------------------
    Simple, natural layout — no scaling. The page scrolls to show it.
 ------------------------------------------------------------ */
-export default function Bracket({ matches: playoffMatches }: { matches: PlayoffMatch[] }) {
+export default function Bracket({
+  matches: playoffMatches,
+  totalTeams = 0,
+}: {
+  matches: PlayoffMatch[];
+  totalTeams?: number;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [paths, setPaths] = useState<{ id: string; d: string }[]>([]);
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
-  const { matches: MATCHES, championName } = useMemo(() => buildMatchNodes(playoffMatches), [playoffMatches]);
+  const { matches: MATCHES, championName, roundTitles, roundAccents } = useMemo(
+    () => buildMatchNodes(playoffMatches, totalTeams),
+    [playoffMatches, totalTeams]
+  );
   const ROUNDS = useMemo(
-    () => [0, 1, 2].map((r) => MATCHES.filter((m) => m.round === r)),
-    [MATCHES]
+    () => Array.from({ length: roundTitles.length }, (_, r) => MATCHES.filter((m) => m.round === r)),
+    [MATCHES, roundTitles.length]
   );
 
   const setNodeRef = useCallback((id: string, el: HTMLDivElement | null) => {
@@ -381,16 +575,16 @@ export default function Bracket({ matches: playoffMatches }: { matches: PlayoffM
       </svg>
 
       {/* Rounds */}
-      <div className="relative z-10 flex min-w-max items-center gap-16 px-6 py-6">
+      <div className="relative z-10 flex min-w-max items-center gap-10 px-4 py-4">
         {ROUNDS.map((round, ri) => (
           <div key={ri} className="flex flex-col items-center gap-3">
             {/* Round label */}
             <div className="mb-2 flex items-center gap-2">
-              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, transparent, ${ROUND_ACCENTS[ri]})` }} />
-              <span className="font-mono-score text-[10px] uppercase tracking-[0.35em]" style={{ color: ROUND_ACCENTS[ri] }}>
-                {ROUND_TITLES[ri]}
+              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, transparent, ${roundAccents[ri] || "#f5b942"})` }} />
+              <span className="font-mono-score text-[10px] uppercase tracking-[0.35em]" style={{ color: roundAccents[ri] || "#f5b942" }}>
+                {roundTitles[ri]}
               </span>
-              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, ${ROUND_ACCENTS[ri]}, transparent)` }} />
+              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, ${roundAccents[ri] || "#f5b942"}, transparent)` }} />
             </div>
 
             <div className="flex flex-1 flex-col justify-around gap-10">
@@ -405,7 +599,7 @@ export default function Bracket({ matches: playoffMatches }: { matches: PlayoffM
                   <MatchCard
                     key={match.id}
                     match={match}
-                    accent={ROUND_ACCENTS[match.round]}
+                    accent={roundAccents[match.round] || "#f5b942"}
                     innerRef={(el) => setNodeRef(match.id, el)}
                   />
                 )

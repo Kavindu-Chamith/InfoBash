@@ -3,7 +3,9 @@ import { pool } from "@/lib/db";
 
 export interface Player {
   fullName: string;
+  studentId?: string;
   gender: "male" | "female";
+  position?: number;
 }
 
 export interface PublicTeam {
@@ -11,6 +13,8 @@ export interface PublicTeam {
   team_name: string;
   batch: string;
   captain_name: string;
+  captain_email?: string;
+  captain_contact?: string;
   player_count: number;
   female_count: number;
   registered_at: string;
@@ -27,12 +31,19 @@ export async function GET() {
         t.team_name,
         t.batch,
         t.captain_name,
+        t.captain_email,
+        t.captain_contact,
         COUNT(p.id)::int                                          AS player_count,
         COUNT(p.id) FILTER (WHERE p.gender = 'female')::int      AS female_count,
         t.created_at                                              AS registered_at,
         COALESCE(
           json_agg(
-            json_build_object('fullName', p.full_name, 'gender', p.gender)
+            json_build_object(
+              'fullName', p.full_name,
+              'studentId', p.student_id,
+              'gender', p.gender,
+              'position', p.position
+            )
             ORDER BY p.position
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'

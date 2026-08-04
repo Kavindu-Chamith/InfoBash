@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import MatchesLive from "@/components/MatchesLive";
 
 export const metadata: Metadata = {
-  title: "Match Bracket — InfoBash V5.0",
+  title: "Live Score & Matches — InfoBash V5.0",
   description:
-    "Follow group standings and the playoff bracket for InfoBash V5.0 — the Faculty of Computing, SUSL's inter-batch cricket championship.",
+    "Follow live scores, overs, wickets and 1st round upcoming matches for InfoBash V5.0 — the Faculty of Computing, SUSL's inter-batch cricket championship.",
 };
 
 export default function MatchesPage() {
@@ -33,12 +33,11 @@ export default function MatchesPage() {
 
         <h1 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
           Match{" "}
-          <span className="text-gradient-cyan">Bracket</span>
+          <span className="text-gradient-cyan">Center</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ivory-400">
-          Groups, standings, and the playoff bracket — updated live as
-          organisers record results.
+          Live cricket scores, overs, wickets, and 1st round upcoming match schedules.
         </p>
       </div>
 

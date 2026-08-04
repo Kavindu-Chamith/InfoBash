@@ -20,19 +20,29 @@ async function getTeams(): Promise<PublicTeam[]> {
         t.team_name,
         t.batch,
         t.captain_name,
+        t.captain_email,
+        t.captain_contact,
         COUNT(p.id)::int                                       AS player_count,
         COUNT(p.id) FILTER (WHERE p.gender = 'female')::int   AS female_count,
         t.created_at                                           AS registered_at,
         COALESCE(
           json_agg(
-            json_build_object('fullName', p.full_name, 'gender', p.gender)
+            json_build_object(
+              'fullName', p.full_name,
+              'studentId', p.student_id,
+              'gender', p.gender,
+              'position', p.position
+            )
             ORDER BY p.position
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'
-        ) AS players
+        ) AS players,
+        g.name AS group_name,
+        (t.logo IS NOT NULL) AS has_logo
       FROM teams t
       LEFT JOIN players p ON p.team_id = t.id
-      GROUP BY t.id
+      LEFT JOIN groups g ON g.id = t.group_id
+      GROUP BY t.id, g.name
       ORDER BY t.created_at ASC
     `);
     return result.rows;

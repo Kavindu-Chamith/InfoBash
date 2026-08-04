@@ -1,43 +1,277 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { Calendar, Clock, X, Radio, ChevronRight, MapPin, Trophy, Crown, Users, User, Shield } from "lucide-react";
+
+// Retaining Bracket import & component in codebase without deleting
 import Bracket, { type PlayoffMatch } from "@/components/Matches";
 import GroupStandings, { type GroupData, type GroupMatch } from "@/components/GroupStandings";
+import type { PublicTeam, Player } from "@/app/api/teams/route";
 
-interface MatchApiRow {
+export interface MatchApiRow {
   id: string;
-  stage: "group" | "semifinal" | "final" | "custom";
+  stage: "group" | "round1" | "quarterfinal" | "semifinal" | "final" | "custom";
   label: string | null;
   status: "scheduled" | "live" | "completed";
   team_a_score: number | null;
   team_b_score: number | null;
+  team_a_wickets?: number | null;
+  team_b_wickets?: number | null;
+  team_a_overs?: string | number | null;
+  team_b_overs?: string | number | null;
+  scheduled_at?: string | null;
+  venue?: string | null;
   group_name: string | null;
+  team_a_id: string | null;
   team_a_name: string | null;
+  team_b_id: string | null;
   team_b_name: string | null;
+  winner_id: string | null;
   winner_name: string | null;
 }
 
 const POLL_MS = 15000;
 
+// Default sample data for 1st round upcoming matches if DB is empty
+const DEFAULT_UPCOMING_MATCHES: MatchApiRow[] = [
+  {
+    id: "r1-1",
+    stage: "round1",
+    label: "1ST ROUND · MATCH 02",
+    status: "scheduled",
+    team_a_score: null,
+    team_b_score: null,
+    scheduled_at: "2026-05-28T18:30:00Z",
+    venue: "Main Ground",
+    group_name: "Group A",
+    team_a_id: "t1",
+    team_a_name: "MAN UNITED",
+    team_b_id: "t2",
+    team_b_name: "LIVERPOOL",
+    winner_id: null,
+    winner_name: null,
+  },
+  {
+    id: "r1-2",
+    stage: "round1",
+    label: "1ST ROUND · MATCH 03",
+    status: "scheduled",
+    team_a_score: null,
+    team_b_score: null,
+    scheduled_at: "2026-05-29T21:00:00Z",
+    venue: "Ground B",
+    group_name: "Group B",
+    team_a_id: "t3",
+    team_a_name: "BAYERN MUNICH",
+    team_b_id: "t4",
+    team_b_name: "DORTMUND",
+    winner_id: null,
+    winner_name: null,
+  },
+  {
+    id: "r1-3",
+    stage: "round1",
+    label: "1ST ROUND · MATCH 04",
+    status: "scheduled",
+    team_a_score: null,
+    team_b_score: null,
+    scheduled_at: "2026-05-30T19:45:00Z",
+    venue: "Main Ground",
+    group_name: "Group C",
+    team_a_id: "t5",
+    team_a_name: "PSG",
+    team_b_id: "t6",
+    team_b_name: "MARSEILLE",
+    winner_id: null,
+    winner_name: null,
+  },
+];
+
+// Default sample live score match if no DB match is currently 'live'
+const DEFAULT_LIVE_MATCH: MatchApiRow = {
+  id: "live-spotlight",
+  stage: "round1",
+  label: "INFOBASH V5.0",
+  status: "live",
+  team_a_score: 142,
+  team_b_score: 98,
+  team_a_wickets: 4,
+  team_b_wickets: 2,
+  team_a_overs: "18.2",
+  team_b_overs: "12.0",
+  scheduled_at: "2026-05-26T20:00:00Z",
+  venue: "Faculty Stadium",
+  group_name: "1st Round Spotlight",
+  team_a_id: "barca",
+  team_a_name: "FC BARCELONA",
+  team_b_id: "real",
+  team_b_name: "REAL MADRID",
+  winner_id: null,
+  winner_name: null,
+};
+
+// Fallback sample rosters for default demo teams
+const SAMPLE_TEAM_DETAILS: Record<string, { batch: string; captain: string; squad: string[] }> = {
+  "FC BARCELONA": {
+    batch: "4th Year (Batch 20)",
+    captain: "R. Lewandowski",
+    squad: [
+      "R. Lewandowski (C)",
+      "L. Yamal",
+      "P. Gavi",
+      "P. Pedri",
+      "F. de Jong",
+      "M. ter Stegen",
+      "J. Kounde",
+      "R. Araujo",
+      "R. Raphinha",
+      "A. Balde",
+      "I. Martinez",
+    ],
+  },
+  "REAL MADRID": {
+    batch: "3rd Year (Batch 21)",
+    captain: "L. Modric",
+    squad: [
+      "L. Modric (C)",
+      "K. Mbappe",
+      "V. Vinicius Jr",
+      "J. Bellingham",
+      "F. Valverde",
+      "T. Courtois",
+      "D. Carvajal",
+      "A. Rudiger",
+      "E. Camavinga",
+      "R. Rodrygo",
+      "A. Tchouameni",
+    ],
+  },
+  "MAN UNITED": {
+    batch: "1st Year (Batch 23)",
+    captain: "Bruno Fernandes",
+    squad: [
+      "Bruno Fernandes (C)",
+      "M. Rashford",
+      "C. Casemiro",
+      "A. Onana",
+      "L. Martinez",
+      "K. Mainoo",
+      "H. Maguire",
+      "D. Dalot",
+      "L. Shaw",
+      "A. Garnacho",
+      "R. Hojlund",
+    ],
+  },
+  "LIVERPOOL": {
+    batch: "2nd Year (Batch 22)",
+    captain: "V. Van Dijk",
+    squad: [
+      "V. Van Dijk (C)",
+      "M. Salah",
+      "A. Becker",
+      "T. Alexander-Arnold",
+      "A. Robertson",
+      "D. Szoboszlai",
+      "A. Mac Allister",
+      "C. Gakpo",
+      "D. Nunez",
+      "I. Konate",
+      "L. Diaz",
+    ],
+  },
+  "BAYERN MUNICH": {
+    batch: "3rd Year (Batch 21)",
+    captain: "Manuel Neuer",
+    squad: [
+      "Manuel Neuer (C)",
+      "Harry Kane",
+      "Jamal Musiala",
+      "Joshua Kimmich",
+      "Leroy Sane",
+      "Alphonso Davies",
+      "Dayot Upamecano",
+      "Leon Goretzka",
+      "Thomas Muller",
+      "Kingsley Coman",
+      "Kim Min-jae",
+    ],
+  },
+  "DORTMUND": {
+    batch: "1st Year (Batch 23)",
+    captain: "Emre Can",
+    squad: [
+      "Emre Can (C)",
+      "Julian Brandt",
+      "Nico Schlotterbeck",
+      "Gregor Kobel",
+      "Karim Adeyemi",
+      "Donyell Malen",
+      "Marcel Sabitzer",
+      "Niklas Sule",
+      "Ramy Bensebaini",
+      "Felix Nmecha",
+      "Jamie Gittens",
+    ],
+  },
+  "PSG": {
+    batch: "2nd Year (Batch 22)",
+    captain: "Marquinhos",
+    squad: [
+      "Marquinhos (C)",
+      "Ousmane Dembele",
+      "Gianluigi Donnarumma",
+      "Achraf Hakimi",
+      "Vitinha",
+      "Warren Zaire-Emery",
+      "Bradley Barcola",
+      "Nuno Mendes",
+      "Lucas Beraldo",
+      "Fabian Ruiz",
+      "Randal Kolo Muani",
+    ],
+  },
+  "MARSEILLE": {
+    batch: "4th Year (Batch 20)",
+    captain: "Valentin Rongier",
+    squad: [
+      "Valentin Rongier (C)",
+      "Mason Greenwood",
+      "Pierre-Emile Hojbjerg",
+      "Elye Wahi",
+      "Geronimo Rulli",
+      "Leonardo Balerdi",
+      "Amine Harit",
+      "Derek Cornelius",
+      "Luis Henrique",
+      "Geoffrey Kondogbia",
+      "Pol Lirola",
+    ],
+  },
+};
+
 export default function MatchesLive() {
-  const [groups, setGroups] = useState<GroupData[]>([]);
   const [matches, setMatches] = useState<MatchApiRow[]>([]);
+  const [registeredTeams, setRegisteredTeams] = useState<PublicTeam[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<MatchApiRow | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const [groupsRes, matchesRes] = await Promise.all([
-          fetch("/api/groups"),
+        const [matchesRes, teamsRes] = await Promise.all([
           fetch("/api/matches"),
+          fetch("/api/teams"),
         ]);
-        const groupsJson = await groupsRes.json();
         const matchesJson = await matchesRes.json();
+        const teamsJson = await teamsRes.json();
+
         if (cancelled) return;
-        setGroups(groupsJson.groups ?? []);
         setMatches(matchesJson.matches ?? []);
+        setRegisteredTeams(teamsJson.teams ?? []);
         setLoaded(true);
       } catch {
         if (!cancelled) setLoaded(true);
@@ -52,72 +286,462 @@ export default function MatchesLive() {
     };
   }, []);
 
-  const groupMatches: GroupMatch[] = matches.filter((m) => m.stage === "group");
-  const playoffMatches: PlayoffMatch[] = matches.filter(
-    (m): m is MatchApiRow & { stage: "semifinal" | "final" } =>
-      m.stage === "semifinal" || m.stage === "final"
+  // Find live match from DB or fallback to default live match
+  const liveMatch =
+    matches.find((m) => m.status === "live") ?? DEFAULT_LIVE_MATCH;
+
+  // Filter 1st round / upcoming matches from DB or fallback to default upcoming list
+  const dbUpcoming1stRound = matches.filter(
+    (m) =>
+      (m.stage === "round1" || m.stage === "group") &&
+      m.id !== liveMatch.id &&
+      m.status !== "completed"
   );
-  const customMatches = matches.filter((m) => m.stage === "custom");
+
+  const upcomingMatches =
+    dbUpcoming1stRound.length > 0
+      ? dbUpcoming1stRound
+      : DEFAULT_UPCOMING_MATCHES;
+
   const hasFixtures = matches.length > 0;
 
+  // Helper function to format date
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return "26 MAY 2024";
+    try {
+      const d = new Date(dateStr);
+      return d
+        .toLocaleDateString("en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+        .toUpperCase();
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Helper function to format short date (e.g., "28 MAY")
+  const formatShortDate = (dateStr?: string | null) => {
+    if (!dateStr) return "28 MAY";
+    try {
+      const d = new Date(dateStr);
+      return d
+        .toLocaleDateString("en-US", {
+          day: "2-digit",
+          month: "short",
+        })
+        .toUpperCase();
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Helper function to format time (e.g., "08:00 PM")
+  const formatTime = (dateStr?: string | null) => {
+    if (!dateStr) return "08:00 PM";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Resolve team details for modal
+  const getTeamDetails = (teamId: string | null, teamName: string | null) => {
+    const found = registeredTeams.find(
+      (t) =>
+        (teamId && t.id === teamId) ||
+        (teamName && t.team_name.toLowerCase() === teamName.toLowerCase())
+    );
+
+    if (found) {
+      return {
+        name: found.team_name,
+        batch: found.batch,
+        captain: found.captain_name,
+        playerCount: found.players?.length ?? 11,
+        players: found.players?.map((p, i) => `${p.position ?? i + 1}. ${p.fullName}`) ?? [],
+      };
+    }
+
+    const fallbackName = teamName ?? "TEAM";
+    const sample = SAMPLE_TEAM_DETAILS[fallbackName.toUpperCase()] ?? {
+      batch: "Inter-Batch Squad",
+      captain: "Team Captain",
+      squad: [
+        "1. Captain",
+        "2. Vice Captain",
+        "3. Wicket Keeper",
+        "4. All-Rounder 1",
+        "5. All-Rounder 2",
+        "6. Batsman 1",
+        "7. Batsman 2",
+        "8. Bowler 1",
+        "9. Bowler 2",
+        "10. Bowler 3",
+        "11. Fielder",
+      ],
+    };
+
+    return {
+      name: fallbackName,
+      batch: sample.batch,
+      captain: sample.captain,
+      playerCount: sample.squad.length,
+      players: sample.squad,
+    };
+  };
+
+  const teamADetails = selectedMatch
+    ? getTeamDetails(selectedMatch.team_a_id, selectedMatch.team_a_name)
+    : null;
+
+  const teamBDetails = selectedMatch
+    ? getTeamDetails(selectedMatch.team_b_id, selectedMatch.team_b_name)
+    : null;
+
   return (
-    <>
-      <div className="mt-5 flex justify-center">
+    <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      {/* Live Updates Indicator Badge */}
+      <div className="mb-8 flex justify-center">
         {hasFixtures ? (
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-4 py-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
-            <span className="font-mono-score text-xs tracking-widest text-cyan-300">
-              Live Updates · Refreshes automatically
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+            <span className="font-mono-score text-xs tracking-widest text-emerald-300">
+              Live Updates · Refreshes Automatically
             </span>
           </div>
         ) : (
-          <div className="inline-flex items-center gap-2 rounded-full border border-gold-400/20 bg-gold-400/5 px-4 py-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-gold-400" />
-            <span className="font-mono-score text-xs tracking-widest text-gold-300">
-              Fixtures Coming Soon
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-2">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            <span className="font-mono-score text-xs tracking-widest text-emerald-300">
+              Fixtures & Live Score Ready
             </span>
           </div>
         )}
       </div>
 
-      {loaded && groups.length > 0 && (
-        <div className="relative z-10 py-12">
-          <GroupStandings groups={groups} matches={groupMatches} />
-        </div>
-      )}
-
-      {loaded && playoffMatches.length > 0 && (
-        <div className="relative z-10 px-4 py-12 sm:px-8">
-          <h2 className="mb-6 text-center font-display text-3xl tracking-wide text-ivory-50">
-            Playoffs
+      {/* ══════════════════════════════════════════════════════════════
+          MATCH SPOTLIGHT / LIVE SCORE SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mb-14">
+        {/* Section Header */}
+        <div className="mb-6 flex items-center justify-center gap-4 text-center">
+          <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-emerald-500 sm:w-24" />
+          <h2 className="flex items-center gap-2.5 font-display text-xl font-bold uppercase tracking-[0.3em] text-emerald-400 sm:text-2xl">
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+            </span>
+            Live Score
           </h2>
-          <Bracket matches={playoffMatches} />
+          <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-emerald-500 sm:w-24" />
         </div>
-      )}
 
-      {loaded && customMatches.length > 0 && (
-        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-8">
-          <h2 className="mb-4 text-center font-display text-2xl tracking-wide text-ivory-50">
-            Other Fixtures
-          </h2>
-          <div className="space-y-2">
-            {customMatches.map((m) => (
-              <div
-                key={m.id}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-ivory-200"
-              >
-                <span>
-                  {m.label ? `${m.label}: ` : ""}
-                  {m.team_a_name ?? "TBD"} vs {m.team_b_name ?? "TBD"}
+        {/* Live Score Spotlight Card */}
+        <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#070e1c]/90 p-6 shadow-[0_0_50px_rgba(16,185,129,0.12)] backdrop-blur-xl sm:p-10">
+          {/* Subtle decorative background gradient glows */}
+          <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]" />
+          <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]" />
+
+          {/* Card Top Sub-Header: InfoBash Logo & Title */}
+          <div className="mb-6 flex items-center justify-center gap-2">
+            <Image
+              src="/images/logo.png"
+              alt="InfoBash logo"
+              width={26}
+              height={26}
+              className="h-6 w-6 object-contain"
+            />
+            <span className="font-display text-sm font-extrabold tracking-[0.2em] text-ivory-50 sm:text-base">
+              INFO<span className="text-gradient-cyan">BASH</span>{" "}
+              <span className="font-mono-score text-xs font-semibold tracking-wider text-gold-400">V5.0</span>
+            </span>
+          </div>
+
+          {/* Teams & Live Score Display */}
+          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-7">
+            {/* Team A (Left side - No logo) */}
+            <div className="flex flex-col items-center text-center md:col-span-3 md:items-center">
+              <h3 className="font-display text-2xl font-extrabold tracking-wide text-ivory-50 sm:text-3xl">
+                {liveMatch.team_a_name ?? "FC BARCELONA"}
+              </h3>
+
+              {/* Cricket Score Display */}
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="font-mono-score text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
+                  {liveMatch.team_a_score !== null ? liveMatch.team_a_score : 142}
+                  <span className="text-ivory-300">/</span>
+                  {liveMatch.team_a_wickets !== undefined && liveMatch.team_a_wickets !== null
+                    ? liveMatch.team_a_wickets
+                    : 4}
                 </span>
-                <span className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-400">
-                  {m.status}
+                <span className="font-mono-score text-sm text-ivory-400 sm:text-base">
+                  ({liveMatch.team_a_overs ?? "18.2"} ov)
                 </span>
               </div>
-            ))}
+            </div>
+
+            {/* VS Badge (Center) */}
+            <div className="flex justify-center md:col-span-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/20 font-bold text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] sm:h-14 sm:w-14 sm:text-lg">
+                VS
+              </div>
+            </div>
+
+            {/* Team B (Right side - No logo) */}
+            <div className="flex flex-col items-center text-center md:col-span-3 md:items-center">
+              <h3 className="font-display text-2xl font-extrabold tracking-wide text-ivory-50 sm:text-3xl">
+                {liveMatch.team_b_name ?? "REAL MADRID"}
+              </h3>
+
+              {/* Cricket Score Display */}
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="font-mono-score text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
+                  {liveMatch.team_b_score !== null ? liveMatch.team_b_score : 98}
+                  <span className="text-ivory-300">/</span>
+                  {liveMatch.team_b_wickets !== undefined && liveMatch.team_b_wickets !== null
+                    ? liveMatch.team_b_wickets
+                    : 2}
+                </span>
+                <span className="font-mono-score text-sm text-ivory-400 sm:text-base">
+                  ({liveMatch.team_b_overs ?? "12.0"} ov)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Match Details & Date / Time Bar */}
+          <div className="mt-8 flex items-center justify-center gap-6 border-t border-white/10 pt-5 text-xs font-medium text-ivory-300 sm:text-sm">
+            <div className="flex items-center gap-1.5">
+              <Calendar size={16} className="text-emerald-400" />
+              <span>{formatDate(liveMatch.scheduled_at)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock size={16} className="text-emerald-400" />
+              <span>{formatTime(liveMatch.scheduled_at)}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          UPCOMING MATCHES SECTION (1ST ROUND)
+      ══════════════════════════════════════════════════════════════ */}
+      <section>
+        {/* Section Header */}
+        <div className="mb-6 flex items-center justify-center gap-4 text-center">
+          <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-emerald-500 sm:w-24" />
+          <h2 className="font-display text-lg font-bold uppercase tracking-[0.3em] text-emerald-400 sm:text-xl">
+            Upcoming Matches In 1st Round
+          </h2>
+          <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-emerald-500 sm:w-24" />
+        </div>
+
+        {/* 1st Round Upcoming Matches Grid (Compact Cards) */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {upcomingMatches.map((match) => (
+            <div
+              key={match.id}
+              className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-4 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
+            >
+              {/* Top Teams Row (No logos - Compact) */}
+              <div className="flex items-center justify-between gap-2 text-center">
+                {/* Team A */}
+                <div className="flex-1">
+                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                    {match.team_a_name ?? "TEAM A"}
+                  </span>
+                </div>
+
+                {/* VS Badge */}
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[10px] text-ivory-300">
+                  VS
+                </div>
+
+                {/* Team B */}
+                <div className="flex-1">
+                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                    {match.team_b_name ?? "TEAM B"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Date & Time Row */}
+              <div className="my-3 flex items-center justify-center gap-4 border-t border-white/10 pt-3 text-[11px] font-medium text-ivory-300">
+                <div className="flex items-center gap-1">
+                  <Calendar size={13} className="text-emerald-400" />
+                  <span>{formatShortDate(match.scheduled_at)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock size={13} className="text-emerald-400" />
+                  <span>{formatTime(match.scheduled_at)}</span>
+                </div>
+              </div>
+
+              {/* View Details Link */}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setSelectedMatch(match)}
+                  className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-emerald-400 transition-colors hover:text-emerald-300"
+                >
+                  <span>View Details</span>
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          TEAM DETAILS MODAL OVERLAY (Compact & Above Navbar)
+      ══════════════════════════════════════════════════════════════ */}
+      {selectedMatch && teamADetails && teamBDetails && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/90 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+          <div className="relative my-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-500/40 bg-[#070e1c] p-4 shadow-2xl sm:p-5">
+            <button
+              onClick={() => setSelectedMatch(null)}
+              className="absolute right-3 top-3 rounded-full p-1.5 text-ivory-400 hover:bg-white/10 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Modal Header */}
+            <div className="mb-4 text-center">
+              <div className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] text-emerald-400">
+                <Trophy size={12} />
+                <span className="font-mono-score tracking-wider uppercase">
+                  {selectedMatch.label || "MATCH SQUAD & TEAM DETAILS"}
+                </span>
+              </div>
+              <h3 className="font-display text-lg font-bold tracking-wide text-ivory-50 sm:text-xl">
+                Match Team Details
+              </h3>
+            </div>
+
+            {/* Team Details Comparison Grid (2 Compact Columns) */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* Team A Details Card */}
+              <div className="rounded-xl border border-emerald-500/20 bg-white/[0.02] p-3.5">
+                <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
+                  <div>
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400">Team A</span>
+                    <h4 className="font-display text-base font-bold text-ivory-50">{teamADetails.name}</h4>
+                  </div>
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono-score text-[10px] text-emerald-300">
+                    {teamADetails.batch}
+                  </span>
+                </div>
+
+                {/* Captain Info */}
+                <div className="mb-2.5 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
+                  <Crown size={14} className="text-emerald-400 shrink-0" />
+                  <div className="truncate">
+                    <span className="block text-[9px] uppercase text-ivory-400">Team Captain</span>
+                    <strong className="text-ivory-100 font-semibold text-xs">{teamADetails.captain}</strong>
+                  </div>
+                </div>
+
+                {/* Squad List */}
+                <div>
+                  <h5 className="mb-1.5 flex items-center gap-1 font-mono-score text-[11px] font-semibold uppercase tracking-wider text-ivory-300">
+                    <Users size={12} className="text-emerald-400" />
+                    Playing Squad ({teamADetails.playerCount})
+                  </h5>
+                  <ul className="max-h-36 space-y-1 overflow-y-auto pr-1 text-[11px] text-ivory-200">
+                    {teamADetails.players.map((player, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-center gap-1.5 rounded-md bg-white/[0.02] px-2 py-1 border border-white/5 truncate"
+                      >
+                        <User size={11} className="text-emerald-400 shrink-0" />
+                        <span className="font-medium text-ivory-100 truncate">{player}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Team B Details Card */}
+              <div className="rounded-xl border border-emerald-500/20 bg-white/[0.02] p-3.5">
+                <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
+                  <div>
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400">Team B</span>
+                    <h4 className="font-display text-base font-bold text-ivory-50">{teamBDetails.name}</h4>
+                  </div>
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono-score text-[10px] text-emerald-300">
+                    {teamBDetails.batch}
+                  </span>
+                </div>
+
+                {/* Captain Info */}
+                <div className="mb-2.5 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
+                  <Crown size={14} className="text-emerald-400 shrink-0" />
+                  <div className="truncate">
+                    <span className="block text-[9px] uppercase text-ivory-400">Team Captain</span>
+                    <strong className="text-ivory-100 font-semibold text-xs">{teamBDetails.captain}</strong>
+                  </div>
+                </div>
+
+                {/* Squad List */}
+                <div>
+                  <h5 className="mb-1.5 flex items-center gap-1 font-mono-score text-[11px] font-semibold uppercase tracking-wider text-ivory-300">
+                    <Users size={12} className="text-emerald-400" />
+                    Playing Squad ({teamBDetails.playerCount})
+                  </h5>
+                  <ul className="max-h-36 space-y-1 overflow-y-auto pr-1 text-[11px] text-ivory-200">
+                    {teamBDetails.players.map((player, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-center gap-1.5 rounded-md bg-white/[0.02] px-2 py-1 border border-white/5 truncate"
+                      >
+                        <User size={11} className="text-emerald-400 shrink-0" />
+                        <span className="font-medium text-ivory-100 truncate">{player}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer schedule bar & Close button */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-[11px] text-ivory-400">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <Calendar size={13} className="text-emerald-400" />
+                  {formatDate(selectedMatch.scheduled_at)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock size={13} className="text-emerald-400" />
+                  {formatTime(selectedMatch.scheduled_at)}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setSelectedMatch(null)}
+                className="rounded-full bg-emerald-500 px-5 py-1.5 text-xs font-bold text-navy-950 hover:bg-emerald-400 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </>
+
+      {/* 
+        NOTE: Tournament Bracket code (Matches.tsx) is retained in codebase for future use per request:
+        "remove that match tree. don't delete it keep it not show in the website.."
+        Uncomment the line below if bracket needs to be re-enabled:
+        <Bracket matches={[]} totalTeams={0} /> 
+      */}
+    </div>
   );
 }

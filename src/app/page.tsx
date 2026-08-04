@@ -147,9 +147,9 @@ export default function Home() {
               >
                 {/* Starfield dot pattern — spreads from bottom-left corner on hover */}
                 <div
-                  className="absolute inset-0 z-[0] opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out pointer-events-none"
+                  className="absolute inset-0 z-[0] opacity-0 group-hover:opacity-75 transition-opacity duration-[1200ms] ease-out pointer-events-none"
                   style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)`,
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px)`,
                     backgroundSize: "22px 22px",
                     WebkitMaskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
                     maskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
