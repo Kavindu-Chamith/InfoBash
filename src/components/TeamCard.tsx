@@ -1,6 +1,4 @@
-"use client";
-
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   motion,
   AnimatePresence,
@@ -8,7 +6,7 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import { Star, Shield, ChevronDown, Calendar, Crown } from "lucide-react";
+import { Star, Shield, ChevronRight, Calendar, Crown, X, Mail, Phone, Users } from "lucide-react";
 import type { PublicTeam } from "@/app/api/teams/route";
 
 /* -- Batch colour system ----------------------------------- */
@@ -77,9 +75,234 @@ function initials(name: string) {
     .join("");
 }
 
+/* -- Team Details Sidebar Drawer ---------------------------- */
+export function TeamDrawer({
+  team,
+  isOpen,
+  onClose,
+}: {
+  team: PublicTeam;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
+  const femaleCount = team.players.filter((p) => p.gender === "female").length;
+  const maleCount = team.players.length - femaleCount;
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-navy-950/80 backdrop-blur-md"
+          />
+
+          {/* Slide-over sidebar container */}
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 320 }}
+            className="relative z-50 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#070e20] shadow-2xl"
+          >
+            {/* Drawer Top Header / Navigation */}
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+              <span className="font-mono-score text-[10px] uppercase tracking-[0.4em] text-ivory-400">
+                Team Profile & Squad
+              </span>
+              <button
+                onClick={onClose}
+                className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-ivory-300 transition-colors hover:bg-white/10 hover:text-white"
+                aria-label="Close details"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+              {/* Badges & Team Name */}
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+                    style={{
+                      background: `${theme.color}18`,
+                      border: `1px solid ${theme.color}40`,
+                      color: theme.color,
+                    }}
+                  >
+                    <span
+                      className="h-1.5 w-1.5 animate-pulse rounded-full"
+                      style={{ background: theme.color }}
+                    />
+                    {team.batch}
+                  </span>
+                  {team.group_name && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-cyan-300">
+                      {team.group_name}
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="font-display text-4xl tracking-wide text-ivory-50">
+                  {team.team_name}
+                </h2>
+
+                <div className="mt-3 flex flex-col gap-1.5 text-xs text-ivory-300">
+                  <div className="flex items-center gap-2">
+                    <Crown size={14} className="text-gold-400" />
+                    <span>Captain: <strong className="text-ivory-100 font-semibold">{team.captain_name}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-2 text-ivory-400">
+                    <Calendar size={13} />
+                    <span>Registered on {formatDate(team.registered_at)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4 Summary Stat Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
+                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Squad Size</p>
+                  <p className="mt-1 font-display text-2xl text-ivory-100">{team.players.length}</p>
+                  <span className="text-[10px] text-ivory-400">Players Registered</span>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
+                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Gender Ratio</p>
+                  <p className="mt-1 font-display text-xl text-cyan-300">{maleCount} M / {femaleCount} F</p>
+                  <span className="text-[10px] text-ivory-400">Squad Composition</span>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
+                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Group Stage</p>
+                  <p className="mt-1 font-display text-xl text-gold-400">{team.group_name ?? "Unassigned"}</p>
+                  <span className="text-[10px] text-ivory-400">Tournament Group</span>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
+                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Batch Year</p>
+                  <p className="mt-1 font-display text-xl" style={{ color: theme.color }}>{team.batch}</p>
+                  <span className="text-[10px] text-ivory-400">Faculty Year</span>
+                </div>
+              </div>
+
+              {/* Captain & Contact Card */}
+              {(team.captain_email || team.captain_contact) && (
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-2">
+                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-gold-400">Captain Contact</p>
+                  {team.captain_email && (
+                    <div className="flex items-center gap-2.5 text-xs text-ivory-200">
+                      <Mail size={13} className="text-cyan-400" />
+                      <span>{team.captain_email}</span>
+                    </div>
+                  )}
+                  {team.captain_contact && (
+                    <div className="flex items-center gap-2.5 text-xs text-ivory-200">
+                      <Phone size={13} className="text-cyan-400" />
+                      <span>{team.captain_contact}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Full Squad Roster List */}
+              <div>
+                <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+                  <h3 className="font-mono-score text-xs uppercase tracking-[0.3em] text-ivory-300">
+                    Squad Roster ({team.players.length} Players)
+                  </h3>
+                  <span className="text-[10px] text-ivory-500">11-A-Side</span>
+                </div>
+
+                <div className="space-y-2">
+                  {team.players.map((p, i) => {
+                    const isCaptain = p.fullName === team.captain_name;
+                    const posNumber = String(p.position || i + 1).padStart(2, "0");
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+                      >
+                        <span className="font-mono-score text-xs font-bold text-ivory-500">
+                          #{posNumber}
+                        </span>
+
+                        <span
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold shadow-inner"
+                          style={{ background: `${theme.color}22`, color: theme.color }}
+                        >
+                          {initials(p.fullName)}
+                        </span>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate text-sm font-medium text-ivory-100">
+                            {p.fullName}
+                          </p>
+                          {p.studentId && (
+                            <p className="font-mono-score text-[10px] text-ivory-500">
+                              {p.studentId}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Badges */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isCaptain && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-gold-400/40 bg-gold-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-400">
+                              <Crown size={9} /> Captain
+                            </span>
+                          )}
+                          {p.gender === "female" && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-pink-400/40 bg-pink-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-pink-300">
+                              <Shield size={9} /> Female
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer button */}
+            <div className="border-t border-white/10 px-6 py-4">
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-3 text-center text-sm font-semibold text-ivory-200 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                Close Profile
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* -- Single Team Card -------------------------------------- */
 export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
-  const [expanded, setExpanded] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const theme = BATCH_THEME[team.batch] ?? DEFAULT_THEME;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -113,158 +336,106 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
-      layout
-      style={{ perspective: 1200 }}
-    >
+    <>
       <motion.div
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onClick={() => setExpanded((v) => !v)}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-          background: `linear-gradient(135deg, ${theme.bg}, rgba(6,12,26,0.85))`,
-          borderColor: theme.border,
-        }}
-        className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-shadow duration-300"
-        whileHover={{
-          boxShadow: `0 24px 70px -12px ${theme.glow}, 0 0 0 1px ${theme.color}55`,
-        }}
-        transition={{ duration: 0.25 }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
+        layout
+        style={{ perspective: 1200 }}
       >
-        {/* Holographic glare that tracks the cursor */}
         <motion.div
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{ background: glareBackground }}
-        />
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onClick={() => setDrawerOpen(true)}
+          style={{
+            rotateX,
+            rotateY,
+            transformStyle: "preserve-3d",
+            background: `linear-gradient(135deg, ${theme.bg}, rgba(6,12,26,0.85))`,
+            borderColor: theme.border,
+          }}
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-shadow duration-300"
+          whileHover={{
+            boxShadow: `0 24px 70px -12px ${theme.glow}, 0 0 0 1px ${theme.color}55`,
+          }}
+          transition={{ duration: 0.25 }}
+        >
+          {/* Holographic glare that tracks the cursor */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{ background: glareBackground }}
+          />
 
-
-
-        <div className="p-6">
-          {/* Batch + group badges */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
-              style={{
-                background: `${theme.color}18`,
-                border: `1px solid ${theme.color}40`,
-                color: theme.color,
-              }}
-            >
+          <div className="p-6">
+            {/* Batch + group badges */}
+            <div className="flex flex-wrap items-center gap-2">
               <span
-                className="h-1.5 w-1.5 animate-pulse rounded-full"
-                style={{ background: theme.color }}
-              />
-              {team.batch}
-            </span>
-            {team.group_name && (
-              <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-ivory-300">
-                {team.group_name}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+                style={{
+                  background: `${theme.color}18`,
+                  border: `1px solid ${theme.color}40`,
+                  color: theme.color,
+                }}
+              >
+                <span
+                  className="h-1.5 w-1.5 animate-pulse rounded-full"
+                  style={{ background: theme.color }}
+                />
+                {team.batch}
               </span>
-            )}
-          </div>
+              {team.group_name && (
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-ivory-300">
+                  {team.group_name}
+                </span>
+              )}
+            </div>
 
-          {/* Team name + logo */}
-          <div className="mb-1 mt-4 flex items-center gap-3">
-            {team.has_logo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`/api/teams/${team.id}/logo`}
-                alt={`${team.team_name} logo`}
-                className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
-              />
-            )}
-            <h3 className="font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white">
-              {team.team_name}
-            </h3>
-          </div>
+            {/* Team name + logo */}
+            <div className="mb-1 mt-4 flex items-center gap-3">
+              {team.has_logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/api/teams/${team.id}/logo`}
+                  alt={`${team.team_name} logo`}
+                  className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
+                />
+              )}
+              <h3 className="font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white">
+                {team.team_name}
+              </h3>
+            </div>
 
-          {/* Captain */}
-          <div className="mb-5 flex items-center gap-1.5 text-ivory-400">
-            <Star size={12} style={{ color: theme.color }} />
-            <span className="text-sm">Capt. {team.captain_name}</span>
-          </div>
+            {/* Captain */}
+            <div className="mb-5 flex items-center gap-1.5 text-ivory-400">
+              <Star size={12} style={{ color: theme.color }} />
+              <span className="text-sm">Capt. {team.captain_name}</span>
+            </div>
 
-          {/* Stats row */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="ml-auto flex items-center gap-1.5 text-ivory-500">
-              <Calendar size={11} />
-              <span className="font-mono-score text-[10px] tracking-wide">
-                {formatDate(team.registered_at)}
-              </span>
+            {/* Stats row */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="ml-auto flex items-center gap-1.5 text-ivory-500">
+                <Calendar size={11} />
+                <span className="font-mono-score text-[10px] tracking-wide">
+                  {formatDate(team.registered_at)}
+                </span>
+              </div>
+            </div>
+
+            {/* Expand hint */}
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-ivory-400 transition-colors group-hover:text-cyan-300">
+              <span>View Full Squad</span>
+              <ChevronRight size={13} className="transition-transform group-hover:translate-x-0.5" />
             </div>
           </div>
-
-          {/* Expand hint */}
-          <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-ivory-500">
-            <motion.span
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronDown size={12} />
-            </motion.span>
-            {expanded ? "Hide Squad" : "View Full Squad"}
-          </div>
-        </div>
-
-        {/* Expandable — the real, per-team squad roster */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
-              className="overflow-hidden"
-            >
-              <div
-                className="mx-6 mb-6 rounded-xl border p-4"
-                style={{ background: "rgba(0,0,0,0.3)", borderColor: `${theme.color}20` }}
-              >
-                <p className="mb-3 font-mono-score text-[10px] uppercase tracking-[0.3em] text-ivory-500">
-                  Full Squad ({team.players.length})
-                </p>
-                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                  {team.players.map((p, i) => {
-                    const isCaptain = p.fullName === team.captain_name;
-                    return (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.025 }}
-                        className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1.5"
-                      >
-                        <span
-                          className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[9px] font-bold"
-                          style={{ background: `${theme.color}22`, color: theme.color }}
-                        >
-                          {initials(p.fullName)}
-                        </span>
-                        <span className="flex-1 truncate text-xs text-ivory-200">
-                          {p.fullName}
-                        </span>
-                        {isCaptain && <Crown size={11} className="shrink-0 text-gold-400" />}
-                        {p.gender === "female" && (
-                          <Shield size={10} className="shrink-0 text-pink-300" />
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </motion.div>
       </motion.div>
-    </motion.div>
+
+      {/* Slide-over Team Details Drawer */}
+      <TeamDrawer team={team} isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </>
   );
 }
 
