@@ -338,6 +338,10 @@ function MatchesTab({
   teams: AdminTeam[];
   onChanged: (message: string) => void;
 }) {
+  // Selected Round filter in Admin Matches Tab
+  const [adminRound, setAdminRound] = useState<MatchRow["stage"]>("round1");
+
+  // Form for creating fixture
   const [form, setForm] = useState<{
     stage: MatchRow["stage"];
     label: string;
@@ -355,22 +359,39 @@ function MatchesTab({
   });
   const [creating, setCreating] = useState(false);
 
+  // Sync form stage when adminRound changes
+  useEffect(() => {
+    setForm((f) => ({ ...f, stage: adminRound }));
+  }, [adminRound]);
+
+  // Filter matches by selected round
+  const roundMatches = matches.filter(
+    (m) => m.stage === adminRound || (adminRound === "round1" && m.stage === "group")
+  );
+
+  const upcomingRoundMatches = roundMatches.filter((m) => m.status !== "completed");
+  const completedRoundMatches = roundMatches.filter((m) => m.status === "completed");
+
   // Live Controller state
   const liveMatchInDb = matches.find((m) => m.status === "live");
-  const [selectedLiveId, setSelectedLiveId] = useState<string>(liveMatchInDb?.id ?? "");
-  const [liveRunsA, setLiveRunsA] = useState<string>(liveMatchInDb?.team_a_score?.toString() ?? "");
-  const [liveWktsA, setLiveWktsA] = useState<string>(liveMatchInDb?.team_a_wickets?.toString() ?? "");
-  const [liveOversA, setLiveOversA] = useState<string>(liveMatchInDb?.team_a_overs?.toString() ?? "");
-  const [liveRunsB, setLiveRunsB] = useState<string>(liveMatchInDb?.team_b_score?.toString() ?? "");
-  const [liveWktsB, setLiveWktsB] = useState<string>(liveMatchInDb?.team_b_wickets?.toString() ?? "");
-  const [liveOversB, setLiveOversB] = useState<string>(liveMatchInDb?.team_b_overs?.toString() ?? "");
+  const initialLiveId = roundMatches.find((m) => m.status === "live")?.id ?? liveMatchInDb?.id ?? "";
+
+  const [selectedLiveId, setSelectedLiveId] = useState<string>(initialLiveId);
+  const [liveWinnerId, setLiveWinnerId] = useState<string>("");
+  const [liveRunsA, setLiveRunsA] = useState<string>("");
+  const [liveWktsA, setLiveWktsA] = useState<string>("");
+  const [liveOversA, setLiveOversA] = useState<string>("");
+  const [liveRunsB, setLiveRunsB] = useState<string>("");
+  const [liveWktsB, setLiveWktsB] = useState<string>("");
+  const [liveOversB, setLiveOversB] = useState<string>("");
   const [updatingLive, setUpdatingLive] = useState(false);
 
-  // Sync selected live match when dropdown changes
+  // Auto-populate inputs when selecting a match in the Live Controller
   const handleLiveSelect = (matchId: string) => {
     setSelectedLiveId(matchId);
     const target = matches.find((m) => m.id === matchId);
     if (target) {
+      setLiveWinnerId(target.winner_id ?? "");
       setLiveRunsA(target.team_a_score?.toString() ?? "");
       setLiveWktsA(target.team_a_wickets?.toString() ?? "");
       setLiveOversA(target.team_a_overs?.toString() ?? "");
@@ -380,9 +401,27 @@ function MatchesTab({
     }
   };
 
+  // Sync initial live match values when match list or round changes
+  useEffect(() => {
+    if (selectedLiveId) {
+      const target = matches.find((m) => m.id === selectedLiveId);
+      if (target) {
+        setLiveWinnerId(target.winner_id ?? "");
+        setLiveRunsA(target.team_a_score?.toString() ?? "");
+        setLiveWktsA(target.team_a_wickets?.toString() ?? "");
+        setLiveOversA(target.team_a_overs?.toString() ?? "");
+        setLiveRunsB(target.team_b_score?.toString() ?? "");
+        setLiveWktsB(target.team_b_wickets?.toString() ?? "");
+        setLiveOversB(target.team_b_overs?.toString() ?? "");
+      }
+    }
+  }, [selectedLiveId, matches]);
+
   async function updateLiveMatch(newStatus: "live" | "completed") {
     if (!selectedLiveId) return;
     setUpdatingLive(true);
+    const selectedMatchObj = matches.find((m) => m.id === selectedLiveId);
+
     const res = await fetch(`/api/admin/matches/${selectedLiveId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -394,6 +433,7 @@ function MatchesTab({
         teamBScore: liveRunsB === "" ? null : Number(liveRunsB),
         teamBWickets: liveWktsB === "" ? null : Number(liveWktsB),
         teamBOvers: liveOversB === "" ? null : liveOversB,
+        winnerId: liveWinnerId === "" ? null : liveWinnerId,
       }),
     });
     const json = await res.json();
@@ -401,8 +441,8 @@ function MatchesTab({
     onChanged(
       res.ok
         ? newStatus === "live"
-          ? "Live score updated & broadcasting!"
-          : "Match finished and added to Match Results!"
+          ? `Match "${selectedMatchObj?.team_a_name ?? 'Team A'} vs ${selectedMatchObj?.team_b_name ?? 'Team B'}" is now LIVE! Scores broadcasting.`
+          : `Match completed! Moved to Match Results section.`
         : json.error
     );
   }
@@ -424,14 +464,58 @@ function MatchesTab({
     });
     const json = await res.json();
     setCreating(false);
-    onChanged(res.ok ? "Match created." : json.error);
-    if (res.ok) setForm({ stage: "round1", label: "", teamAId: "", teamBId: "", scheduledAt: "", venue: "" });
+    onChanged(res.ok ? "New match fixture created." : json.error);
+    if (res.ok) setForm((f) => ({ ...f, label: "", teamAId: "", teamBId: "" }));
   }
+
+  const selectedMatchObj = matches.find((m) => m.id === selectedLiveId);
 
   return (
     <div className="space-y-8">
       {/* ══════════════════════════════════════════════════════════════
-          LIVE MATCH SCOREBOARD CONTROLLER (ADMIN SUPER CONTROL)
+          1. SELECT ACTIVE LIVE ROUND IN ADMIN DASHBOARD
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="rounded-2xl border border-cyan-500/30 bg-[#070e1c]/90 p-5 shadow-xl">
+        <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+          <label className="font-mono-score text-xs font-bold uppercase tracking-widest text-cyan-400">
+            Select Tournament Round to View & Manage
+          </label>
+          <span className="font-mono-score text-[11px] text-ivory-400">
+            Filtering Admin Matches Section
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {[
+            { id: "round1", label: "1st Round" },
+            { id: "quarterfinal", label: "Quarterfinals" },
+            { id: "semifinal", label: "Semifinals" },
+            { id: "final", label: "Final" },
+          ].map((r) => {
+            const isSelected = adminRound === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => {
+                  setAdminRound(r.id as MatchRow["stage"]);
+                  setSelectedLiveId("");
+                }}
+                className={`rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                  isSelected
+                    ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105"
+                    : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-cyan-400/40 hover:text-white"
+                }`}
+              >
+                {r.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          2. LIVE SCOREBOARD CONTROLLER (START LIVE, UPDATE SCORE, FINISH & MOVE TO RESULTS)
       ══════════════════════════════════════════════════════════════ */}
       <div className="rounded-2xl border border-emerald-500/40 bg-[#070e1c]/90 p-6 shadow-xl relative overflow-hidden">
         <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
@@ -445,36 +529,36 @@ function MatchesTab({
             </h3>
           </div>
           <span className="font-mono-score text-xs tracking-wider text-ivory-300">
-            Broadcasting Real-Time Scorecard
+            Real-Time Scorecard Broadcast
           </span>
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
-              Select Match to Control / Broadcast Live
+              Select Match to Set Live or Update Score
             </label>
             <select
               value={selectedLiveId}
               onChange={(e) => handleLiveSelect(e.target.value)}
               className={inputClass}
             >
-              <option value="">-- Select Match --</option>
-              {matches.map((m) => (
+              <option value="">-- Choose Match in Current Round --</option>
+              {roundMatches.map((m) => (
                 <option key={m.id} value={m.id}>
                   [{m.stage.toUpperCase()}] {m.team_a_name ?? "TBD"} vs {m.team_b_name ?? "TBD"}{" "}
-                  ({m.status.toUpperCase()})
+                  — Status: {m.status.toUpperCase()}
                 </option>
               ))}
             </select>
           </div>
 
-          {selectedLiveId && (
+          {selectedMatchObj && (
             <div className="grid grid-cols-1 gap-4 rounded-xl bg-white/[0.03] p-4 sm:grid-cols-2">
               {/* Team A Live Inputs */}
               <div className="space-y-2 rounded-lg border border-white/10 p-3">
                 <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  {matches.find((m) => m.id === selectedLiveId)?.team_a_name ?? "Team A"}
+                  Team A: {selectedMatchObj.team_a_name ?? "Team A"}
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
@@ -513,7 +597,7 @@ function MatchesTab({
               {/* Team B Live Inputs */}
               <div className="space-y-2 rounded-lg border border-white/10 p-3">
                 <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  {matches.find((m) => m.id === selectedLiveId)?.team_b_name ?? "Team B"}
+                  Team B: {selectedMatchObj.team_b_name ?? "Team B"}
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
@@ -549,6 +633,30 @@ function MatchesTab({
                 </div>
               </div>
 
+              {/* Select Winning Team Dropdown */}
+              <div className="col-span-full rounded-lg border border-gold-400/20 bg-gold-400/5 p-3">
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gold-400">
+                  Select Winning Team (Required before Finishing Match):
+                </label>
+                <select
+                  value={liveWinnerId}
+                  onChange={(e) => setLiveWinnerId(e.target.value)}
+                  className={`${inputClass} max-w-md text-xs font-bold text-gold-300`}
+                >
+                  <option value="">-- Auto-Derive Winner from Runs --</option>
+                  {selectedMatchObj.team_a_id && (
+                    <option value={selectedMatchObj.team_a_id}>
+                      🏆 {selectedMatchObj.team_a_name} (WINNER)
+                    </option>
+                  )}
+                  {selectedMatchObj.team_b_id && (
+                    <option value={selectedMatchObj.team_b_id}>
+                      🏆 {selectedMatchObj.team_b_name} (WINNER)
+                    </option>
+                  )}
+                </select>
+              </div>
+
               {/* Action Buttons */}
               <div className="col-span-full flex flex-wrap items-center gap-3 pt-2">
                 <button
@@ -558,16 +666,16 @@ function MatchesTab({
                   className={btnPrimary}
                 >
                   {updatingLive ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-                  ⚡ Update & Broadcast Live Score
+                  ⚡ Set Live & Broadcast Score
                 </button>
 
                 <button
                   type="button"
                   disabled={updatingLive}
                   onClick={() => updateLiveMatch("completed")}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-gold-400 px-4 py-2 text-xs font-bold text-navy-950 hover:bg-gold-300"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gold-400 px-5 py-2 text-xs font-bold text-navy-950 hover:bg-gold-300 transition-colors shadow-lg"
                 >
-                  🏁 Finish Match & Move to Results
+                  🏁 Finish Match & Move to Results Tab
                 </button>
               </div>
             </div>
@@ -576,11 +684,11 @@ function MatchesTab({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          NEW UPCOMING MATCH FIXTURE CREATOR
+          3. NEW FIXTURE CREATOR FOR SELECTED ROUND
       ══════════════════════════════════════════════════════════════ */}
       <form onSubmit={createMatch} className={`${cardClass} grid grid-cols-1 gap-4 sm:grid-cols-2`}>
         <h3 className="col-span-full font-display text-xl tracking-wide text-ivory-50">
-          Create Match Fixture
+          Create Match Fixture ({adminRound.toUpperCase()})
         </h3>
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Stage / Round</label>
@@ -594,7 +702,6 @@ function MatchesTab({
             <option value="semifinal">Semifinal</option>
             <option value="final">Final</option>
             <option value="group">Group Stage</option>
-            <option value="custom">Custom</option>
           </select>
         </div>
         <div>
@@ -641,20 +748,43 @@ function MatchesTab({
       </form>
 
       {/* ══════════════════════════════════════════════════════════════
-          ALL MATCHES EDITOR LIST
+          4. ALL MATCHES LIST (UPCOMING & RESULTS FOR SELECTED ROUND)
       ══════════════════════════════════════════════════════════════ */}
-      <div>
-        <h3 className="mb-4 font-display text-xl tracking-wide text-ivory-50">
-          All Match Fixtures & Results
+      <div className="space-y-6">
+        <h3 className="font-display text-xl tracking-wide text-ivory-50">
+          Match List for {adminRound.toUpperCase()}
         </h3>
-        <div className="space-y-4">
-          {matches.length === 0 ? (
-            <p className="text-sm text-ivory-400">No matches created yet.</p>
-          ) : (
-            matches.map((m) => (
-              <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
-            ))
-          )}
+
+        {/* Upcoming / Live Matches list */}
+        <div>
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-400">
+            • Live & Scheduled Fixtures ({upcomingRoundMatches.length})
+          </h4>
+          <div className="space-y-3">
+            {upcomingRoundMatches.length === 0 ? (
+              <p className="text-xs text-ivory-400">No scheduled or live matches in this round.</p>
+            ) : (
+              upcomingRoundMatches.map((m) => (
+                <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Completed Match Results list */}
+        <div className="pt-2">
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gold-400">
+            🏆 Completed Match Results ({completedRoundMatches.length})
+          </h4>
+          <div className="space-y-3">
+            {completedRoundMatches.length === 0 ? (
+              <p className="text-xs text-ivory-400">No completed match results in this round yet.</p>
+            ) : (
+              completedRoundMatches.map((m) => (
+                <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
