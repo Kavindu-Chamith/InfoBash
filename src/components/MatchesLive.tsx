@@ -506,20 +506,23 @@ export default function MatchesLive() {
   const [loaded, setLoaded] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MatchApiRow | null>(null);
 
-  // Selected round tab state (defaults to 'round1', auto-switches if live match detected)
+  // Selected round tab state (defaults to 'round1', auto-switches if live match or server settings detected)
   const [selectedRound, setSelectedRound] = useState<StageRound>("round1");
+  const [serverLiveRound, setServerLiveRound] = useState<StageRound>("round1");
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const [matchesRes, teamsRes] = await Promise.all([
+        const [matchesRes, teamsRes, settingsRes] = await Promise.all([
           fetch("/api/matches"),
           fetch("/api/teams"),
+          fetch("/api/settings"),
         ]);
         const matchesJson = await matchesRes.json();
         const teamsJson = await teamsRes.json();
+        const settingsJson = await settingsRes.json();
 
         if (cancelled) return;
         const dbMatches: MatchApiRow[] = matchesJson.matches ?? [];
@@ -527,13 +530,17 @@ export default function MatchesLive() {
         setRegisteredTeams(teamsJson.teams ?? []);
         setLoaded(true);
 
-        // Detect if any match is currently LIVE and switch selectedRound automatically
+        const activeRoundFromSettings: StageRound = (settingsJson.activeRound as StageRound) || "round1";
+        setServerLiveRound(activeRoundFromSettings);
+
+        // Detect if any match is currently LIVE or use Admin configured active live round
         const liveMatchInDb = dbMatches.find((m) => m.status === "live");
-        if (liveMatchInDb?.stage) {
-          const stage = liveMatchInDb.stage as StageRound;
-          if (["round1", "quarterfinal", "semifinal", "final"].includes(stage)) {
-            setSelectedRound(stage);
-          }
+        if (liveMatchInDb?.stage && ["round1", "quarterfinal", "semifinal", "final"].includes(liveMatchInDb.stage)) {
+          const liveStage = liveMatchInDb.stage as StageRound;
+          setServerLiveRound(liveStage);
+          setSelectedRound(liveStage);
+        } else if (activeRoundFromSettings) {
+          setSelectedRound(activeRoundFromSettings);
         }
       } catch {
         if (!cancelled) setLoaded(true);
@@ -551,9 +558,9 @@ export default function MatchesLive() {
   // Detect live match in current database
   const liveMatchInDb = matches.find((m) => m.status === "live");
 
-  // Determine current active LIVE round ID (or default to 'round1')
+  // Determine current active LIVE round ID (from DB live match or Admin settings)
   const liveRoundId: StageRound =
-    (liveMatchInDb?.stage as StageRound) || "round1";
+    (liveMatchInDb?.stage as StageRound) || serverLiveRound || "round1";
 
   // Featured Live Score match for the selected round
   const liveMatch =

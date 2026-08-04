@@ -468,21 +468,61 @@ function MatchesTab({
     if (res.ok) setForm((f) => ({ ...f, label: "", teamAId: "", teamBId: "" }));
   }
 
+  const [submittingRound, setSubmittingRound] = useState(false);
+
+  async function submitActiveLiveRound() {
+    setSubmittingRound(true);
+    const res = await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activeRound: adminRound }),
+    });
+    const json = await res.json();
+    setSubmittingRound(false);
+
+    const roundLabel =
+      adminRound === "round1"
+        ? "1st Round"
+        : adminRound === "quarterfinal"
+        ? "Quarterfinals"
+        : adminRound === "semifinal"
+        ? "Semifinals"
+        : "Final";
+
+    onChanged(
+      res.ok
+        ? `Successfully published "${roundLabel}" as the Current Live Round on user matches page!`
+        : json.error
+    );
+  }
+
   const selectedMatchObj = matches.find((m) => m.id === selectedLiveId);
 
   return (
     <div className="space-y-8">
       {/* ══════════════════════════════════════════════════════════════
-          1. SELECT ACTIVE LIVE ROUND IN ADMIN DASHBOARD
+          1. SELECT ACTIVE LIVE ROUND IN ADMIN DASHBOARD (WITH SUBMIT BUTTON)
       ══════════════════════════════════════════════════════════════ */}
       <div className="rounded-2xl border border-cyan-500/30 bg-[#070e1c]/90 p-5 shadow-xl">
-        <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
           <label className="font-mono-score text-xs font-bold uppercase tracking-widest text-cyan-400">
-            Select Tournament Round to View & Manage
+            SELECT TOURNAMENT ROUND TO VIEW & MANAGE
           </label>
-          <span className="font-mono-score text-[11px] text-ivory-400">
-            Filtering Admin Matches Section
-          </span>
+
+          {/* Submit Active Round Button on Right Corner */}
+          <button
+            type="button"
+            disabled={submittingRound}
+            onClick={submitActiveLiveRound}
+            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 px-4 py-1.5 font-mono-score text-xs font-bold uppercase tracking-wider text-navy-950 hover:from-emerald-400 hover:to-cyan-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
+          >
+            {submittingRound ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Play size={13} className="fill-navy-950" />
+            )}
+            Set Active Live Round
+          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
