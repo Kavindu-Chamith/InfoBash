@@ -20,19 +20,24 @@ const item = {
 
 /* --- Photo wall source pool --- */
 const GALLERY_POOL = [
-  "/images/gallery-1.jpg",
-  "/images/gallery-2.jpg",
-  "/images/gallery-3.jpg",
-  "/images/gallery-4.jpg",
-  "/images/gallery-5.jpg",
-  "/images/gallery-6.jpg",
-  "/images/gallery-7.jpg",
-  "/images/gallery-8.jpg",
-  "/images/gallery-9.jpg",
-  "/images/gallery-10.jpg",
-  "/images/gallery-11.jpg",
-  "/images/gallery-12.jpg",
-  "/images/cricket-hero.png",
+  "/gallery/IMG_3599.JPG.jpeg",
+  "/gallery/IMG_3600.JPG.jpeg",
+  "/gallery/IMG_3601.JPG.jpeg",
+  "/gallery/IMG_3602.JPG.jpeg",
+  "/gallery/IMG_3603.JPG.jpeg",
+  "/gallery/IMG_3604.JPG.jpeg",
+  "/gallery/IMG_3605.JPG.jpeg",
+  "/gallery/IMG_3606.JPG.jpeg",
+  "/gallery/IMG_3607.JPG.jpeg",
+  "/gallery/IMG_3608.JPG.jpeg",
+  "/gallery/IMG_3609.JPG.jpeg",
+  "/gallery/IMG_3610.JPG.jpeg",
+  "/gallery/IMG_3611.JPG.jpeg",
+  "/gallery/IMG_3612.JPG.jpeg",
+  "/gallery/IMG_3613.JPG.jpeg",
+  "/gallery/IMG_3614.JPG.jpeg",
+  "/gallery/IMG_3615.JPG.jpeg",
+  "/gallery/IMG_3616.JPG.jpeg",
 ];
 
 function pickRow(offset: number, count: number) {
