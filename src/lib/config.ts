@@ -1,6 +1,6 @@
 // Central place to tweak tournament-wide facts.
 // Update TOURNAMENT_DATE once the faculty confirms the match day.
-export const TOURNAMENT_DATE = new Date("2026-09-19T08:00:00+05:30");
+export const TOURNAMENT_DATE = new Date("2026-08-08T08:00:00+05:30");
 
 export const TOURNAMENT_INFO = {
   edition: "v5.0",

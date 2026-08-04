@@ -595,7 +595,7 @@ export default function MatchesLive() {
 
   // Helper function to format date
   const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "26 MAY 2024";
+    if (!dateStr) return "08 AUG 2026";
     try {
       const d = new Date(dateStr);
       return d
