@@ -45,8 +45,9 @@ export default function ParticleField({ density = 55 }: { density?: number }) {
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
+        // SPEED CONTROL: Multiplier (0.05) controls velocity. Lower value = slower movement.
+        vx: (Math.random() - 0.5) * 0.05,
+        vy: (Math.random() - 0.5) * 0.05,
         r: Math.random() * 1.6 + 0.6,
       }));
     }
@@ -64,7 +65,8 @@ export default function ParticleField({ density = 55 }: { density?: number }) {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(124, 232, 255, 0.75)";
+        // OPACITY CONTROL: 4th value in rgba (0.20) controls dot opacity. Lower value = more subtle.
+        ctx.fillStyle = "rgba(124, 232, 255, 0.20)";
         ctx.fill();
 
         for (let j = i + 1; j < particles.length; j++) {
@@ -76,7 +78,8 @@ export default function ParticleField({ density = 55 }: { density?: number }) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(47, 111, 237, ${0.16 * (1 - dist / 120)})`;
+            // LINE OPACITY CONTROL: 0.08 multiplier controls connecting line opacity.
+            ctx.strokeStyle = `rgba(47, 111, 237, ${0.08 * (1 - dist / 120)})`;
             ctx.lineWidth = 1;
             ctx.stroke();
           }
