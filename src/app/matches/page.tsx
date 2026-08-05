@@ -4,7 +4,7 @@ import MatchesLive from "@/components/MatchesLive";
 export const metadata: Metadata = {
   title: "Live Score & Matches — InfoBash V5.0",
   description:
-    "Live cricket scores, overs, wickets, and 1st round upcoming match schedules.",
+    "Live cricket scores, overs, wickets, and upcoming match schedules.",
 };
 
 export default function MatchesPage() {
@@ -37,7 +37,7 @@ export default function MatchesPage() {
         </h1>
 
         <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ivory-400">
-          Live cricket scores, overs, wickets, and 1st round upcoming match schedules.
+          Live cricket scores, overs, wickets, and upcoming match schedules.
         </p>
       </div>
 
