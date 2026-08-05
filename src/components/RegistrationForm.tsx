@@ -360,7 +360,22 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       [],
     ];
     const valid = await trigger(fieldsForStep[step]);
-    if (valid && !logoUploading) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (!valid) {
+      if (step === 1 && femaleCount < MIN_FEMALE_PLAYERS) {
+        setSubmitState({
+          status: "error",
+          message: `Squad validation failed: You must include at least ${MIN_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
+        });
+      } else {
+        setSubmitState({
+          status: "error",
+          message: "Please fill in all required fields correctly before proceeding.",
+        });
+      }
+      return;
+    }
+    setSubmitState({ status: "idle" });
+    if (!logoUploading) setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
   function goBack() {
@@ -408,6 +423,40 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
         message: "Couldn't reach the server. Check your connection and try again.",
       });
     }
+  }
+
+  function onFormError(formErrors: Record<string, any>) {
+    if (femaleCount < MIN_FEMALE_PLAYERS) {
+      setSubmitState({
+        status: "error",
+        message: `Squad validation error: Squad must include at least ${MIN_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
+      });
+      setStep(1);
+      return;
+    }
+
+    if (formErrors.teamName || formErrors.batch || formErrors.captainContact) {
+      setSubmitState({
+        status: "error",
+        message: "Team Details validation error: Please enter a valid team name (3+ chars) and Sri Lankan contact number (e.g. 07XXXXXXXX).",
+      });
+      setStep(0);
+      return;
+    }
+
+    if (formErrors.players) {
+      setSubmitState({
+        status: "error",
+        message: "Squad Roster validation error: All 11 players must have full names, student IDs, and unique registration numbers.",
+      });
+      setStep(1);
+      return;
+    }
+
+    setSubmitState({
+      status: "error",
+      message: "Please correct the highlighted form errors before submitting.",
+    });
   }
 
   if (submitState.status === "success") {
@@ -470,7 +519,16 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="glass-card glow-border rounded-3xl p-6 sm:p-10">
+      <form onSubmit={handleSubmit(onSubmit, onFormError)} className="glass-card glow-border rounded-3xl p-6 sm:p-10">
+        {submitState.status === "error" && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200 shadow-xl">
+            <ShieldAlert size={20} className="text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-red-300">Registration Error</h4>
+              <p className="mt-1 text-xs text-red-200/90">{submitState.message}</p>
+            </div>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {/* STEP 0 — Team details */}
           {step === 0 && (

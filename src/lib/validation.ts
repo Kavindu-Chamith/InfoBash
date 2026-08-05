@@ -8,7 +8,7 @@ export const BATCHES = [
 ] as const;
 
 export const TEAM_SIZE = 11;
-export const MIN_FEMALE_PLAYERS = 2;
+export const MIN_FEMALE_PLAYERS = 3;
 export const MAX_LOGO_BYTES = 1.5 * 1024 * 1024;
 
 export const captainSignupSchema = z.object({
