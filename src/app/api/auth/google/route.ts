@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = googleEmail.trim().toLowerCase();
-    const cleanName = googleName ? googleName.trim() : cleanEmail.split("@")[0];
+    const cleanName = googleName ? googleName.trim() : (body.name ? String(body.name).trim() : "");
 
     // Check existing captain or insert new captain account
     const result = await pool.query(

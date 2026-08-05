@@ -36,6 +36,10 @@ export const registrationSchema = z
       .min(3, "Team name must be at least 3 characters")
       .max(60, "Team name must be under 60 characters"),
     batch: z.enum(BATCHES),
+    captainName: z
+      .string()
+      .trim()
+      .min(2, "Captain full name must be at least 2 characters"),
     captainContact: z
       .string()
       .trim()

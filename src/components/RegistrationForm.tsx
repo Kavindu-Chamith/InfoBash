@@ -76,6 +76,7 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
     status: "idle",
   });
   const [showEmailInput, setShowEmailInput] = useState(false);
+  const [customName, setCustomName] = useState("");
   const [customEmail, setCustomEmail] = useState("");
 
   useEffect(() => {
@@ -193,7 +194,7 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
 
     verifyGoogleToken({
       email: customEmail,
-      name: customEmail.split("@")[0],
+      name: customName.trim() || undefined,
     });
   }
 
@@ -227,17 +228,31 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
       )}
 
       {showEmailInput && (
-        <div className="mt-6 text-left">
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
-            Google Account Email
-          </label>
-          <input
-            type="email"
-            value={customEmail}
-            onChange={(e) => setCustomEmail(e.target.value)}
-            placeholder="captain@gmail.com"
-            className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none focus:border-cyan-400/60"
-          />
+        <div className="mt-6 space-y-4 text-left">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
+              Captain Full Name
+            </label>
+            <input
+              type="text"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="e.g. Kavindu Chamith"
+              className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none focus:border-cyan-400/60"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
+              Google Account Email
+            </label>
+            <input
+              type="email"
+              value={customEmail}
+              onChange={(e) => setCustomEmail(e.target.value)}
+              placeholder="captain@gmail.com"
+              className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none focus:border-cyan-400/60"
+            />
+          </div>
         </div>
       )}
 
@@ -301,6 +316,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     defaultValues: {
       teamName: "",
       batch: BATCHES[0],
+      captainName: captain.name || "",
       captainContact: "",
       viceCaptainName: "",
       notes: "",
@@ -355,7 +371,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
 
   async function goNext() {
     const fieldsForStep: (keyof RegistrationInput)[][] = [
-      ["teamName", "batch", "captainContact", "viceCaptainName"],
+      ["teamName", "batch", "captainName", "captainContact", "viceCaptainName"],
       ["players"],
       [],
     ];
@@ -435,10 +451,10 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       return;
     }
 
-    if (formErrors.teamName || formErrors.batch || formErrors.captainContact) {
+    if (formErrors.teamName || formErrors.batch || formErrors.captainName || formErrors.captainContact) {
       setSubmitState({
         status: "error",
-        message: "Team Details validation error: Please enter a valid team name (3+ chars) and Sri Lankan contact number (e.g. 07XXXXXXXX).",
+        message: "Team Details validation error: Please enter team name, captain full name, and valid Sri Lankan contact number.",
       });
       setStep(0);
       return;
@@ -588,6 +604,12 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 <label className={labelClass} htmlFor="teamName">Team Name</label>
                 <input id="teamName" className={inputClass} placeholder="e.g. Batch 21 Strikers" {...register("teamName")} />
                 {errors.teamName && <p className={errorClass}>{errors.teamName.message}</p>}
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="captainName">Captain Full Name</label>
+                <input id="captainName" className={inputClass} placeholder="Enter captain's full name" {...register("captainName")} />
+                {errors.captainName && <p className={errorClass}>{errors.captainName.message}</p>}
               </div>
 
               <div>
@@ -744,7 +766,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 </h3>
                 <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                   <div><dt className="text-ivory-400">Batch</dt><dd className="text-ivory-100">{watch("batch")}</dd></div>
-                  <div><dt className="text-ivory-400">Captain</dt><dd className="text-ivory-100">{captain.name}</dd></div>
+                  <div><dt className="text-ivory-400">Captain</dt><dd className="text-ivory-100">{watch("captainName") || captain.name || "—"}</dd></div>
                   <div><dt className="text-ivory-400">Contact</dt><dd className="text-ivory-100">{watch("captainContact")}</dd></div>
                   <div><dt className="text-ivory-400">Email</dt><dd className="text-ivory-100">{captain.email}</dd></div>
                   {watch("viceCaptainName") && (

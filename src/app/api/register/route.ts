@@ -54,6 +54,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const finalCaptainName = data.captainName?.trim() || captain.name || "";
+    if (finalCaptainName) {
+      await client.query(`UPDATE captains SET name = $1 WHERE id = $2`, [
+        finalCaptainName,
+        session.captainId,
+      ]);
+    }
+
     const teamResult = await client.query(
       `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes, captain_id, logo_s3_key)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
       [
         data.teamName,
         data.batch,
-        captain.name,
+        finalCaptainName,
         data.captainContact,
         captain.email,
         data.viceCaptainName || null,
