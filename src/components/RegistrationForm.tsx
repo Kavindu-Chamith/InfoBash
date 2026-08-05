@@ -381,7 +381,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       if (step === 1 && femaleCount !== REQUIRED_FEMALE_PLAYERS) {
         setSubmitState({
           status: "error",
-          message: `Squad validation failed: Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
+          message: `Squad validation failed: Squad must include ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
         });
       } else {
         setSubmitState({
@@ -446,7 +446,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     if (femaleCount !== REQUIRED_FEMALE_PLAYERS) {
       setSubmitState({
         status: "error",
-        message: `Squad validation error: Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
+        message: `Squad validation error: Squad must include ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
       });
       setStep(1);
       return;
@@ -507,29 +507,26 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
           <div key={label} className="flex items-center gap-2 sm:gap-4">
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`grid h-9 w-9 place-items-center rounded-full border-2 font-mono-score text-sm font-semibold transition-colors ${
-                  i < step
-                    ? "border-cyan-400 bg-cyan-400 text-navy-950"
-                    : i === step
+                className={`grid h-9 w-9 place-items-center rounded-full border-2 font-mono-score text-sm font-semibold transition-colors ${i < step
+                  ? "border-cyan-400 bg-cyan-400 text-navy-950"
+                  : i === step
                     ? "border-cyan-400 text-cyan-300"
                     : "border-white/15 text-ivory-400"
-                }`}
+                  }`}
               >
                 {i < step ? <Check size={16} /> : i + 1}
               </div>
               <span
-                className={`hidden text-[11px] uppercase tracking-wide sm:block ${
-                  i === step ? "text-cyan-300" : "text-ivory-400"
-                }`}
+                className={`hidden text-[11px] uppercase tracking-wide sm:block ${i === step ? "text-cyan-300" : "text-ivory-400"
+                  }`}
               >
                 {label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
               <div
-                className={`h-[2px] w-8 sm:w-16 ${
-                  i < step ? "bg-cyan-400" : "bg-white/10"
-                }`}
+                className={`h-[2px] w-8 sm:w-16 ${i < step ? "bg-cyan-400" : "bg-white/10"
+                  }`}
               />
             )}
           </div>
@@ -684,18 +681,17 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                   Squad — {TEAM_SIZE} Players
                 </h2>
                 <div
-                  className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold ${
-                    femaleCount === REQUIRED_FEMALE_PLAYERS
-                      ? "border-cyan-400/40 text-cyan-300 bg-cyan-400/10"
-                      : "border-rose-500/50 text-rose-400 bg-rose-500/10"
-                  }`}
+                  className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold ${femaleCount === REQUIRED_FEMALE_PLAYERS
+                    ? "border-cyan-400/40 text-cyan-300 bg-cyan-400/10"
+                    : "border-rose-500/50 text-rose-400 bg-rose-500/10"
+                    }`}
                 >
                   <Users size={14} />
                   {femaleCount} / {REQUIRED_FEMALE_PLAYERS} female players (Exact {REQUIRED_FEMALE_PLAYERS} required)
                 </div>
               </div>
               <p className="mb-6 text-sm text-ivory-400">
-                Every squad must have exactly {TEAM_SIZE} players (8 male players and exactly {REQUIRED_FEMALE_PLAYERS} female players).
+                Every squad must have {TEAM_SIZE} players (8 male players and {REQUIRED_FEMALE_PLAYERS} female players).
               </p>
 
               {typeof errors.players?.message === "string" && (
@@ -780,12 +776,20 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                   Squad ({players?.length ?? 0} players · {femaleCount} female)
                 </h4>
                 <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-ivory-200 sm:grid-cols-2">
-                  {players?.map((p, i) => (
-                    <li key={i} className="flex items-center justify-between gap-2 border-b border-white/5 py-1">
-                      <span>{i + 1}. {p.fullName || "—"} <span className="text-ivory-400">({p.studentId || "—"})</span></span>
-                      <span className="text-xs uppercase text-ivory-400">{p.gender}</span>
-                    </li>
-                  ))}
+                  {[...(players || [])]
+                    .sort((a, b) => {
+                      if (a.gender === "female" && b.gender !== "female") return 1;
+                      if (a.gender !== "female" && b.gender === "female") return -1;
+                      return 0;
+                    })
+                    .map((p, i) => (
+                      <li key={i} className="flex items-center justify-between gap-2 border-b border-white/5 py-1">
+                        <span>{i + 1}. {p.fullName || "—"} <span className="text-ivory-400">({p.studentId || "—"})</span></span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${p.gender === "female" ? "bg-pink-500/20 text-pink-300" : "text-ivory-400"}`}>
+                          {p.gender}
+                        </span>
+                      </li>
+                    ))}
                 </ol>
               </div>
 

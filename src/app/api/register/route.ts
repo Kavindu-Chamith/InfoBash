@@ -81,8 +81,15 @@ export async function POST(req: NextRequest) {
 
     const teamId = teamResult.rows[0].id as string;
 
-    for (let i = 0; i < data.players.length; i++) {
-      const player = data.players[i];
+    // Group female players together (male players positions 1-8, female players positions 9-11)
+    const sortedPlayersForDb = [...data.players].sort((a, b) => {
+      if (a.gender === "female" && b.gender !== "female") return 1;
+      if (a.gender !== "female" && b.gender === "female") return -1;
+      return 0;
+    });
+
+    for (let i = 0; i < sortedPlayersForDb.length; i++) {
+      const player = sortedPlayersForDb[i];
       await client.query(
         `INSERT INTO players (team_id, position, full_name, student_id, gender)
          VALUES ($1, $2, $3, $4, $5)`,

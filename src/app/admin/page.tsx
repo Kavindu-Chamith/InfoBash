@@ -458,20 +458,28 @@ function AdminTeamCard({
 
           {showSquad && (
             <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-white/10 bg-navy-950/70 p-2.5 space-y-1.5 text-xs">
-              {team.players?.map((p, idx) => (
-                <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{p.position || idx + 1}</span>
-                    <span className="truncate">{p.full_name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 text-[10px] text-ivory-400 font-mono">
-                    <span>{p.student_id}</span>
-                    <span className={`rounded px-1 py-0.2 ${p.gender === "female" ? "bg-pink-500/20 text-pink-300" : "bg-blue-500/20 text-blue-300"}`}>
-                      {p.gender === "female" ? "F" : "M"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+              {team.players
+                ? [...team.players]
+                    .sort((a, b) => {
+                      if (a.gender === "female" && b.gender !== "female") return 1;
+                      if (a.gender !== "female" && b.gender === "female") return -1;
+                      return (a.position || 0) - (b.position || 0);
+                    })
+                    .map((p, idx) => (
+                      <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{idx + 1}</span>
+                          <span className="truncate">{p.full_name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
+                          <span className="text-ivory-400">{p.student_id}</span>
+                          <span className={`rounded px-1.5 py-0.5 font-semibold text-[9px] ${p.gender === "female" ? "bg-pink-500/20 text-pink-300 border border-pink-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"}`}>
+                            {p.gender === "female" ? "Female" : "Male"}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                : null}
             </div>
           )}
         </div>
