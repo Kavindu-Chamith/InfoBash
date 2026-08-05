@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CAPTAIN_COOKIE, verifyCaptainSessionToken } from "@/lib/captainAuth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { uploadFileToGoogleDrive } from "@/lib/googleDrive";
 
 const ALLOWED_MIME: Record<string, string> = {
   "image/png": "png",
@@ -63,23 +62,6 @@ export async function POST(req: NextRequest) {
         logoUrl: cldResult.url,
         publicId: cldResult.public_id,
         source: "cloudinary",
-      });
-    }
-
-    // 2. Try Google Drive Upload Second
-    const driveResult = await uploadFileToGoogleDrive({
-      fileName,
-      fileBuffer: buffer,
-      mimeType,
-    });
-
-    if (driveResult) {
-      return NextResponse.json({
-        success: true,
-        logoUrl: driveResult.directUrl,
-        webViewLink: driveResult.webViewLink,
-        fileId: driveResult.fileId,
-        source: "google_drive",
       });
     }
 

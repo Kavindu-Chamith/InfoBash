@@ -14,12 +14,22 @@ export async function uploadToCloudinary(params: {
   folder?: string;
 }): Promise<CloudinaryUploadResult | null> {
   try {
-    const cloudName = (
+    let cloudName = (
       process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
       process.env.CLOUDINARY_CLOUD_NAME
     )?.trim();
-    const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
-    const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
+    let apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+    let apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
+
+    if ((!cloudName || !apiKey || !apiSecret) && process.env.CLOUDINARY_URL) {
+      try {
+        const urlStr = process.env.CLOUDINARY_URL.replace("cloudinary://", "http://");
+        const url = new URL(urlStr);
+        cloudName = cloudName || url.hostname;
+        apiKey = apiKey || url.username;
+        apiSecret = apiSecret || url.password;
+      } catch {}
+    }
 
     if (!cloudName || !apiKey || !apiSecret) {
       console.warn("Cloudinary upload skipped: missing cloud name, API key, or API secret.");
@@ -33,10 +43,11 @@ export async function uploadToCloudinary(params: {
     const signatureStr = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
     const signature = crypto.createHash("sha1").update(signatureStr).digest("hex");
 
+    const base64Data = params.fileBuffer.toString("base64");
+    const fileDataUrl = `data:${params.mimeType};base64,${base64Data}`;
+
     const formData = new FormData();
-    const uint8Array = new Uint8Array(params.fileBuffer);
-    const blob = new Blob([uint8Array], { type: params.mimeType });
-    formData.append("file", blob);
+    formData.append("file", fileDataUrl);
     formData.append("api_key", apiKey);
     formData.append("timestamp", String(timestamp));
     formData.append("folder", folder);
