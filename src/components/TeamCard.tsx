@@ -234,9 +234,15 @@ export function TeamDrawer({
                 </div>
 
                 <div className="space-y-2">
-                  {team.players.map((p, i) => {
-                    const isCaptain = p.fullName === team.captain_name;
-                    const posNumber = String(p.position || i + 1).padStart(2, "0");
+                  {[...team.players]
+                    .sort((a, b) => {
+                      if (a.gender === "female" && b.gender !== "female") return 1;
+                      if (a.gender !== "female" && b.gender === "female") return -1;
+                      return (a.position || 0) - (b.position || 0);
+                    })
+                    .map((p, i) => {
+                      const isCaptain = p.fullName === team.captain_name;
+                      const posNumber = String(i + 1).padStart(2, "0");
                     return (
                       <div
                         key={i}

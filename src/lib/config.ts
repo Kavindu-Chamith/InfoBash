@@ -1,22 +1,23 @@
 // Central place to tweak tournament-wide facts.
 // Update TOURNAMENT_DATE once the faculty confirms the match day.
-export const TOURNAMENT_DATE = new Date("2026-09-19T08:00:00+05:30");
+export const TOURNAMENT_DATE = new Date("2026-08-08T08:00:00+05:30");
 
 export const TOURNAMENT_INFO = {
   edition: "v5.0",
-  format: "One-day, knockout, tape-ball cricket",
-  venue: "Hunduwa Ground, Sabaragamuwa University of Sri Lanka",
-  teamsExpected: "10 – 15 teams",
-  squadSize: 11,
-  minFemalePlayers: 2,
+  format: "5-Over Tape-Ball Cricket (4 Groups of 3 Teams)",
+  venue: "Ground near the Physical Education Center, Sabaragamuwa University of Sri Lanka",
+  teamsExpected: "12 Teams (4 Groups)",
+  squadSize: 10,
+  malePlayers: 7,
+  minFemalePlayers: 3,
   batches: 4,
 };
 
 export const TICKER_ITEMS = [
-  "INFOBASH V5.0",
-  "ONE-DAY KNOCKOUT TOURNAMENT",
-  "4 BATCHES · 10–15 TEAMS",
-  "11-A-SIDE SQUADS · MIN. 2 FEMALE PLAYERS",
+  "INFO BASH V5.0",
+  "5-OVER KNOCKOUT TOURNAMENT",
+  "12 TEAMS · 4 GROUPS (A, B, C, D)",
+  "10-PLAYER SQUADS · 7 BOYS & 3 GIRLS",
   "FACULTY OF COMPUTING · SUSL",
-  "REGISTER YOUR TEAM TODAY",
+  "8TH AUGUST 2026 · PHYSICAL EDUCATION CENTER",
 ];

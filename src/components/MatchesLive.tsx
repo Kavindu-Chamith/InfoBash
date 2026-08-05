@@ -2,7 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Calendar, Clock, X, Radio, ChevronRight, MapPin, Trophy, Crown, Users, User, Shield } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  X,
+  Radio,
+  ChevronRight,
+  MapPin,
+  Trophy,
+  Crown,
+  Users,
+  User,
+  Shield,
+  CheckCircle2,
+  Award,
+  Sparkles,
+  Flame,
+} from "lucide-react";
 
 // Retaining Bracket import & component in codebase without deleting
 import Bracket, { type PlayoffMatch } from "@/components/Matches";
@@ -31,84 +47,351 @@ export interface MatchApiRow {
   winner_name: string | null;
 }
 
-const POLL_MS = 15000;
+export type StageRound = "round1" | "quarterfinal" | "semifinal" | "final";
 
-// Default sample data for 1st round upcoming matches if DB is empty
-const DEFAULT_UPCOMING_MATCHES: MatchApiRow[] = [
-  {
-    id: "r1-1",
-    stage: "round1",
-    label: "1ST ROUND · MATCH 02",
-    status: "scheduled",
-    team_a_score: null,
-    team_b_score: null,
-    scheduled_at: "2026-05-28T18:30:00Z",
-    venue: "Main Ground",
-    group_name: "Group A",
-    team_a_id: "t1",
-    team_a_name: "MAN UNITED",
-    team_b_id: "t2",
-    team_b_name: "LIVERPOOL",
-    winner_id: null,
-    winner_name: null,
-  },
-  {
-    id: "r1-2",
-    stage: "round1",
-    label: "1ST ROUND · MATCH 03",
-    status: "scheduled",
-    team_a_score: null,
-    team_b_score: null,
-    scheduled_at: "2026-05-29T21:00:00Z",
-    venue: "Ground B",
-    group_name: "Group B",
-    team_a_id: "t3",
-    team_a_name: "BAYERN MUNICH",
-    team_b_id: "t4",
-    team_b_name: "DORTMUND",
-    winner_id: null,
-    winner_name: null,
-  },
-  {
-    id: "r1-3",
-    stage: "round1",
-    label: "1ST ROUND · MATCH 04",
-    status: "scheduled",
-    team_a_score: null,
-    team_b_score: null,
-    scheduled_at: "2026-05-30T19:45:00Z",
-    venue: "Main Ground",
-    group_name: "Group C",
-    team_a_id: "t5",
-    team_a_name: "PSG",
-    team_b_id: "t6",
-    team_b_name: "MARSEILLE",
-    winner_id: null,
-    winner_name: null,
-  },
+export const TOURNAMENT_ROUNDS: { id: StageRound; label: string; shortLabel: string }[] = [
+  { id: "round1", label: "1st Round", shortLabel: "Round 1" },
+  { id: "quarterfinal", label: "Quarterfinals", shortLabel: "QF" },
+  { id: "semifinal", label: "Semifinals", shortLabel: "SF" },
+  { id: "final", label: "Final", shortLabel: "Final" },
 ];
 
-// Default sample live score match if no DB match is currently 'live'
-const DEFAULT_LIVE_MATCH: MatchApiRow = {
-  id: "live-spotlight",
-  stage: "round1",
-  label: "INFOBASH V5.0",
-  status: "live",
-  team_a_score: 142,
-  team_b_score: 98,
-  team_a_wickets: 4,
-  team_b_wickets: 2,
-  team_a_overs: "18.2",
-  team_b_overs: "12.0",
-  scheduled_at: "2026-05-26T20:00:00Z",
-  venue: "Faculty Stadium",
-  group_name: "1st Round Spotlight",
-  team_a_id: "barca",
-  team_a_name: "FC BARCELONA",
-  team_b_id: "real",
-  team_b_name: "REAL MADRID",
-  winner_id: null,
-  winner_name: null,
+const POLL_MS = 15000;
+
+// Sample upcoming matches per round for demo display
+const DEFAULT_ROUNDS_UPCOMING: Record<StageRound, MatchApiRow[]> = {
+  round1: [
+    {
+      id: "r1-1",
+      stage: "round1",
+      label: "1ST ROUND · MATCH 02",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-28T18:30:00Z",
+      venue: "Main Ground",
+      group_name: "Group A",
+      team_a_id: "t1",
+      team_a_name: "MAN UNITED",
+      team_b_id: "t2",
+      team_b_name: "LIVERPOOL",
+      winner_id: null,
+      winner_name: null,
+    },
+    {
+      id: "r1-2",
+      stage: "round1",
+      label: "1ST ROUND · MATCH 03",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-29T21:00:00Z",
+      venue: "Ground B",
+      group_name: "Group B",
+      team_a_id: "t3",
+      team_a_name: "BAYERN MUNICH",
+      team_b_id: "t4",
+      team_b_name: "DORTMUND",
+      winner_id: null,
+      winner_name: null,
+    },
+    {
+      id: "r1-3",
+      stage: "round1",
+      label: "1ST ROUND · MATCH 04",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-30T19:45:00Z",
+      venue: "Main Ground",
+      group_name: "Group C",
+      team_a_id: "t5",
+      team_a_name: "PSG",
+      team_b_id: "t6",
+      team_b_name: "MARSEILLE",
+      winner_id: null,
+      winner_name: null,
+    },
+  ],
+  quarterfinal: [
+    {
+      id: "qf-1",
+      stage: "quarterfinal",
+      label: "QUARTERFINAL · GAME 01",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-29T14:00:00Z",
+      venue: "Main Ground",
+      group_name: "QF 1",
+      team_a_id: "q1",
+      team_a_name: "PHOENIX LIONS",
+      team_b_id: "q2",
+      team_b_name: "ROYAL STRIKERS",
+      winner_id: null,
+      winner_name: null,
+    },
+    {
+      id: "qf-2",
+      stage: "quarterfinal",
+      label: "QUARTERFINAL · GAME 02",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-29T16:30:00Z",
+      venue: "Main Ground",
+      group_name: "QF 2",
+      team_a_id: "q3",
+      team_a_name: "LEGACY KINGS",
+      team_b_id: "q4",
+      team_b_name: "BYTE FORCE",
+      winner_id: null,
+      winner_name: null,
+    },
+  ],
+  semifinal: [
+    {
+      id: "sf-1",
+      stage: "semifinal",
+      label: "SEMIFINAL · GAME 01",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-30T15:00:00Z",
+      venue: "Main Stadium",
+      group_name: "Semi Final 1",
+      team_a_id: "s1",
+      team_a_name: "TITAN XI",
+      team_b_id: "s2",
+      team_b_name: "LEGACY KINGS",
+      winner_id: null,
+      winner_name: null,
+    },
+  ],
+  final: [
+    {
+      id: "fn-1",
+      stage: "final",
+      label: "CHAMPIONSHIP FINAL",
+      status: "scheduled",
+      team_a_score: null,
+      team_b_score: null,
+      scheduled_at: "2026-05-30T18:00:00Z",
+      venue: "Main Stadium",
+      group_name: "Grand Final",
+      team_a_id: "fn1",
+      team_a_name: "CYBER KNIGHTS",
+      team_b_id: "fn2",
+      team_b_name: "LEGACY KINGS",
+      winner_id: null,
+      winner_name: null,
+    },
+  ],
+};
+
+// Sample live match per round for demo display
+const DEFAULT_ROUNDS_LIVE: Record<StageRound, MatchApiRow> = {
+  round1: {
+    id: "live-r1",
+    stage: "round1",
+    label: "INFOBASH V5.0 · 1ST ROUND",
+    status: "live",
+    team_a_score: 142,
+    team_b_score: 98,
+    team_a_wickets: 4,
+    team_b_wickets: 2,
+    team_a_overs: "18.2",
+    team_b_overs: "12.0",
+    scheduled_at: "2026-05-26T20:00:00Z",
+    venue: "Faculty Stadium",
+    group_name: "1st Round Spotlight",
+    team_a_id: "barca",
+    team_a_name: "FC BARCELONA",
+    team_b_id: "real",
+    team_b_name: "REAL MADRID",
+    winner_id: null,
+    winner_name: null,
+  },
+  quarterfinal: {
+    id: "live-qf",
+    stage: "quarterfinal",
+    label: "INFOBASH V5.0 · QUARTERFINAL",
+    status: "live",
+    team_a_score: 154,
+    team_b_score: 120,
+    team_a_wickets: 6,
+    team_b_wickets: 3,
+    team_a_overs: "20.0",
+    team_b_overs: "15.4",
+    scheduled_at: "2026-05-27T14:00:00Z",
+    venue: "Main Ground",
+    group_name: "Quarterfinal Spotlight",
+    team_a_id: "ck",
+    team_a_name: "CYBER KNIGHTS",
+    team_b_id: "tx",
+    team_b_name: "TITAN XI",
+    winner_id: null,
+    winner_name: null,
+  },
+  semifinal: {
+    id: "live-sf",
+    stage: "semifinal",
+    label: "INFOBASH V5.0 · SEMIFINAL",
+    status: "live",
+    team_a_score: 178,
+    team_b_score: 110,
+    team_a_wickets: 4,
+    team_b_wickets: 5,
+    team_a_overs: "20.0",
+    team_b_overs: "14.1",
+    scheduled_at: "2026-05-28T16:00:00Z",
+    venue: "Main Stadium",
+    group_name: "Semifinal Spotlight",
+    team_a_id: "ck",
+    team_a_name: "CYBER KNIGHTS",
+    team_b_id: "pl",
+    team_b_name: "PHOENIX LIONS",
+    winner_id: null,
+    winner_name: null,
+  },
+  final: {
+    id: "live-fn",
+    stage: "final",
+    label: "INFOBASH V5.0 · GRAND FINAL",
+    status: "live",
+    team_a_score: 190,
+    team_b_score: 165,
+    team_a_wickets: 3,
+    team_b_wickets: 7,
+    team_a_overs: "20.0",
+    team_b_overs: "18.5",
+    scheduled_at: "2026-05-30T18:00:00Z",
+    venue: "Main Stadium",
+    group_name: "Championship Final",
+    team_a_id: "ck",
+    team_a_name: "CYBER KNIGHTS",
+    team_b_id: "lk",
+    team_b_name: "LEGACY KINGS",
+    winner_id: null,
+    winner_name: null,
+  },
+};
+
+// Sample completed matches per round for demo display
+const DEFAULT_ROUNDS_COMPLETED: Record<StageRound, MatchApiRow[]> = {
+  round1: [
+    {
+      id: "comp-r1-1",
+      stage: "round1",
+      label: "1ST ROUND · MATCH 01",
+      status: "completed",
+      team_a_score: 168,
+      team_b_score: 145,
+      team_a_wickets: 5,
+      team_b_wickets: 8,
+      team_a_overs: "20.0",
+      team_b_overs: "20.0",
+      scheduled_at: "2026-05-26T10:00:00Z",
+      venue: "Main Ground",
+      group_name: "Group A",
+      team_a_id: "t1",
+      team_a_name: "CYBER KNIGHTS",
+      team_b_id: "t2",
+      team_b_name: "CODE BREAKERS",
+      winner_id: "t1",
+      winner_name: "CYBER KNIGHTS",
+    },
+    {
+      id: "comp-r1-2",
+      stage: "round1",
+      label: "1ST ROUND · MATCH 02",
+      status: "completed",
+      team_a_score: 132,
+      team_b_score: 133,
+      team_a_wickets: 9,
+      team_b_wickets: 4,
+      team_a_overs: "19.4",
+      team_b_overs: "17.2",
+      scheduled_at: "2026-05-26T14:00:00Z",
+      venue: "Main Ground",
+      group_name: "Group B",
+      team_a_id: "t3",
+      team_a_name: "QUANTUM STRIKERS",
+      team_b_id: "t4",
+      team_b_name: "TITAN XI",
+      winner_id: "t4",
+      winner_name: "TITAN XI",
+    },
+  ],
+  quarterfinal: [
+    {
+      id: "comp-qf-1",
+      stage: "quarterfinal",
+      label: "QUARTERFINAL · GAME 01",
+      status: "completed",
+      team_a_score: 172,
+      team_b_score: 157,
+      team_a_wickets: 4,
+      team_b_wickets: 9,
+      team_a_overs: "20.0",
+      team_b_overs: "20.0",
+      scheduled_at: "2026-05-27T11:00:00Z",
+      venue: "Ground B",
+      group_name: "QF 1",
+      team_a_id: "tb",
+      team_a_name: "THUNDERBOLTS",
+      team_b_id: "rt",
+      team_b_name: "RANTHARU",
+      winner_id: "tb",
+      winner_name: "THUNDERBOLTS",
+    },
+  ],
+  semifinal: [
+    {
+      id: "comp-sf-1",
+      stage: "semifinal",
+      label: "SEMIFINAL · GAME 01",
+      status: "completed",
+      team_a_score: 165,
+      team_b_score: 166,
+      team_a_wickets: 7,
+      team_b_wickets: 6,
+      team_a_overs: "20.0",
+      team_b_overs: "19.3",
+      scheduled_at: "2026-05-28T14:00:00Z",
+      venue: "Main Stadium",
+      group_name: "Semi Final 1",
+      team_a_id: "cb",
+      team_a_name: "CODE BREAKERS",
+      team_b_id: "bm",
+      team_b_name: "BAYERN MUNICH",
+      winner_id: "bm",
+      winner_name: "BAYERN MUNICH",
+    },
+  ],
+  final: [
+    {
+      id: "comp-fn-1",
+      stage: "final",
+      label: "V4.0 CHAMPIONSHIP FINAL",
+      status: "completed",
+      team_a_score: 185,
+      team_b_score: 170,
+      team_a_wickets: 4,
+      team_b_wickets: 8,
+      team_a_overs: "20.0",
+      team_b_overs: "20.0",
+      scheduled_at: "2026-05-29T18:00:00Z",
+      venue: "Main Stadium",
+      group_name: "Final",
+      team_a_id: "lk",
+      team_a_name: "LEGACY KINGS",
+      team_b_id: "pl",
+      team_b_name: "PHOENIX LIONS",
+      winner_id: "lk",
+      winner_name: "LEGACY KINGS",
+    },
+  ],
 };
 
 // Fallback sample rosters for default demo teams
@@ -147,106 +430,72 @@ const SAMPLE_TEAM_DETAILS: Record<string, { batch: string; captain: string; squa
       "A. Tchouameni",
     ],
   },
-  "MAN UNITED": {
-    batch: "1st Year (Batch 23)",
-    captain: "Bruno Fernandes",
-    squad: [
-      "Bruno Fernandes (C)",
-      "M. Rashford",
-      "C. Casemiro",
-      "A. Onana",
-      "L. Martinez",
-      "K. Mainoo",
-      "H. Maguire",
-      "D. Dalot",
-      "L. Shaw",
-      "A. Garnacho",
-      "R. Hojlund",
-    ],
-  },
-  "LIVERPOOL": {
-    batch: "2nd Year (Batch 22)",
-    captain: "V. Van Dijk",
-    squad: [
-      "V. Van Dijk (C)",
-      "M. Salah",
-      "A. Becker",
-      "T. Alexander-Arnold",
-      "A. Robertson",
-      "D. Szoboszlai",
-      "A. Mac Allister",
-      "C. Gakpo",
-      "D. Nunez",
-      "I. Konate",
-      "L. Diaz",
-    ],
-  },
-  "BAYERN MUNICH": {
-    batch: "3rd Year (Batch 21)",
-    captain: "Manuel Neuer",
-    squad: [
-      "Manuel Neuer (C)",
-      "Harry Kane",
-      "Jamal Musiala",
-      "Joshua Kimmich",
-      "Leroy Sane",
-      "Alphonso Davies",
-      "Dayot Upamecano",
-      "Leon Goretzka",
-      "Thomas Muller",
-      "Kingsley Coman",
-      "Kim Min-jae",
-    ],
-  },
-  "DORTMUND": {
-    batch: "1st Year (Batch 23)",
-    captain: "Emre Can",
-    squad: [
-      "Emre Can (C)",
-      "Julian Brandt",
-      "Nico Schlotterbeck",
-      "Gregor Kobel",
-      "Karim Adeyemi",
-      "Donyell Malen",
-      "Marcel Sabitzer",
-      "Niklas Sule",
-      "Ramy Bensebaini",
-      "Felix Nmecha",
-      "Jamie Gittens",
-    ],
-  },
-  "PSG": {
-    batch: "2nd Year (Batch 22)",
-    captain: "Marquinhos",
-    squad: [
-      "Marquinhos (C)",
-      "Ousmane Dembele",
-      "Gianluigi Donnarumma",
-      "Achraf Hakimi",
-      "Vitinha",
-      "Warren Zaire-Emery",
-      "Bradley Barcola",
-      "Nuno Mendes",
-      "Lucas Beraldo",
-      "Fabian Ruiz",
-      "Randal Kolo Muani",
-    ],
-  },
-  "MARSEILLE": {
+  "CYBER KNIGHTS": {
     batch: "4th Year (Batch 20)",
-    captain: "Valentin Rongier",
+    captain: "Lasith Malinga",
     squad: [
-      "Valentin Rongier (C)",
-      "Mason Greenwood",
-      "Pierre-Emile Hojbjerg",
-      "Elye Wahi",
-      "Geronimo Rulli",
-      "Leonardo Balerdi",
-      "Amine Harit",
-      "Derek Cornelius",
-      "Luis Henrique",
-      "Geoffrey Kondogbia",
-      "Pol Lirola",
+      "Lasith Malinga (C)",
+      "Kumar Sangakkara",
+      "Mahela Jayawardene",
+      "Tillakaratne Dilshan",
+      "Sanath Jayasuriya",
+      "Muttiah Muralitharan",
+      "Chaminda Vaas",
+      "Angelo Mathews",
+      "Upul Tharanga",
+      "Rangana Herath",
+      "Nuwan Kulasekara",
+    ],
+  },
+  "CODE BREAKERS": {
+    batch: "2nd Year (Batch 22)",
+    captain: "Dimuth Karunaratne",
+    squad: [
+      "Dimuth Karunaratne (C)",
+      "Lahiru Thirimanne",
+      "Oshada Fernando",
+      "Roshen Silva",
+      "Niroshan Dickwella",
+      "Suranga Lakmal",
+      "Dhananjaya de Silva",
+      "Vishwa Fernando",
+      "Kasun Rajitha",
+      "Asitha Fernando",
+      "Prabath Jayasuriya",
+    ],
+  },
+  "QUANTUM STRIKERS": {
+    batch: "1st Year (Batch 23)",
+    captain: "Dasun Shanaka",
+    squad: [
+      "Dasun Shanaka (C)",
+      "Kusal Mendis",
+      "Pathum Nissanka",
+      "Charith Asalanka",
+      "Bhanuka Rajapaksa",
+      "Wanindu Hasaranga",
+      "Maheesh Theekshana",
+      "Dushmantha Chameera",
+      "Lahiru Kumara",
+      "Matheesha Pathirana",
+      "Dilshan Madushanka",
+    ],
+  },
+  "TITAN XI": {
+    batch: "3rd Year (Batch 21)",
+    captain: "Kusal Perera",
+    squad: [
+      "Kusal Perera (C)",
+      "Avishka Fernando",
+      "Dinesh Chandimal",
+      "Sadeera Samarawickrama",
+      "Kamindu Mendis",
+      "Dunith Wellalage",
+      "Chamika Karunaratne",
+      "Jeffrey Vandersay",
+      "Binura Fernando",
+      "Nuwan Thushara",
+      "Pramod Madushan",
     ],
   },
 };
@@ -257,22 +506,41 @@ export default function MatchesLive() {
   const [loaded, setLoaded] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MatchApiRow | null>(null);
 
+  // Selected round tab state (defaults to server live round setting)
+  const [selectedRound, setSelectedRound] = useState<StageRound>("round1");
+  const [serverLiveRound, setServerLiveRound] = useState<StageRound>("round1");
+  const [userHasSelectedRound, setUserHasSelectedRound] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const [matchesRes, teamsRes] = await Promise.all([
+        const [matchesRes, teamsRes, settingsRes] = await Promise.all([
           fetch("/api/matches"),
           fetch("/api/teams"),
+          fetch("/api/settings"),
         ]);
         const matchesJson = await matchesRes.json();
         const teamsJson = await teamsRes.json();
+        const settingsJson = await settingsRes.json();
 
         if (cancelled) return;
-        setMatches(matchesJson.matches ?? []);
+        const dbMatches: MatchApiRow[] = matchesJson.matches ?? [];
+        setMatches(dbMatches);
         setRegisteredTeams(teamsJson.teams ?? []);
         setLoaded(true);
+
+        const activeRoundFromSettings: StageRound = (settingsJson.activeRound as StageRound) || "round1";
+        setServerLiveRound(activeRoundFromSettings);
+
+        // If user hasn't manually clicked another round tab, auto-set selectedRound to active live round
+        setUserHasSelectedRound((userClicked) => {
+          if (!userClicked) {
+            setSelectedRound(activeRoundFromSettings);
+          }
+          return userClicked;
+        });
       } catch {
         if (!cancelled) setLoaded(true);
       }
@@ -286,28 +554,48 @@ export default function MatchesLive() {
     };
   }, []);
 
-  // Find live match from DB or fallback to default live match
-  const liveMatch =
-    matches.find((m) => m.status === "live") ?? DEFAULT_LIVE_MATCH;
+  // Detect live match in current database
+  const liveMatchInDb = matches.find((m) => m.status === "live");
 
-  // Filter 1st round / upcoming matches from DB or fallback to default upcoming list
-  const dbUpcoming1stRound = matches.filter(
+  // Active LIVE round ID set by Admin (or from live match stage)
+  const liveRoundId: StageRound = serverLiveRound || (liveMatchInDb?.stage as StageRound) || "round1";
+
+  // Featured Live Score match for the selected round
+  const liveMatch =
+    matches.find((m) => m.status === "live" && (m.stage === selectedRound || (selectedRound === "round1" && m.stage === "group"))) ??
+    DEFAULT_ROUNDS_LIVE[selectedRound] ??
+    DEFAULT_ROUNDS_LIVE.round1;
+
+  // Filter upcoming matches for the selected round
+  const dbUpcomingSelected = matches.filter(
     (m) =>
-      (m.stage === "round1" || m.stage === "group") &&
+      (m.stage === selectedRound || (selectedRound === "round1" && m.stage === "group")) &&
       m.id !== liveMatch.id &&
       m.status !== "completed"
   );
 
   const upcomingMatches =
-    dbUpcoming1stRound.length > 0
-      ? dbUpcoming1stRound
-      : DEFAULT_UPCOMING_MATCHES;
+    dbUpcomingSelected.length > 0
+      ? dbUpcomingSelected
+      : DEFAULT_ROUNDS_UPCOMING[selectedRound] ?? DEFAULT_ROUNDS_UPCOMING.round1;
+
+  // Filter completed matches for the selected round
+  const dbCompletedSelected = matches.filter(
+    (m) =>
+      (m.stage === selectedRound || (selectedRound === "round1" && m.stage === "group")) &&
+      m.status === "completed"
+  );
+
+  const completedMatches =
+    dbCompletedSelected.length > 0
+      ? dbCompletedSelected
+      : DEFAULT_ROUNDS_COMPLETED[selectedRound] ?? DEFAULT_ROUNDS_COMPLETED.round1;
 
   const hasFixtures = matches.length > 0;
 
   // Helper function to format date
   const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "26 MAY 2024";
+    if (!dateStr) return "08 AUG 2026";
     try {
       const d = new Date(dateStr);
       return d
@@ -315,22 +603,6 @@ export default function MatchesLive() {
           day: "2-digit",
           month: "short",
           year: "numeric",
-        })
-        .toUpperCase();
-    } catch {
-      return dateStr;
-    }
-  };
-
-  // Helper function to format short date (e.g., "28 MAY")
-  const formatShortDate = (dateStr?: string | null) => {
-    if (!dateStr) return "28 MAY";
-    try {
-      const d = new Date(dateStr);
-      return d
-        .toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "short",
         })
         .toUpperCase();
     } catch {
@@ -351,6 +623,35 @@ export default function MatchesLive() {
     } catch {
       return dateStr;
     }
+  };
+
+  // Helper to calculate or get victory summary text
+  const getResultSummary = (match: MatchApiRow) => {
+    const winnerName = match.winner_name;
+    const teamAName = match.team_a_name ?? "TEAM A";
+    const teamBName = match.team_b_name ?? "TEAM B";
+
+    if (winnerName) {
+      if (
+        match.team_a_score !== null &&
+        match.team_b_score !== null &&
+        match.team_a_score !== undefined &&
+        match.team_b_score !== undefined
+      ) {
+        if (winnerName === teamAName && match.team_a_score > match.team_b_score) {
+          const runDiff = match.team_a_score - match.team_b_score;
+          return `${winnerName} won by ${runDiff} runs`;
+        } else if (winnerName === teamBName && match.team_b_score > match.team_a_score) {
+          const runDiff = match.team_b_score - match.team_a_score;
+          return `${winnerName} won by ${runDiff} runs`;
+        } else if (winnerName === teamBName) {
+          const wktLeft = 10 - (match.team_b_wickets ?? 0);
+          return `${winnerName} won by ${Math.max(wktLeft, 1)} wickets`;
+        }
+      }
+      return `${winnerName} won the match`;
+    }
+    return "Match Completed";
   };
 
   // Resolve team details for modal
@@ -407,25 +708,73 @@ export default function MatchesLive() {
     ? getTeamDetails(selectedMatch.team_b_id, selectedMatch.team_b_name)
     : null;
 
+  // Selected round label helper
+  const selectedRoundObj =
+    TOURNAMENT_ROUNDS.find((r) => r.id === selectedRound) ?? TOURNAMENT_ROUNDS[0];
+
   return (
-    <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      {/* Live Updates Indicator Badge */}
-      <div className="mb-8 flex justify-center">
-        {hasFixtures ? (
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-            <span className="font-mono-score text-xs tracking-widest text-emerald-300">
-              Live Updates · Refreshes Automatically
-            </span>
-          </div>
-        ) : (
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            <span className="font-mono-score text-xs tracking-widest text-emerald-300">
-              Fixtures & Live Score Ready
-            </span>
-          </div>
-        )}
+    <div className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      {/* ══════════════════════════════════════════════════════════════
+          ROUND SELECTOR NAVIGATION BAR (4 BUTTONS WITH LIVE HIGHLIGHT)
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="mb-10 flex flex-col items-center justify-center gap-3">
+        <span className="font-mono-score text-[11px] uppercase tracking-[0.35em] text-ivory-400">
+          Select Tournament Round
+        </span>
+
+        {/* 4 Round Selector Buttons */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-2.5 rounded-full border border-white/10 bg-[#070e1c]/90 p-2 shadow-2xl backdrop-blur-xl sm:gap-3 sm:px-4">
+          {TOURNAMENT_ROUNDS.map((round) => {
+            const isSelected = selectedRound === round.id;
+            const isLiveNow = liveRoundId === round.id;
+
+            return (
+              <button
+                key={round.id}
+                onClick={() => {
+                  setSelectedRound(round.id);
+                  setUserHasSelectedRound(true);
+                }}
+                className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-300 sm:px-5 sm:py-2.5 ${
+                  isSelected
+                    ? "bg-gradient-to-r from-emerald-500 to-cyan-400 text-navy-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] scale-105"
+                    : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-emerald-500/40 hover:text-white"
+                }`}
+              >
+                {/* Live Indicator Pulse Badge if this round is live right now */}
+                {isLiveNow && (
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                  </span>
+                )}
+
+                <span>{round.label}</span>
+
+                {/* LIVE badge label tag */}
+                {isLiveNow && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
+                      isSelected
+                        ? "bg-navy-950/80 text-emerald-300"
+                        : "bg-red-500/20 text-red-400 border border-red-500/30"
+                    }`}
+                  >
+                    LIVE
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Status Indicator text */}
+        <div className="mt-1 text-center font-mono-score text-[11px] text-ivory-400">
+          Current Live Round:{" "}
+          <strong className="text-emerald-400 uppercase tracking-wider">
+            {TOURNAMENT_ROUNDS.find((r) => r.id === liveRoundId)?.label ?? "1st Round"}
+          </strong>
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -440,7 +789,7 @@ export default function MatchesLive() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
             </span>
-            Live Score
+            Live Score · {selectedRoundObj.label}
           </h2>
           <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-emerald-500 sm:w-24" />
         </div>
@@ -462,7 +811,9 @@ export default function MatchesLive() {
             />
             <span className="font-display text-sm font-extrabold tracking-[0.2em] text-ivory-50 sm:text-base">
               INFO<span className="text-gradient-cyan">BASH</span>{" "}
-              <span className="font-mono-score text-xs font-semibold tracking-wider text-gold-400">V5.0</span>
+              <span className="font-mono-score text-xs font-semibold tracking-wider text-gold-400">
+                V5.0 · {selectedRoundObj.shortLabel}
+              </span>
             </span>
           </div>
 
@@ -517,77 +868,53 @@ export default function MatchesLive() {
               </div>
             </div>
           </div>
-
-          {/* Match Details & Date / Time Bar */}
-          <div className="mt-8 flex items-center justify-center gap-6 border-t border-white/10 pt-5 text-xs font-medium text-ivory-300 sm:text-sm">
-            <div className="flex items-center gap-1.5">
-              <Calendar size={16} className="text-emerald-400" />
-              <span>{formatDate(liveMatch.scheduled_at)}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={16} className="text-emerald-400" />
-              <span>{formatTime(liveMatch.scheduled_at)}</span>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          UPCOMING MATCHES SECTION (1ST ROUND)
+          UPCOMING MATCHES SECTION (FILTERED BY SELECTED ROUND)
       ══════════════════════════════════════════════════════════════ */}
-      <section>
+      <section className="mb-14">
         {/* Section Header */}
         <div className="mb-6 flex items-center justify-center gap-4 text-center">
           <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-emerald-500 sm:w-24" />
           <h2 className="font-display text-lg font-bold uppercase tracking-[0.3em] text-emerald-400 sm:text-xl">
-            Upcoming Matches In 1st Round
+            Upcoming Matches In {selectedRoundObj.label}
           </h2>
           <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-emerald-500 sm:w-24" />
         </div>
 
-        {/* 1st Round Upcoming Matches Grid (Compact Cards) */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Upcoming Matches Flex Grid (Narrower Compact Cards) */}
+        <div className="mx-auto flex flex-wrap justify-center gap-3.5 max-w-4xl">
           {upcomingMatches.map((match) => (
             <div
               key={match.id}
-              className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-4 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
+              className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
             >
               {/* Top Teams Row (No logos - Compact) */}
-              <div className="flex items-center justify-between gap-2 text-center">
+              <div className="flex items-center justify-between gap-1.5 text-center">
                 {/* Team A */}
-                <div className="flex-1">
-                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                <div className="flex-1 min-w-0">
+                  <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
                     {match.team_a_name ?? "TEAM A"}
                   </span>
                 </div>
 
                 {/* VS Badge */}
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[10px] text-ivory-300">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 font-bold text-[9px] text-ivory-300">
                   VS
                 </div>
 
                 {/* Team B */}
-                <div className="flex-1">
-                  <span className="block font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
+                <div className="flex-1 min-w-0">
+                  <span className="block truncate font-display text-xs font-extrabold tracking-wide text-ivory-50 group-hover:text-white sm:text-sm">
                     {match.team_b_name ?? "TEAM B"}
                   </span>
                 </div>
               </div>
 
-              {/* Date & Time Row */}
-              <div className="my-3 flex items-center justify-center gap-4 border-t border-white/10 pt-3 text-[11px] font-medium text-ivory-300">
-                <div className="flex items-center gap-1">
-                  <Calendar size={13} className="text-emerald-400" />
-                  <span>{formatShortDate(match.scheduled_at)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={13} className="text-emerald-400" />
-                  <span>{formatTime(match.scheduled_at)}</span>
-                </div>
-              </div>
-
               {/* View Details Link */}
-              <div className="flex justify-center">
+              <div className="mt-3 flex justify-center border-t border-white/10 pt-2.5">
                 <button
                   onClick={() => setSelectedMatch(match)}
                   className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-emerald-400 transition-colors hover:text-emerald-300"
@@ -598,6 +925,127 @@ export default function MatchesLive() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          COMPLETED MATCH RESULTS SECTION (FILTERED BY SELECTED ROUND)
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mb-12">
+        {/* Section Header */}
+        <div className="mb-6 flex items-center justify-center gap-4 text-center">
+          <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-gold-400 sm:w-24" />
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-[0.3em] text-gold-400 sm:text-xl">
+            <Trophy size={18} className="text-gold-400" />
+            Match Results · {selectedRoundObj.label}
+          </h2>
+          <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-gold-400 sm:w-24" />
+        </div>
+
+        {/* Completed Match Scorecards Grid */}
+        <div className="mx-auto max-w-4xl space-y-4">
+          {completedMatches.map((match) => {
+            const isTeamAWinner = match.winner_name === match.team_a_name;
+            const isTeamBWinner = match.winner_name === match.team_b_name;
+
+            return (
+              <div
+                key={match.id}
+                className="group relative overflow-hidden rounded-2xl border border-gold-400/20 bg-[#070e1c]/90 p-4 shadow-xl transition-all duration-300 hover:border-gold-400/50 hover:shadow-[0_0_30px_rgba(245,185,66,0.15)] sm:p-5"
+              >
+                {/* Header Row Inside Completed Card */}
+                <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <span className="font-mono-score text-[11px] font-semibold uppercase tracking-widest text-gold-400">
+                    {match.label || `${selectedRoundObj.shortLabel} MATCH`}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono-score text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                    <CheckCircle2 size={12} className="text-emerald-400" />
+                    Completed
+                  </span>
+                </div>
+
+                {/* Scoreboard Grid */}
+                <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-7">
+                  {/* Team A Scorebox */}
+                  <div
+                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${
+                      isTeamAWinner
+                        ? "border border-gold-400/30 bg-gold-400/10 shadow-[0_0_15px_rgba(245,185,66,0.1)]"
+                        : "bg-white/[0.02]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {isTeamAWinner && <Crown size={14} className="text-gold-400" />}
+                      <span
+                        className={`font-display text-sm font-bold sm:text-base ${
+                          isTeamAWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
+                        }`}
+                      >
+                        {match.team_a_name ?? "TEAM A"}
+                      </span>
+                    </div>
+
+                    <div className="font-mono-score text-sm font-bold text-ivory-50 sm:mt-1 sm:text-base">
+                      <span className={isTeamAWinner ? "text-gold-400 font-extrabold" : "text-ivory-200"}>
+                        {match.team_a_score ?? 0}/{match.team_a_wickets ?? 0}
+                      </span>{" "}
+                      <span className="text-[11px] text-ivory-400">({match.team_a_overs ?? "0.0"} ov)</span>
+                    </div>
+                  </div>
+
+                  {/* Central VS Badge */}
+                  <div className="flex justify-center sm:col-span-1">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-400/30 bg-gold-400/10 font-mono-score text-xs font-bold text-gold-400">
+                      VS
+                    </div>
+                  </div>
+
+                  {/* Team B Scorebox */}
+                  <div
+                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${
+                      isTeamBWinner
+                        ? "border border-gold-400/30 bg-gold-400/10 shadow-[0_0_15px_rgba(245,185,66,0.1)]"
+                        : "bg-white/[0.02]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {isTeamBWinner && <Crown size={14} className="text-gold-400" />}
+                      <span
+                        className={`font-display text-sm font-bold sm:text-base ${
+                          isTeamBWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
+                        }`}
+                      >
+                        {match.team_b_name ?? "TEAM B"}
+                      </span>
+                    </div>
+
+                    <div className="font-mono-score text-sm font-bold text-ivory-50 sm:mt-1 sm:text-base">
+                      <span className={isTeamBWinner ? "text-gold-400 font-extrabold" : "text-ivory-200"}>
+                        {match.team_b_score ?? 0}/{match.team_b_wickets ?? 0}
+                      </span>{" "}
+                      <span className="text-[11px] text-ivory-400">({match.team_b_overs ?? "0.0"} ov)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Victory Result Banner & Action Button */}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3">
+                  <div className="flex items-center gap-2 font-mono-score text-xs font-bold text-gold-300">
+                    <Award size={15} className="text-gold-400" />
+                    <span>{getResultSummary(match)}</span>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedMatch(match)}
+                    className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-gold-400 hover:text-gold-300"
+                  >
+                    <span>Match Squad & Details</span>
+                    <ChevronRight size={12} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -712,19 +1160,8 @@ export default function MatchesLive() {
               </div>
             </div>
 
-            {/* Footer schedule bar & Close button */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-[11px] text-ivory-400">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Calendar size={13} className="text-emerald-400" />
-                  {formatDate(selectedMatch.scheduled_at)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock size={13} className="text-emerald-400" />
-                  {formatTime(selectedMatch.scheduled_at)}
-                </span>
-              </div>
-
+            {/* Footer Close button */}
+            <div className="mt-4 flex items-center justify-end border-t border-white/10 pt-3">
               <button
                 onClick={() => setSelectedMatch(null)}
                 className="rounded-full bg-emerald-500 px-5 py-1.5 text-xs font-bold text-navy-950 hover:bg-emerald-400 transition-colors"

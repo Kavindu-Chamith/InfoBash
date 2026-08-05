@@ -54,6 +54,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const finalCaptainName = data.captainName?.trim() || captain.name || "";
+    if (finalCaptainName) {
+      await client.query(`UPDATE captains SET name = $1 WHERE id = $2`, [
+        finalCaptainName,
+        session.captainId,
+      ]);
+    }
+
     const teamResult = await client.query(
       `INSERT INTO teams (team_name, batch, captain_name, captain_contact, captain_email, vice_captain_name, notes, captain_id, logo_s3_key)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
       [
         data.teamName,
         data.batch,
-        captain.name,
+        finalCaptainName,
         data.captainContact,
         captain.email,
         data.viceCaptainName || null,
@@ -73,8 +81,15 @@ export async function POST(req: NextRequest) {
 
     const teamId = teamResult.rows[0].id as string;
 
-    for (let i = 0; i < data.players.length; i++) {
-      const player = data.players[i];
+    // Group female players together (male players positions 1-8, female players positions 9-11)
+    const sortedPlayersForDb = [...data.players].sort((a, b) => {
+      if (a.gender === "female" && b.gender !== "female") return 1;
+      if (a.gender !== "female" && b.gender === "female") return -1;
+      return 0;
+    });
+
+    for (let i = 0; i < sortedPlayersForDb.length; i++) {
+      const player = sortedPlayersForDb[i];
       await client.query(
         `INSERT INTO players (team_id, position, full_name, student_id, gender)
          VALUES ($1, $2, $3, $4, $5)`,
