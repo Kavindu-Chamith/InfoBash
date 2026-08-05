@@ -510,6 +510,7 @@ export default function MatchesLive() {
   // Selected round tab state (defaults to server live round setting)
   const [selectedRound, setSelectedRound] = useState<StageRound>("round1");
   const [serverLiveRound, setServerLiveRound] = useState<StageRound>("round1");
+  const [matchesPublished, setMatchesPublished] = useState(false);
   const [userHasSelectedRound, setUserHasSelectedRound] = useState(false);
 
   useEffect(() => {
@@ -530,6 +531,7 @@ export default function MatchesLive() {
         const dbMatches: MatchApiRow[] = matchesJson.matches ?? [];
         setMatches(dbMatches);
         setRegisteredTeams(teamsJson.teams ?? []);
+        setMatchesPublished(Boolean(settingsJson.matchesPublished));
         setLoaded(true);
 
         const activeRoundFromSettings: StageRound = (settingsJson.activeRound as StageRound) || "round1";
@@ -592,7 +594,8 @@ export default function MatchesLive() {
       ? dbCompletedSelected
       : DEFAULT_ROUNDS_COMPLETED[selectedRound] ?? DEFAULT_ROUNDS_COMPLETED.round1;
 
-  const hasFixtures = matches.length > 0;
+  // Fixtures are displayed only when manually published by admin in Admin Panel
+  const hasFixtures = matchesPublished && matches.length > 0;
 
   // Helper function to format date
   const formatDate = (dateStr?: string | null) => {

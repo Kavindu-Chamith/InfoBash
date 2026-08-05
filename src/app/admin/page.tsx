@@ -1036,8 +1036,10 @@ function MatchesTab({
   }
 
   const [serverActiveRound, setServerActiveRound] = useState<MatchRow["stage"]>("round1");
+  const [matchesPublished, setMatchesPublished] = useState(false);
+  const [togglingPublish, setTogglingPublish] = useState(false);
 
-  // Fetch current active live round from PostgreSQL on mount
+  // Fetch current active live round and matchesPublished setting from PostgreSQL on mount
   useEffect(() => {
     fetch("/api/settings")
       .then((res) => res.json())
@@ -1046,11 +1048,36 @@ function MatchesTab({
           setServerActiveRound(json.activeRound);
           setAdminRound(json.activeRound);
         }
+        if (typeof json.matchesPublished === "boolean") {
+          setMatchesPublished(json.matchesPublished);
+        }
       })
       .catch(() => {});
   }, []);
 
   const [submittingRound, setSubmittingRound] = useState(false);
+
+  async function toggleMatchesPublished() {
+    setTogglingPublish(true);
+    const newValue = !matchesPublished;
+    const res = await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchesPublished: newValue }),
+    });
+    const json = await res.json();
+    setTogglingPublish(false);
+    if (res.ok) {
+      setMatchesPublished(newValue);
+      onChanged(
+        newValue
+          ? "Matches & Schedules are now UNHIDDEN and PUBLICLY VISIBLE to users on /matches!"
+          : "Matches page is now HIDDEN in 'Coming Soon' mode for users."
+      );
+    } else {
+      onChanged(json.error || "Failed to update visibility setting");
+    }
+  }
 
   async function submitActiveLiveRound() {
     setSubmittingRound(true);
@@ -1083,6 +1110,44 @@ function MatchesTab({
 
   return (
     <div className="space-y-8">
+      {/* ══════════════════════════════════════════════════════════════
+          0. MANUAL MATCHES VISIBILITY CONTROL (UNHIDE / HIDE)
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="rounded-2xl border border-gold-500/30 bg-gradient-to-r from-navy-900/90 via-[#070e1c]/90 to-navy-900/90 p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`h-2.5 w-2.5 rounded-full ${matchesPublished ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+            <h3 className="font-mono-score text-xs font-bold uppercase tracking-widest text-gold-400">
+              PUBLIC MATCHES PAGE VISIBILITY CONTROL
+            </h3>
+          </div>
+          <p className="mt-1 text-xs text-ivory-300">
+            {matchesPublished
+              ? "🟢 Matches & Schedules are currently UNHIDDEN & PUBLICLY VISIBLE on /matches."
+              : "🔒 Matches & Schedules are currently HIDDEN (Users see 'Coming Soon' notice until you unhide manually)."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={toggleMatchesPublished}
+          disabled={togglingPublish}
+          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-lg ${
+            matchesPublished
+              ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30"
+              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+          }`}
+        >
+          {togglingPublish ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : matchesPublished ? (
+            <>🔒 Hide Matches (Set &apos;Coming Soon&apos; Mode)</>
+          ) : (
+            <>🔓 Unhide &amp; Publish Matches for Users</>
+          )}
+        </button>
+      </div>
+
       {/* ══════════════════════════════════════════════════════════════
           1. SELECT ACTIVE LIVE ROUND IN ADMIN DASHBOARD (WITH SUBMIT BUTTON)
       ══════════════════════════════════════════════════════════════ */}
