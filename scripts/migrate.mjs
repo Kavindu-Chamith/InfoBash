@@ -27,9 +27,10 @@ async function main() {
   }
 
   const sql = fs.readFileSync(path.join(__dirname, "..", "db", "schema.sql"), "utf8");
+  const cleanConnectionString = connectionString.replace(/([?&])sslmode=[^&]*/gi, "");
   const pool = new Pool({
-    connectionString,
-    ssl: connectionString.includes("localhost") ? false : { rejectUnauthorized: false },
+    connectionString: cleanConnectionString,
+    ssl: cleanConnectionString.includes("localhost") ? false : { rejectUnauthorized: false },
   });
 
   try {
