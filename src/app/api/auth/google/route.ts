@@ -12,8 +12,10 @@ export async function POST(req: NextRequest) {
     let googleName: string | undefined;
 
     const reqHost = req.headers.get("x-forwarded-host") || req.headers.get("host");
-    const reqProto = req.headers.get("x-forwarded-proto") || "https";
-    const detectedOrigin = req.headers.get("origin") || (reqHost ? `${reqProto}://${reqHost}` : "https://infobash.onrender.com");
+    const isLocal = reqHost?.includes("localhost") || reqHost?.includes("127.0.0.1");
+    const reqProto = req.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
+    const defaultOrigin = isLocal ? "http://localhost:3000" : "https://infobash.onrender.com";
+    const detectedOrigin = req.headers.get("origin") || (reqHost ? `${reqProto}://${reqHost}` : defaultOrigin);
     const finalRedirectUri = redirectUri || detectedOrigin;
 
     // 0. Exchange authorization code for tokens if authorization code provided
