@@ -74,3 +74,9 @@ CREATE INDEX IF NOT EXISTS idx_matches_stage ON matches(stage);
 -- v5.2: team logos moved to S3 (presigned uploads); legacy logo/logo_mime
 -- columns stay in place as a fallback for teams that registered before this.
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_s3_key TEXT;
+
+CREATE TABLE IF NOT EXISTS tournament_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
