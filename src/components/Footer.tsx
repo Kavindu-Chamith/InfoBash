@@ -31,12 +31,12 @@ export default function Footer() {
         </Link>
 
         {/* Centered Horizontal Navigation Links */}
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 font-mono text-xs tracking-[0.25em] text-ivory-300 sm:gap-x-10 sm:text-sm">
+        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium tracking-wider text-ivory-300 sm:gap-x-10">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-cyan-400"
+              className="transition-colors hover:text-cyan-300"
             >
               {link.label}
             </Link>
@@ -50,10 +50,10 @@ export default function Footer() {
         <div className="pointer-events-none absolute top-0 left-1/2 h-[1px] w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
         <div className="mx-auto max-w-7xl space-y-2">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] font-semibold text-cyan-300 sm:text-sm">
-            FACULTY OF COMPUTING · ANNUAL INTER-BATCH CRICKET CHAMPIONSHIP
+          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-cyan-300 sm:text-sm">
+            FACULTY OF COMPUTING · ANNUAL CRICKET CHAMPIONSHIP
           </p>
-          <p className="font-mono text-[11px] uppercase tracking-wider text-ivory-400 sm:text-xs">
+          <p className="text-[11px] uppercase tracking-wider text-ivory-400 sm:text-xs">
             © {new Date().getFullYear()} INFOBASH V5.0 · FACULTY OF COMPUTING, SUSL · ALL RIGHTS RESERVED
           </p>
         </div>
