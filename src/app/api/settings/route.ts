@@ -15,14 +15,21 @@ export async function GET() {
     `);
 
     const result = await pool.query(
-      `SELECT value FROM tournament_settings WHERE key = 'active_live_round'`
+      `SELECT key, value FROM tournament_settings WHERE key IN ('active_live_round', 'matches_published')`
     );
 
-    const activeRound = result.rows[0]?.value || "round1";
-    return NextResponse.json({ activeRound });
+    const settingsMap: Record<string, string> = {};
+    for (const row of result.rows) {
+      settingsMap[row.key] = row.value;
+    }
+
+    const activeRound = settingsMap["active_live_round"] || "round1";
+    const matchesPublished = settingsMap["matches_published"] === "true";
+
+    return NextResponse.json({ activeRound, matchesPublished });
   } catch (err) {
     console.error("Settings GET error:", err);
-    return NextResponse.json({ activeRound: "round1" });
+    return NextResponse.json({ activeRound: "round1", matchesPublished: false });
   }
 }
 
@@ -33,10 +40,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = (await req.json().catch(() => ({}))) as { activeRound?: string };
-    if (!body.activeRound || !VALID_ROUNDS.includes(body.activeRound as any)) {
-      return NextResponse.json({ error: "Invalid round" }, { status: 400 });
-    }
+    const body = (await req.json().catch(() => ({}))) as {
+      activeRound?: string;
+      matchesPublished?: boolean;
+    };
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tournament_settings (
@@ -46,14 +53,37 @@ export async function POST(req: NextRequest) {
       );
     `);
 
-    await pool.query(
-      `INSERT INTO tournament_settings (key, value)
-       VALUES ('active_live_round', $1)
-       ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = CURRENT_TIMESTAMP`,
-      [body.activeRound]
-    );
+    if (body.activeRound && VALID_ROUNDS.includes(body.activeRound as any)) {
+      await pool.query(
+        `INSERT INTO tournament_settings (key, value)
+         VALUES ('active_live_round', $1)
+         ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = CURRENT_TIMESTAMP`,
+        [body.activeRound]
+      );
+    }
 
-    return NextResponse.json({ success: true, activeRound: body.activeRound });
+    if (typeof body.matchesPublished === "boolean") {
+      await pool.query(
+        `INSERT INTO tournament_settings (key, value)
+         VALUES ('matches_published', $1)
+         ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = CURRENT_TIMESTAMP`,
+        [body.matchesPublished ? "true" : "false"]
+      );
+    }
+
+    const result = await pool.query(
+      `SELECT key, value FROM tournament_settings WHERE key IN ('active_live_round', 'matches_published')`
+    );
+    const settingsMap: Record<string, string> = {};
+    for (const row of result.rows) {
+      settingsMap[row.key] = row.value;
+    }
+
+    return NextResponse.json({
+      success: true,
+      activeRound: settingsMap["active_live_round"] || "round1",
+      matchesPublished: settingsMap["matches_published"] === "true",
+    });
   } catch (err) {
     console.error("Settings POST error:", err);
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });

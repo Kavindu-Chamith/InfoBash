@@ -18,6 +18,7 @@ import {
   Award,
   Sparkles,
   Flame,
+  Loader2,
 } from "lucide-react";
 
 // Retaining Bracket import & component in codebase without deleting
@@ -509,6 +510,7 @@ export default function MatchesLive() {
   // Selected round tab state (defaults to server live round setting)
   const [selectedRound, setSelectedRound] = useState<StageRound>("round1");
   const [serverLiveRound, setServerLiveRound] = useState<StageRound>("round1");
+  const [matchesPublished, setMatchesPublished] = useState(false);
   const [userHasSelectedRound, setUserHasSelectedRound] = useState(false);
 
   useEffect(() => {
@@ -529,6 +531,7 @@ export default function MatchesLive() {
         const dbMatches: MatchApiRow[] = matchesJson.matches ?? [];
         setMatches(dbMatches);
         setRegisteredTeams(teamsJson.teams ?? []);
+        setMatchesPublished(Boolean(settingsJson.matchesPublished));
         setLoaded(true);
 
         const activeRoundFromSettings: StageRound = (settingsJson.activeRound as StageRound) || "round1";
@@ -591,7 +594,8 @@ export default function MatchesLive() {
       ? dbCompletedSelected
       : DEFAULT_ROUNDS_COMPLETED[selectedRound] ?? DEFAULT_ROUNDS_COMPLETED.round1;
 
-  const hasFixtures = matches.length > 0;
+  // Fixtures are displayed only when manually published by admin in Admin Panel
+  const hasFixtures = matchesPublished && matches.length > 0;
 
   // Helper function to format date
   const formatDate = (dateStr?: string | null) => {
@@ -707,6 +711,52 @@ export default function MatchesLive() {
   const teamBDetails = selectedMatch
     ? getTeamDetails(selectedMatch.team_b_id, selectedMatch.team_b_name)
     : null;
+
+  if (!loaded) {
+    return (
+      <div className="flex justify-center items-center py-20 text-ivory-400">
+        <Loader2 className="animate-spin text-cyan-400 mr-2" size={24} /> Loading Match Center...
+      </div>
+    );
+  }
+
+  if (!hasFixtures) {
+    return (
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-16 text-center">
+        <div className="glass-card glow-border relative overflow-hidden rounded-3xl p-8 sm:p-12">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+
+          <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-blue-600/30 to-cyan-400/30 border border-cyan-400/40 text-cyan-300 shadow-[0_0_35px_-5px_rgba(53,215,255,0.4)]">
+            <Trophy size={36} />
+          </div>
+
+          <span className="mt-6 inline-block font-mono-score text-xs font-bold uppercase tracking-[0.3em] text-gold-400">
+            InfoBash V5.0 · Tournament Update
+          </span>
+
+          <h2 className="mt-3 font-display text-4xl tracking-wide text-ivory-50 sm:text-5xl">
+            Matches &amp; Schedules Coming Soon
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-xl text-base text-ivory-300 leading-relaxed">
+            Team registrations are currently open. Match schedules, fixtures, and live score tracking will be published here as soon as all team registrations are completed!
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <div className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-navy-900/60 px-5 py-3 text-xs text-ivory-200">
+              <Users size={16} className="text-cyan-400" />
+              <span>Registered Teams: <strong className="text-cyan-300 font-bold">{registeredTeams.length} Teams Registered</strong></span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-navy-900/60 px-5 py-3 text-xs text-ivory-200">
+              <Clock size={16} className="text-gold-400" />
+              <span>Status: <strong className="text-gold-400 font-bold">Team Registration Open</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Selected round label helper
   const selectedRoundObj =
