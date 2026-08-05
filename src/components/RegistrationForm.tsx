@@ -23,6 +23,7 @@ import {
   type RegistrationInput,
   BATCHES,
   TEAM_SIZE,
+  REQUIRED_FEMALE_PLAYERS,
   MIN_FEMALE_PLAYERS,
   MAX_LOGO_BYTES,
 } from "@/lib/validation";
@@ -377,10 +378,10 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     ];
     const valid = await trigger(fieldsForStep[step]);
     if (!valid) {
-      if (step === 1 && femaleCount < MIN_FEMALE_PLAYERS) {
+      if (step === 1 && femaleCount !== REQUIRED_FEMALE_PLAYERS) {
         setSubmitState({
           status: "error",
-          message: `Squad validation failed: You must include at least ${MIN_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
+          message: `Squad validation failed: Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
         });
       } else {
         setSubmitState({
@@ -442,10 +443,10 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
   }
 
   function onFormError(formErrors: Record<string, any>) {
-    if (femaleCount < MIN_FEMALE_PLAYERS) {
+    if (femaleCount !== REQUIRED_FEMALE_PLAYERS) {
       setSubmitState({
         status: "error",
-        message: `Squad validation error: Squad must include at least ${MIN_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
+        message: `Squad validation error: Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
       });
       setStep(1);
       return;
@@ -683,19 +684,18 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                   Squad — {TEAM_SIZE} Players
                 </h2>
                 <div
-                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                    femaleCount >= MIN_FEMALE_PLAYERS
-                      ? "border-cyan-400/40 text-cyan-300"
-                      : "border-gold-400/40 text-gold-400"
+                  className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold ${
+                    femaleCount === REQUIRED_FEMALE_PLAYERS
+                      ? "border-cyan-400/40 text-cyan-300 bg-cyan-400/10"
+                      : "border-rose-500/50 text-rose-400 bg-rose-500/10"
                   }`}
                 >
                   <Users size={14} />
-                  {femaleCount} / {MIN_FEMALE_PLAYERS} female players
+                  {femaleCount} / {REQUIRED_FEMALE_PLAYERS} female players (Exact {REQUIRED_FEMALE_PLAYERS} required)
                 </div>
               </div>
               <p className="mb-6 text-sm text-ivory-400">
-                Every squad must have exactly {TEAM_SIZE} players, including at
-                least {MIN_FEMALE_PLAYERS} female players.
+                Every squad must have exactly {TEAM_SIZE} players (8 male players and exactly {REQUIRED_FEMALE_PLAYERS} female players).
               </p>
 
               {typeof errors.players?.message === "string" && (

@@ -8,7 +8,8 @@ export const BATCHES = [
 ] as const;
 
 export const TEAM_SIZE = 11;
-export const MIN_FEMALE_PLAYERS = 3;
+export const REQUIRED_FEMALE_PLAYERS = 3;
+export const MIN_FEMALE_PLAYERS = REQUIRED_FEMALE_PLAYERS;
 export const MAX_LOGO_BYTES = 1.5 * 1024 * 1024;
 
 export const captainSignupSchema = z.object({
@@ -54,11 +55,11 @@ export const registrationSchema = z
   })
   .superRefine((data, ctx) => {
     const femaleCount = data.players.filter((p) => p.gender === "female").length;
-    if (femaleCount < MIN_FEMALE_PLAYERS) {
+    if (femaleCount !== REQUIRED_FEMALE_PLAYERS) {
       ctx.addIssue({
         code: "custom",
         path: ["players"],
-        message: `Squad must include at least ${MIN_FEMALE_PLAYERS} female players`,
+        message: `Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount})`,
       });
     }
     const ids = data.players.map((p) => p.studentId.toLowerCase());
