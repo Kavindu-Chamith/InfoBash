@@ -4,6 +4,9 @@ import path from "path";
 import { ADMIN_COOKIE, createAdminSessionToken } from "@/lib/adminAuth";
 
 function getAdminPassword(): string {
+  if (process.env.ADMIN_PASSWORD) {
+    return process.env.ADMIN_PASSWORD.trim();
+  }
   try {
     const envPath = path.join(process.cwd(), ".env.local");
     if (fs.existsSync(envPath)) {
@@ -15,7 +18,7 @@ function getAdminPassword(): string {
       }
     }
   } catch {}
-  return process.env.ADMIN_PASSWORD || "Infobash0587#";
+  return "Infobash0587#";
 }
 
 export async function POST(req: NextRequest) {
