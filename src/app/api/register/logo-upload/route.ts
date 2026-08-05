@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CAPTAIN_COOKIE, verifyCaptainSessionToken } from "@/lib/captainAuth";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { uploadFileToGoogleDrive } from "@/lib/googleDrive";
 
 const ALLOWED_MIME: Record<string, string> = {
@@ -49,7 +50,23 @@ export async function POST(req: NextRequest) {
     const safeTeamName = teamName.replace(/[^a-zA-Z0-9_-]/g, "_");
     const fileName = `InfoBash_${safeTeamName}_Logo_${Date.now()}.${ext}`;
 
-    // Upload to Google Drive Folder
+    // 1. Try Cloudinary Upload First
+    const cldResult = await uploadToCloudinary({
+      fileBuffer: buffer,
+      mimeType,
+      folder: "infobash_team_logos",
+    });
+
+    if (cldResult?.url) {
+      return NextResponse.json({
+        success: true,
+        logoUrl: cldResult.url,
+        publicId: cldResult.public_id,
+        source: "cloudinary",
+      });
+    }
+
+    // 2. Try Google Drive Upload Second
     const driveResult = await uploadFileToGoogleDrive({
       fileName,
       fileBuffer: buffer,
@@ -66,7 +83,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Safe fallback if Google Drive environment credentials are not yet configured
+    // 3. Fallback: Base64 data URL if cloud storage env vars are not set
     const base64 = buffer.toString("base64");
     const dataUrl = `data:${mimeType};base64,${base64}`;
 

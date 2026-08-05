@@ -309,7 +309,6 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     trigger,
     control,
     watch,
-    getValues,
     setError,
     formState: { errors },
   } = useForm<RegistrationInput>({
@@ -346,21 +345,24 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     setLogo(null);
     setLogoUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("logo", file);
-      formData.append("teamName", getValues("teamName") || "Team");
-
-      const uploadRes = await fetch("/api/register/logo-upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const uploadJson = await uploadRes.json();
-      if (!uploadRes.ok) {
-        throw new Error(uploadJson.error ?? "Couldn't upload the team logo.");
+      const presignRes = await fetch(
+        `/api/register/logo-upload-url?contentType=${encodeURIComponent(file.type)}`
+      );
+      const presignJson = await presignRes.json();
+      if (!presignRes.ok) {
+        throw new Error(presignJson.error ?? "Couldn't prepare the upload");
       }
 
-      setLogo({ previewUrl, key: uploadJson.logoUrl });
+      const uploadRes = await fetch(presignJson.url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!uploadRes.ok) {
+        throw new Error("Logo upload failed. Try again.");
+      }
+
+      setLogo({ previewUrl, key: presignJson.key });
     } catch (err) {
       setLogoError(err instanceof Error ? err.message : "Logo upload failed. Try again.");
     } finally {

@@ -6,9 +6,6 @@ export interface GoogleDriveUploadResult {
   directUrl: string;
 }
 
-/**
- * Uploads a file directly to a target Google Drive Folder using a Google Service Account.
- */
 export async function uploadFileToGoogleDrive(params: {
   fileName: string;
   fileBuffer: Buffer;
@@ -20,16 +17,11 @@ export async function uploadFileToGoogleDrive(params: {
     let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
 
     if (!folderId || !clientEmail || !privateKey) {
-      console.warn(
-        "Google Drive upload skipped: GOOGLE_DRIVE_FOLDER_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, or GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY is missing."
-      );
       return null;
     }
 
-    // Clean up escaped newlines in private key
     privateKey = privateKey.replace(/\\n/g, "\n");
 
-    // 1. Generate JWT assertion for OAuth token
     const now = Math.floor(Date.now() / 1000);
     const claim = {
       iss: clientEmail,
@@ -49,7 +41,6 @@ export async function uploadFileToGoogleDrive(params: {
     const signature = signer.sign(privateKey, "base64url");
     const jwt = `${signatureInput}.${signature}`;
 
-    // 2. Fetch Google OAuth 2.0 Access Token
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -60,8 +51,6 @@ export async function uploadFileToGoogleDrive(params: {
     });
 
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text();
-      console.error("Failed to obtain Google Drive OAuth access token:", errText);
       return null;
     }
 
@@ -69,7 +58,6 @@ export async function uploadFileToGoogleDrive(params: {
     const accessToken = tokenData.access_token;
     if (!accessToken) return null;
 
-    // 3. Upload File to Google Drive Folder via Multipart Upload
     const metadata = {
       name: params.fileName,
       parents: [folderId],
@@ -103,8 +91,6 @@ export async function uploadFileToGoogleDrive(params: {
     );
 
     if (!uploadRes.ok) {
-      const errText = await uploadRes.text();
-      console.error("Google Drive file upload failed:", errText);
       return null;
     }
 
@@ -114,7 +100,6 @@ export async function uploadFileToGoogleDrive(params: {
     };
     const fileId = fileData.id;
 
-    // 4. Set public read permissions on uploaded file
     try {
       await fetch(
         `https://www.googleapis.com/drive/v3/files/${fileId}/permissions`,
@@ -127,16 +112,13 @@ export async function uploadFileToGoogleDrive(params: {
           body: JSON.stringify({ role: "reader", type: "anyone" }),
         }
       );
-    } catch (e) {
-      console.warn("Failed to set public permission on Google Drive file:", e);
-    }
+    } catch {}
 
     const webViewLink = fileData.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
     const directUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
 
     return { fileId, webViewLink, directUrl };
-  } catch (err) {
-    console.error("Google Drive upload error:", err);
+  } catch {
     return null;
   }
 }
