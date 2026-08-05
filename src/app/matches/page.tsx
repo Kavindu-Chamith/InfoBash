@@ -4,7 +4,7 @@ import MatchesLive from "@/components/MatchesLive";
 export const metadata: Metadata = {
   title: "Live Score & Matches — InfoBash V5.0",
   description:
-    "Follow live scores, overs, wickets and 1st round upcoming matches for InfoBash V5.0 — the Faculty of Computing, SUSL's inter-batch cricket championship.",
+    "Live cricket scores, overs, wickets, and 1st round upcoming match schedules.",
 };
 
 export default function MatchesPage() {
