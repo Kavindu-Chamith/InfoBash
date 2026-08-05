@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="relative border-t border-cyan-400/10 bg-navy-900">
       <div className="pitch-lines absolute inset-0 opacity-40" />
       <div className="relative mx-auto max-w-7xl px-6 py-14 sm:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <div className="flex items-center gap-3">
               <Image
@@ -32,21 +32,11 @@ export default function Footer() {
               Quick Links
             </h3>
             <ul className="mt-4 space-y-2 text-sm text-ivory-400">
-              <li><Link href="/register" className="hover:text-cyan-300">Register Your Team</Link></li>
-              <li><Link href="/rules" className="hover:text-cyan-300">Rules &amp; Guidelines</Link></li>
-              <li><Link href="/schedule" className="hover:text-cyan-300">Match Schedule</Link></li>
-              <li><Link href="/gallery" className="hover:text-cyan-300">Gallery</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-display text-lg tracking-wide text-ivory-50">
-              Tournament
-            </h3>
-            <ul className="mt-4 space-y-2 text-sm text-ivory-400">
-              <li><Link href="/sponsors" className="hover:text-cyan-300">Sponsors</Link></li>
-              <li><Link href="/contact" className="hover:text-cyan-300">Contact Organizers</Link></li>
-              <li><Link href="/admin" className="hover:text-cyan-300">Organizer Login</Link></li>
+              <li><Link href="/register" className="transition-colors hover:text-cyan-300">Register Your Team</Link></li>
+              <li><Link href="/teams" className="transition-colors hover:text-cyan-300">Teams &amp; Squads</Link></li>
+              <li><Link href="/matches" className="transition-colors hover:text-cyan-300">Match Schedule</Link></li>
+              <li><Link href="/rules" className="transition-colors hover:text-cyan-300">Rules &amp; Guidelines</Link></li>
+              <li><Link href="/contact" className="transition-colors hover:text-cyan-300">Contact Organizers</Link></li>
             </ul>
           </div>
 
