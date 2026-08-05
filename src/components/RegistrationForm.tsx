@@ -309,6 +309,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     trigger,
     control,
     watch,
+    getValues,
     setError,
     formState: { errors },
   } = useForm<RegistrationInput>({
@@ -345,24 +346,28 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     setLogo(null);
     setLogoUploading(true);
     try {
-      const presignRes = await fetch(
-        `/api/register/logo-upload-url?contentType=${encodeURIComponent(file.type)}`
-      );
-      const presignJson = await presignRes.json();
-      if (!presignRes.ok) {
-        throw new Error(presignJson.error ?? "Couldn't prepare the upload");
-      }
+      const formData = new FormData();
+      formData.append("logo", file);
+      formData.append("teamName", getValues("teamName") || "Team");
 
-      const uploadRes = await fetch(presignJson.url, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
+      const uploadRes = await fetch("/api/register/logo-upload", {
+        method: "POST",
+        body: formData,
       });
-      if (!uploadRes.ok) {
-        throw new Error("Logo upload failed. Try again.");
+
+      const responseText = await uploadRes.text();
+      let uploadJson: any = {};
+      try {
+        uploadJson = JSON.parse(responseText);
+      } catch {
+        throw new Error("Logo upload failed. Please try again.");
       }
 
-      setLogo({ previewUrl, key: presignJson.key });
+      if (!uploadRes.ok) {
+        throw new Error(uploadJson.error ?? "Couldn't upload the team logo.");
+      }
+
+      setLogo({ previewUrl, key: uploadJson.logoUrl });
     } catch (err) {
       setLogoError(err instanceof Error ? err.message : "Logo upload failed. Try again.");
     } finally {
@@ -583,19 +588,32 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 </div>
               </div>
 
-              {/* 🖼️ Feature 7.1.1: Team Logo Upload */}
+              {/* 🖼️ Team Logo Upload */}
               <div>
-                <label className={labelClass}>Team Logo (optional)</label>
+                <label className={labelClass} htmlFor="logo">Team Logo (optional)</label>
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/5 text-ivory-400 font-mono-score text-xs">
-                    LOGO
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="block w-full text-xs text-ivory-400 file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-500/20 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-cyan-300 hover:file:bg-cyan-500/30"
-                  />
+                  <label
+                    htmlFor="logo"
+                    className="relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/15 bg-navy-900/70 text-ivory-400 hover:border-cyan-400/50"
+                  >
+                    {logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logo.previewUrl} alt="Logo preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <ImagePlus size={20} />
+                    )}
+                    {logoUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-navy-950/70">
+                        <Loader2 size={18} className="animate-spin text-cyan-300" />
+                      </div>
+                    )}
+                  </label>
+                  <input id="logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={onLogoChange} className="hidden" disabled={logoUploading} />
+                  <p className="text-xs text-ivory-400">
+                    {logoUploading ? "Uploading…" : "PNG, JPEG, or WebP. Max 5MB."}
+                  </p>
                 </div>
+                {logoError && <p className={errorClass}>{logoError}</p>}
               </div>
 
               <div>
@@ -636,33 +654,6 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
               <div>
                 <label className={labelClass} htmlFor="notes">Notes for Organizers (optional)</label>
                 <textarea id="notes" rows={3} className={inputClass} placeholder="Anything else we should know?" {...register("notes")} />
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="logo">Team Logo (optional)</label>
-                <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="logo"
-                    className="relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/15 bg-navy-900/70 text-ivory-400 hover:border-cyan-400/50"
-                  >
-                    {logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={logo.previewUrl} alt="Logo preview" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImagePlus size={20} />
-                    )}
-                    {logoUploading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-navy-950/70">
-                        <Loader2 size={18} className="animate-spin text-cyan-300" />
-                      </div>
-                    )}
-                  </label>
-                  <input id="logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={onLogoChange} className="hidden" disabled={logoUploading} />
-                  <p className="text-xs text-ivory-400">
-                    {logoUploading ? "Uploading…" : "PNG, JPEG, or WebP. Max 1.5MB."}
-                  </p>
-                </div>
-                {logoError && <p className={errorClass}>{logoError}</p>}
               </div>
             </motion.div>
           )}
