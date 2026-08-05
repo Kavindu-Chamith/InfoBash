@@ -26,9 +26,21 @@ export async function POST(req: NextRequest) {
     password?: string;
   };
 
-  const adminPassword = getAdminPassword();
+  if (!password) {
+    return NextResponse.json({ error: "Password is required" }, { status: 400 });
+  }
 
-  if (!password || password !== adminPassword) {
+  const inputPassword = password.trim();
+  const envPassword = process.env.ADMIN_PASSWORD?.trim();
+
+  // Accept Infobash0587#, infobash2026admin, or whatever ADMIN_PASSWORD environment variable is set
+  const validPasswords = [
+    "Infobash0587#",
+    "infobash2026admin",
+    envPassword,
+  ].filter(Boolean);
+
+  if (!validPasswords.includes(inputPassword)) {
     return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
   }
 
