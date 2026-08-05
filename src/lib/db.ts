@@ -11,9 +11,10 @@ function createPool() {
       "DATABASE_URL is not set. Add it to your .env.local file — see .env.example."
     );
   }
+  const cleanConnectionString = connectionString.replace(/([?&])sslmode=[^&]*/gi, "");
   return new Pool({
-    connectionString,
-    ssl: connectionString.includes("localhost")
+    connectionString: cleanConnectionString,
+    ssl: cleanConnectionString.includes("localhost")
       ? false
       : { rejectUnauthorized: false },
   });
