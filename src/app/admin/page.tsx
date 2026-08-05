@@ -14,6 +14,16 @@ import {
   Pencil,
   X,
   AlertTriangle,
+  Users,
+  Phone,
+  Mail,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
+  List,
+  User,
+  ShieldCheck,
 } from "lucide-react";
 
 type Tab = "teams" | "groups" | "matches";
@@ -220,6 +230,13 @@ export default function AdminDashboard() {
   );
 }
 
+const BATCH_BADGES: Record<string, { bg: string; text: string; border: string }> = {
+  "1st Year": { bg: "bg-cyan-500/10", text: "text-cyan-300", border: "border-cyan-500/30" },
+  "2nd Year": { bg: "bg-amber-500/10", text: "text-amber-300", border: "border-amber-500/30" },
+  "3rd Year": { bg: "bg-violet-500/10", text: "text-violet-300", border: "border-violet-500/30" },
+  "4th Year": { bg: "bg-emerald-500/10", text: "text-emerald-300", border: "border-emerald-500/30" },
+};
+
 function TeamsTab({
   teams,
   onChanged,
@@ -229,6 +246,7 @@ function TeamsTab({
 }) {
   const [editingTeam, setEditingTeam] = useState<AdminTeam | null>(null);
   const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   if (teams.length === 0) {
     return <p className="text-sm text-ivory-400">No teams registered yet.</p>;
@@ -236,56 +254,98 @@ function TeamsTab({
 
   return (
     <>
-      <div className={`${cardClass} overflow-x-auto`}>
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead>
-            <tr className="text-xs uppercase tracking-wide text-ivory-400">
-              <th className="pb-3 pr-4">Team</th>
-              <th className="pb-3 pr-4">Batch</th>
-              <th className="pb-3 pr-4">Captain</th>
-              <th className="pb-3 pr-4">Contact</th>
-              <th className="pb-3 pr-4">Players</th>
-              <th className="pb-3 pr-4">Registered</th>
-              <th className="pb-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((t) => (
-              <tr key={t.id} className="border-t border-white/5 text-ivory-100">
-                <td className="py-2.5 pr-4 font-medium">{t.team_name}</td>
-                <td className="py-2.5 pr-4 text-ivory-300">{t.batch}</td>
-                <td className="py-2.5 pr-4 text-ivory-300">{t.captain_name}</td>
-                <td className="py-2.5 pr-4 text-ivory-300">
-                  {t.captain_contact}
-                  <div className="text-xs text-ivory-400">{t.captain_email}</div>
-                </td>
-                <td className="py-2.5 pr-4 text-ivory-300">{t.players?.length ?? 0}</td>
-                <td className="py-2.5 pr-4 text-xs text-ivory-400">
-                  {new Date(t.created_at).toLocaleDateString()}
-                </td>
-                <td className="py-2.5 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setEditingTeam(t)}
-                      className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-cyan-300 transition-colors hover:bg-cyan-500/20 hover:text-cyan-200"
-                      title="Edit team details"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setDeletingTeam(t)}
-                      className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-rose-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
-                      title="Delete team"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-ivory-400">
+          Registered Teams ({teams.length})
+        </span>
+
+        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-navy-900/60 p-1">
+          <button
+            onClick={() => setViewMode("cards")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              viewMode === "cards"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                : "text-ivory-400 hover:text-ivory-200"
+            }`}
+          >
+            <LayoutGrid size={14} /> Cards
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              viewMode === "table"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                : "text-ivory-400 hover:text-ivory-200"
+            }`}
+          >
+            <List size={14} /> Table
+          </button>
+        </div>
       </div>
+
+      {viewMode === "cards" ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {teams.map((t) => (
+            <AdminTeamCard
+              key={t.id}
+              team={t}
+              onEdit={() => setEditingTeam(t)}
+              onDelete={() => setDeletingTeam(t)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className={`${cardClass} overflow-x-auto`}>
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead>
+              <tr className="text-xs uppercase tracking-wide text-ivory-400">
+                <th className="pb-3 pr-4">Team</th>
+                <th className="pb-3 pr-4">Batch</th>
+                <th className="pb-3 pr-4">Captain</th>
+                <th className="pb-3 pr-4">Contact</th>
+                <th className="pb-3 pr-4">Players</th>
+                <th className="pb-3 pr-4">Registered</th>
+                <th className="pb-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teams.map((t) => (
+                <tr key={t.id} className="border-t border-white/5 text-ivory-100">
+                  <td className="py-2.5 pr-4 font-medium">{t.team_name}</td>
+                  <td className="py-2.5 pr-4 text-ivory-300">{t.batch}</td>
+                  <td className="py-2.5 pr-4 text-ivory-300">{t.captain_name}</td>
+                  <td className="py-2.5 pr-4 text-ivory-300">
+                    {t.captain_contact}
+                    <div className="text-xs text-ivory-400">{t.captain_email}</div>
+                  </td>
+                  <td className="py-2.5 pr-4 text-ivory-300">{t.players?.length ?? 0}</td>
+                  <td className="py-2.5 pr-4 text-xs text-ivory-400">
+                    {new Date(t.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setEditingTeam(t)}
+                        className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-cyan-300 transition-colors hover:bg-cyan-500/20 hover:text-cyan-200"
+                        title="Edit team details"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingTeam(t)}
+                        className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-rose-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
+                        title="Delete team"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {deletingTeam && (
         <DeleteTeamModal
@@ -307,6 +367,131 @@ function TeamsTab({
         />
       )}
     </>
+  );
+}
+
+function AdminTeamCard({
+  team,
+  onEdit,
+  onDelete,
+}: {
+  team: AdminTeam;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [showSquad, setShowSquad] = useState(false);
+
+  const batchStyle = BATCH_BADGES[team.batch] || {
+    bg: "bg-cyan-500/10",
+    text: "text-cyan-300",
+    border: "border-cyan-500/30",
+  };
+
+  const femaleCount = team.players?.filter((p) => p.gender === "female").length ?? 0;
+  const maleCount = (team.players?.length ?? 0) - femaleCount;
+
+  return (
+    <div className="group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-navy-900/60 p-5 shadow-xl transition-all duration-300 hover:border-cyan-400/40 hover:bg-navy-900/80">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <span className={`inline-block rounded-full border ${batchStyle.border} ${batchStyle.bg} ${batchStyle.text} px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider`}>
+              {team.batch}
+            </span>
+            <h3 className="mt-2 font-display text-2xl tracking-wide text-ivory-50 group-hover:text-cyan-300 transition-colors">
+              {team.team_name}
+            </h3>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2.5 border-t border-white/5 pt-3 text-xs text-ivory-300">
+          <div className="flex items-center gap-2">
+            <User size={14} className="text-cyan-400 shrink-0" />
+            <span>Captain: <strong className="text-ivory-100">{team.captain_name}</strong></span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Phone size={14} className="text-cyan-400 shrink-0" />
+            <span>{team.captain_contact}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Mail size={14} className="text-cyan-400 shrink-0" />
+            <span className="truncate">{team.captain_email}</span>
+          </div>
+
+          {team.vice_captain_name && (
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={14} className="text-cyan-400 shrink-0" />
+              <span>Vice Captain: <strong className="text-ivory-200">{team.vice_captain_name}</strong></span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-ivory-400 shrink-0" />
+            <span className="text-ivory-400">Registered: {new Date(team.created_at).toLocaleDateString()}</span>
+          </div>
+
+          {team.notes && (
+            <div className="rounded-xl border border-white/5 bg-navy-950/50 p-2.5 text-[11px] text-ivory-400">
+              <strong className="text-ivory-300">Notes:</strong> {team.notes}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 border-t border-white/5 pt-3">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 font-medium text-ivory-200">
+              <Users size={14} className="text-gold-400" />
+              <span>{team.players?.length ?? 0} Players</span>
+              <span className="text-[10px] text-ivory-400">({maleCount}M / {femaleCount}F)</span>
+            </div>
+
+            <button
+              onClick={() => setShowSquad(!showSquad)}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-300 hover:text-cyan-200"
+            >
+              {showSquad ? "Hide Squad" : "View Squad"}
+              {showSquad ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </button>
+          </div>
+
+          {showSquad && (
+            <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-white/10 bg-navy-950/70 p-2.5 space-y-1.5 text-xs">
+              {team.players?.map((p, idx) => (
+                <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{p.position || idx + 1}</span>
+                    <span className="truncate">{p.full_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 text-[10px] text-ivory-400 font-mono">
+                    <span>{p.student_id}</span>
+                    <span className={`rounded px-1 py-0.2 ${p.gender === "female" ? "bg-pink-500/20 text-pink-300" : "bg-blue-500/20 text-blue-300"}`}>
+                      {p.gender === "female" ? "F" : "M"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center justify-end gap-2 border-t border-white/10 pt-3">
+        <button
+          onClick={onEdit}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-300 transition-colors hover:bg-cyan-400/20 hover:text-cyan-200"
+        >
+          <Pencil size={13} /> Edit Team
+        </button>
+        <button
+          onClick={onDelete}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-1.5 text-xs font-semibold text-rose-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
+        >
+          <Trash2 size={13} /> Delete
+        </button>
+      </div>
+    </div>
   );
 }
 
