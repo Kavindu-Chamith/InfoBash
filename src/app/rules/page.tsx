@@ -71,7 +71,7 @@ export default function RulesPage() {
 
       {/* Main Content Container */}
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 space-y-12">
-        
+
         {/* 5.1 Registration */}
         <section className="rounded-3xl border border-cyan-500/20 bg-navy-900/60 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
@@ -147,16 +147,7 @@ export default function RulesPage() {
             <li className="flex gap-3">
               <CheckCircle2 size={18} className="text-cyan-400 shrink-0 mt-0.5" />
               <span>
-                Group allocation will be conducted using a random team generator or a transparent draw conducted by the organizing committee (
-                <a
-                  href="https://www.randomlists.com/team-generator"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-300 inline-flex items-center gap-1 font-semibold underline underline-offset-4 hover:text-white"
-                >
-                  Random Team Generator <ExternalLink size={12} />
-                </a>
-                ).
+                Group allocation will be conducted using a random team generator or a transparent draw conducted by the organizing committee.
               </span>
             </li>
             <li className="flex gap-3">
@@ -255,13 +246,12 @@ export default function RulesPage() {
                     <td className="px-4 py-2.5 font-mono font-bold text-cyan-300">Match {m.num}</td>
                     <td className="px-4 py-2.5 font-medium text-ivory-100">{m.match}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-[11px]">
-                      <span className={`rounded-md px-2 py-0.5 font-semibold ${
-                        m.stage === "Final"
-                          ? "bg-gold-500/20 text-gold-300 border border-gold-500/30"
-                          : m.stage === "Semi-Finals"
+                      <span className={`rounded-md px-2 py-0.5 font-semibold ${m.stage === "Final"
+                        ? "bg-gold-500/20 text-gold-300 border border-gold-500/30"
+                        : m.stage === "Semi-Finals"
                           ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
                           : "bg-white/5 text-ivory-400"
-                      }`}>
+                        }`}>
                         {m.stage}
                       </span>
                     </td>
