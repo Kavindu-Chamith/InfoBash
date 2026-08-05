@@ -11,6 +11,13 @@ export async function POST(req: NextRequest) {
     let googleEmail: string | undefined;
     let googleName: string | undefined;
 
+    const reqHost = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const isLocal = reqHost?.includes("localhost") || reqHost?.includes("127.0.0.1");
+    const reqProto = req.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
+    const defaultOrigin = isLocal ? "http://localhost:3000" : "https://infobash.onrender.com";
+    const detectedOrigin = req.headers.get("origin") || (reqHost ? `${reqProto}://${reqHost}` : defaultOrigin);
+    const finalRedirectUri = redirectUri || detectedOrigin;
+
     // 0. Exchange authorization code for tokens if authorization code provided
     if (code && typeof code === "string") {
       try {
@@ -21,7 +28,7 @@ export async function POST(req: NextRequest) {
             code,
             client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
             client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-            redirect_uri: redirectUri || "http://localhost:3000",
+            redirect_uri: finalRedirectUri,
             grant_type: "authorization_code",
           }),
         });
