@@ -11,9 +11,19 @@ import {
   Shuffle,
   Trash2,
   ChevronRight,
+  Pencil,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 
 type Tab = "teams" | "groups" | "matches";
+
+interface AdminTeamPlayer {
+  position?: number;
+  full_name: string;
+  student_id?: string;
+  gender: "male" | "female" | string;
+}
 
 interface AdminTeam {
   id: string;
@@ -23,8 +33,9 @@ interface AdminTeam {
   captain_contact: string;
   captain_email: string;
   vice_captain_name: string | null;
+  notes: string | null;
   created_at: string;
-  players: { full_name: string; gender: string }[];
+  players: AdminTeamPlayer[];
 }
 
 interface GroupTeam {
@@ -173,7 +184,15 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {tab === "teams" && <TeamsTab teams={teams} />}
+            {tab === "teams" && (
+              <TeamsTab
+                teams={teams}
+                onChanged={(msg) => {
+                  setActionMessage(msg);
+                  loadAll();
+                }}
+              />
+            )}
             {tab === "groups" && (
               <GroupsTab
                 groups={groups}
@@ -201,41 +220,395 @@ export default function AdminDashboard() {
   );
 }
 
-function TeamsTab({ teams }: { teams: AdminTeam[] }) {
+function TeamsTab({
+  teams,
+  onChanged,
+}: {
+  teams: AdminTeam[];
+  onChanged: (message: string) => void;
+}) {
+  const [editingTeam, setEditingTeam] = useState<AdminTeam | null>(null);
+  const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
+
   if (teams.length === 0) {
     return <p className="text-sm text-ivory-400">No teams registered yet.</p>;
   }
+
   return (
-    <div className={`${cardClass} overflow-x-auto`}>
-      <table className="w-full min-w-[720px] text-left text-sm">
-        <thead>
-          <tr className="text-xs uppercase tracking-wide text-ivory-400">
-            <th className="pb-3 pr-4">Team</th>
-            <th className="pb-3 pr-4">Batch</th>
-            <th className="pb-3 pr-4">Captain</th>
-            <th className="pb-3 pr-4">Contact</th>
-            <th className="pb-3 pr-4">Players</th>
-            <th className="pb-3">Registered</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teams.map((t) => (
-            <tr key={t.id} className="border-t border-white/5 text-ivory-100">
-              <td className="py-2.5 pr-4 font-medium">{t.team_name}</td>
-              <td className="py-2.5 pr-4 text-ivory-300">{t.batch}</td>
-              <td className="py-2.5 pr-4 text-ivory-300">{t.captain_name}</td>
-              <td className="py-2.5 pr-4 text-ivory-300">
-                {t.captain_contact}
-                <div className="text-xs text-ivory-400">{t.captain_email}</div>
-              </td>
-              <td className="py-2.5 pr-4 text-ivory-300">{t.players?.length ?? 0}</td>
-              <td className="py-2.5 text-xs text-ivory-400">
-                {new Date(t.created_at).toLocaleDateString()}
-              </td>
+    <>
+      <div className={`${cardClass} overflow-x-auto`}>
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead>
+            <tr className="text-xs uppercase tracking-wide text-ivory-400">
+              <th className="pb-3 pr-4">Team</th>
+              <th className="pb-3 pr-4">Batch</th>
+              <th className="pb-3 pr-4">Captain</th>
+              <th className="pb-3 pr-4">Contact</th>
+              <th className="pb-3 pr-4">Players</th>
+              <th className="pb-3 pr-4">Registered</th>
+              <th className="pb-3 text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teams.map((t) => (
+              <tr key={t.id} className="border-t border-white/5 text-ivory-100">
+                <td className="py-2.5 pr-4 font-medium">{t.team_name}</td>
+                <td className="py-2.5 pr-4 text-ivory-300">{t.batch}</td>
+                <td className="py-2.5 pr-4 text-ivory-300">{t.captain_name}</td>
+                <td className="py-2.5 pr-4 text-ivory-300">
+                  {t.captain_contact}
+                  <div className="text-xs text-ivory-400">{t.captain_email}</div>
+                </td>
+                <td className="py-2.5 pr-4 text-ivory-300">{t.players?.length ?? 0}</td>
+                <td className="py-2.5 pr-4 text-xs text-ivory-400">
+                  {new Date(t.created_at).toLocaleDateString()}
+                </td>
+                <td className="py-2.5 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setEditingTeam(t)}
+                      className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-cyan-300 transition-colors hover:bg-cyan-500/20 hover:text-cyan-200"
+                      title="Edit team details"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => setDeletingTeam(t)}
+                      className="rounded-lg border border-white/10 bg-navy-800/60 p-1.5 text-rose-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
+                      title="Delete team"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {deletingTeam && (
+        <DeleteTeamModal
+          team={deletingTeam}
+          onClose={() => setDeletingTeam(null)}
+          onDeleted={(msg) => {
+            onChanged(msg);
+          }}
+        />
+      )}
+
+      {editingTeam && (
+        <EditTeamModal
+          team={editingTeam}
+          onClose={() => setEditingTeam(null)}
+          onSaved={(msg) => {
+            onChanged(msg);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function DeleteTeamModal({
+  team,
+  onClose,
+  onDeleted,
+}: {
+  team: AdminTeam;
+  onClose: () => void;
+  onDeleted: (msg: string) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/teams/${team.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete team");
+      }
+      onDeleted(data.message || `Deleted ${team.team_name}`);
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error deleting team");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-navy-950 p-6 shadow-2xl">
+        <div className="flex items-center gap-3 text-rose-400">
+          <AlertTriangle size={24} />
+          <h3 className="font-display text-xl tracking-wide text-ivory-50">Delete Team</h3>
+        </div>
+        <p className="mt-3 text-sm text-ivory-300">
+          Are you sure you want to delete <strong className="text-ivory-50">{team.team_name}</strong>? This will permanently delete the team squad and remove it from any allocated groups or matches.
+        </p>
+
+        {error && (
+          <div className="mt-3 rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5 text-xs text-rose-300">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button onClick={onClose} disabled={loading} className={btnGhost}>
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition-transform hover:scale-105 disabled:opacity-60"
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            Delete Team
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditTeamModal({
+  team,
+  onClose,
+  onSaved,
+}: {
+  team: AdminTeam;
+  onClose: () => void;
+  onSaved: (msg: string) => void;
+}) {
+  const [teamName, setTeamName] = useState(team.team_name);
+  const [batch, setBatch] = useState(team.batch);
+  const [captainName, setCaptainName] = useState(team.captain_name);
+  const [captainContact, setCaptainContact] = useState(team.captain_contact);
+  const [captainEmail, setCaptainEmail] = useState(team.captain_email);
+  const [viceCaptainName, setViceCaptainName] = useState(team.vice_captain_name || "");
+  const [notes, setNotes] = useState(team.notes || "");
+
+  const [players, setPlayers] = useState(() => {
+    const arr = [];
+    for (let i = 1; i <= 11; i++) {
+      const existing = team.players?.find((p) => p.position === i) || team.players?.[i - 1];
+      arr.push({
+        position: i,
+        full_name: existing?.full_name || "",
+        student_id: existing?.student_id || "",
+        gender: existing?.gender === "female" ? "female" : "male",
+      });
+    }
+    return arr;
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updatePlayer = (index: number, field: string, value: string) => {
+    setPlayers((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/admin/teams/${team.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          team_name: teamName,
+          batch,
+          captain_name: captainName,
+          captain_contact: captainContact,
+          captain_email: captainEmail,
+          vice_captain_name: viceCaptainName,
+          notes,
+          players,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update team");
+      }
+
+      onSaved(data.message || "Team details updated successfully");
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error saving team details");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="my-8 w-full max-w-3xl rounded-2xl border border-white/10 bg-navy-950 p-6 shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4 shrink-0">
+          <h3 className="font-display text-2xl tracking-wide text-ivory-50">
+            Edit Team Details
+          </h3>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-ivory-400 hover:bg-white/10 hover:text-ivory-100"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-300 shrink-0">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-6 overflow-y-auto pr-1">
+          <div>
+            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+              Team Overview
+            </h4>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Team Name</label>
+                <input
+                  type="text"
+                  required
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Batch</label>
+                <select
+                  value={batch}
+                  onChange={(e) => setBatch(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Captain Name</label>
+                <input
+                  type="text"
+                  required
+                  value={captainName}
+                  onChange={(e) => setCaptainName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Captain Contact</label>
+                <input
+                  type="text"
+                  required
+                  value={captainContact}
+                  onChange={(e) => setCaptainContact(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Captain Email</label>
+                <input
+                  type="email"
+                  required
+                  value={captainEmail}
+                  onChange={(e) => setCaptainEmail(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ivory-300">Vice Captain Name</label>
+                <input
+                  type="text"
+                  value={viceCaptainName}
+                  onChange={(e) => setViceCaptainName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="mb-1 block text-xs text-ivory-300">Notes / Remarks</label>
+              <textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div>
+            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+              Squad Roster (11 Players)
+            </h4>
+            <div className="max-h-[280px] overflow-y-auto rounded-xl border border-white/10 bg-navy-900/40 p-3 space-y-3">
+              {players.map((p, idx) => (
+                <div key={idx} className="flex flex-wrap items-center gap-2 border-b border-white/5 pb-2 text-xs">
+                  <span className="w-6 font-mono font-semibold text-gold-400">
+                    #{p.position}
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={p.full_name}
+                    onChange={(e) => updatePlayer(idx, "full_name", e.target.value)}
+                    className="flex-1 min-w-[140px] rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Student ID"
+                    value={p.student_id}
+                    onChange={(e) => updatePlayer(idx, "student_id", e.target.value)}
+                    className="w-32 rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                  />
+                  <select
+                    value={p.gender}
+                    onChange={(e) => updatePlayer(idx, "gender", e.target.value)}
+                    className="w-24 rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 border-t border-white/10 pt-4 shrink-0">
+            <button type="button" onClick={onClose} disabled={saving} className={btnGhost}>
+              Cancel
+            </button>
+            <button type="submit" disabled={saving} className={btnPrimary}>
+              {saving && <Loader2 size={14} className="animate-spin" />}
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

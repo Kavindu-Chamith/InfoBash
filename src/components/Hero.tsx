@@ -18,7 +18,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
-/* --- Photo wall source pool --- */
+/* --- Photo wall source pool (Real photos from public/gallery) --- */
 const GALLERY_POOL = [
   "/gallery/IMG_3599.JPG.jpeg",
   "/gallery/IMG_3600.JPG.jpeg",
@@ -49,8 +49,7 @@ const ROW1 = pickRow(0, 16);
 const ROW2 = pickRow(4, 16);
 const ROW3 = pickRow(8, 16);
 
-// Doubled so the row can loop seamlessly: animating x from 0 to -50% of this
-// doubled track lines the second copy up exactly where the first started.
+// Doubled so the row can loop seamlessly: animating x from 0 to -50%
 const ROW1_LOOP = [...ROW1, ...ROW1];
 const ROW2_LOOP = [...ROW2, ...ROW2];
 const ROW3_LOOP = [...ROW3, ...ROW3];
@@ -60,17 +59,17 @@ const TILE_SIZE = "calc((100dvh - 64px - 24px) / 3)";
 function PhotoTile({ src }: { src: string }) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-xl border border-cyan-400/20 bg-[#070e1c] shadow-lg"
-      style={{ height: TILE_SIZE, width: "calc(TILE_SIZE * 1.35)" }}
+      className="relative shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-navy-950/80 shadow-2xl transition-all duration-300 hover:border-cyan-400/40"
+      style={{ height: "210px", width: "270px" }}
     >
       <Image
         src={src}
-        alt="InfoBash Action"
+        alt="InfoBash"
         fill
         unoptimized
         className="object-cover object-center transition-transform duration-700 hover:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-navy-950/20 via-transparent to-cyan-400/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-navy-950/40 via-transparent to-transparent" />
     </div>
   );
 }
@@ -80,50 +79,49 @@ export default function Hero() {
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
 
-  // Continuous auto-scrolling photo rows — time-based, not scroll-linked.
+  // Continuous auto-scrolling photo rows
   useEffect(() => {
     const anims: gsap.core.Tween[] = [];
 
     if (row1Ref.current) {
-      anims.push(gsap.fromTo(row1Ref.current, { x: 0 }, { x: "-50%", duration: 25, ease: "none", repeat: -1 }));
+      anims.push(gsap.fromTo(row1Ref.current, { x: 0 }, { x: "-50%", duration: 40, ease: "none", repeat: -1 }));
     }
     if (row2Ref.current) {
       gsap.set(row2Ref.current, { x: "-50%" });
-      anims.push(gsap.to(row2Ref.current, { x: 0, duration: 22, ease: "none", repeat: -1 }));
+      anims.push(gsap.to(row2Ref.current, { x: 0, duration: 16, ease: "none", repeat: -1 }));
     }
     if (row3Ref.current) {
-      anims.push(gsap.fromTo(row3Ref.current, { x: 0 }, { x: "-50%", duration: 28, ease: "none", repeat: -1 }));
+      anims.push(gsap.fromTo(row3Ref.current, { x: 0 }, { x: "-50%", duration: 42, ease: "none", repeat: -1 }));
     }
 
     return () => anims.forEach((a) => a.kill());
   }, []);
 
   return (
-    <section className="relative flex h-[calc(100dvh-64px)] min-h-[580px] items-center justify-center overflow-hidden">
-
+    <section className="relative flex h-[calc(100dvh-64px)] min-h-[600px] items-center justify-center overflow-hidden">
       {/* -- Background -- */}
       <div className="absolute inset-0 bg-[#060c1a]" />
 
       {/* -- Full-bleed photo wall -- */}
-      <div className="absolute inset-0 flex flex-col justify-center gap-3">
+      <div className="absolute inset-0 flex flex-col justify-center gap-4 py-2">
         <div className="overflow-hidden">
-          <div ref={row1Ref} className="flex w-max gap-3">
+          <div ref={row1Ref} className="flex w-max gap-4">
             {ROW1_LOOP.map((src, i) => <PhotoTile key={`r1-${i}`} src={src} />)}
           </div>
         </div>
         <div className="overflow-hidden">
-          <div ref={row2Ref} className="flex w-max gap-3">
+          <div ref={row2Ref} className="flex w-max gap-4">
             {ROW2_LOOP.map((src, i) => <PhotoTile key={`r2-${i}`} src={src} />)}
           </div>
         </div>
         <div className="overflow-hidden">
-          <div ref={row3Ref} className="flex w-max gap-3">
+          <div ref={row3Ref} className="flex w-max gap-4">
             {ROW3_LOOP.map((src, i) => <PhotoTile key={`r3-${i}`} src={src} />)}
           </div>
         </div>
       </div>
 
-      {/* Radial vignette — subtle center darkener so headline text is readable over photo wall */}
+      {/* Radial vignette — soft gradient so photo wall remains vibrant while text is crisp */}
       <div
         className="pointer-events-none absolute inset-0 z-[6]"
         style={{
@@ -132,7 +130,7 @@ export default function Hero() {
         }}
       />
 
-      {/* Edge fades — blend the wall smoothly into page background */}
+      {/* Edge fades */}
       <div className="pointer-events-none absolute inset-y-0 left-0 z-[7] w-24 bg-gradient-to-r from-[#060c1a] to-transparent sm:w-40" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-[7] w-24 bg-gradient-to-l from-[#060c1a] to-transparent sm:w-40" />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[7] h-20 bg-gradient-to-b from-[#060c1a] to-transparent" />
@@ -140,10 +138,10 @@ export default function Hero() {
 
       {/* Ambient particles */}
       <div className="absolute inset-0 z-[8]">
-        <ParticleField density={50} />
+        <ParticleField density={40} />
       </div>
 
-      {/* Glow orbs — static, no scroll motion */}
+      {/* Glow orbs */}
       <div className="pointer-events-none absolute -top-24 left-1/3 z-[8] h-[500px] w-[500px] rounded-full bg-blue-600/15 blur-[150px]" />
       <div className="pointer-events-none absolute bottom-0 right-1/3 z-[8] h-[400px] w-[400px] animate-pulse-glow rounded-full bg-cyan-400/10 blur-[140px]" />
 
@@ -229,6 +227,19 @@ export default function Hero() {
             <ArrowRight size={13} className="-translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
           </Link>
         </motion.div>
+      </motion.div>
+
+      {/* Scroll hint */}
+      <motion.div
+        className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <span className="font-mono-score text-[10px] uppercase tracking-[0.3em] text-ivory-500">Scroll</span>
+        <svg width="14" height="18" viewBox="0 0 14 18" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="12" height="16" rx="6" stroke="rgba(232,229,223,0.35)" strokeWidth="1.2" />
+          <circle cx="7" cy="6" r="1.4" fill="rgba(53,215,255,0.7)" />
+        </svg>
       </motion.div>
     </section>
   );

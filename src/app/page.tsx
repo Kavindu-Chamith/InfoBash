@@ -247,7 +247,7 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
               {/* YouTube */}
               <motion.a
-                href="https://youtube.com/@lumetrixmedia"
+                href="https://www.youtube.com/@LumetrixMedia"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.08, y: -4 }}
@@ -267,7 +267,7 @@ export default function Home() {
 
               {/* Instagram */}
               <motion.a
-                href="https://instagram.com/lumetrixmedia"
+                href="https://www.instagram.com/Lumetrix_Media/"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.08, y: -4 }}
@@ -296,7 +296,7 @@ export default function Home() {
 
               {/* Facebook */}
               <motion.a
-                href="https://facebook.com/lumetrixmedia"
+                href="https://facebook.com/share/1BE9KQkWtL/"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.08, y: -4 }}
@@ -316,7 +316,7 @@ export default function Home() {
 
               {/* TikTok */}
               <motion.a
-                href="https://tiktok.com/@lumetrixmedia"
+                href="https://www.tiktok.com/@lumetrixmedialink"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.08, y: -4 }}
