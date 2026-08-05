@@ -22,6 +22,14 @@ export async function GET(
     }
 
     if (row.logo_s3_key) {
+      if (
+        row.logo_s3_key.startsWith("http://") ||
+        row.logo_s3_key.startsWith("https://") ||
+        row.logo_s3_key.startsWith("data:")
+      ) {
+        return NextResponse.redirect(row.logo_s3_key);
+      }
+
       const object = await getObjectBytes(row.logo_s3_key);
       if (!object) {
         return NextResponse.json({ error: "Logo not found" }, { status: 404 });

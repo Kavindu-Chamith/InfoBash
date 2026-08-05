@@ -49,7 +49,7 @@ export async function GET() {
           '[]'
         ) AS players,
         g.name AS group_name,
-        (t.logo IS NOT NULL) AS has_logo
+        (t.logo IS NOT NULL OR t.logo_s3_key IS NOT NULL) AS has_logo
       FROM teams t
       LEFT JOIN players p ON p.team_id = t.id
       LEFT JOIN groups g ON g.id = t.group_id
