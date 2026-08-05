@@ -1,6 +1,10 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Teko:wght@400;500;600;700&display=swap");
 
 :root {
+  --font-teko: 'Teko', sans-serif;
+  --font-manrope: 'Manrope', sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+
   --color-navy-950: #050914;
   --color-navy-900: #0a1128;
   --color-navy-850: #0d1735;
