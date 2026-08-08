@@ -431,7 +431,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             </div>
 
             {/* Expand hint */}
-            <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-ivory-400 transition-colors group-hover:text-cyan-300">
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-ivory-400 transition-colors group-hover:text-orange-400">
               <span>View Full Squad</span>
               <ChevronRight size={13} className="transition-transform group-hover:translate-x-0.5" />
             </div>
@@ -468,10 +468,10 @@ export function FilterPill({
       style={
         active
           ? {
-              background: color ? `${color}20` : "rgba(53,215,255,0.15)",
-              borderColor: color ?? "#35d7ff",
-              color: color ?? "#35d7ff",
-              boxShadow: `0 0 16px -4px ${color ?? "#35d7ff"}60`,
+              background: color ? `${color}20` : "rgba(255,107,0,0.15)",
+              borderColor: color ?? "#FF6B00",
+              color: color ?? "#FF6B00",
+              boxShadow: `0 0 16px -4px ${color ?? "#FF6B00"}60`,
             }
           : {
               background: "rgba(255,255,255,0.04)",

@@ -50,7 +50,7 @@ declare global {
 const STEPS = ["Team Details", "Squad", "Review & Submit"] as const;
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none transition-colors focus:border-cyan-400/60";
+  "w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none transition-colors focus:border-orange-500/80";
 
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300";
 

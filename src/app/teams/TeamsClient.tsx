@@ -90,7 +90,7 @@ export default function TeamsClient({
       </div>
 
       {/* -- Page header ------------------------------------- */}
-      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-12 pt-14 text-center">
+      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-12 pt-20 sm:pt-24 text-center">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,7 +102,7 @@ export default function TeamsClient({
 
           <h1 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
             The{" "}
-            <span className="text-gradient-cyan">Challengers</span>
+            <span className="text-gradient-gold">Challengers</span>
           </h1>
 
           {/* Live count badge */}
@@ -110,10 +110,10 @@ export default function TeamsClient({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.4 }}
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-4 py-2"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#FF6B00]/30 bg-[#FF6B00]/10 px-4 py-2"
           >
-            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
-            <span className="font-mono-score text-xs tracking-widest text-cyan-300">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+            <span className="font-mono-score text-xs tracking-widest text-orange-400 font-semibold">
               {initialTeams.length}{" "}
               {initialTeams.length === 1 ? "Team" : "Teams"} Registered
             </span>

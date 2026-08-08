@@ -34,10 +34,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "border-cyan-400/10 bg-navy-950/85 backdrop-blur-md"
-          : "border-transparent bg-transparent"
+          ? "bg-navy-950/85 backdrop-blur-md"
+          : "bg-transparent"
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8">
@@ -47,11 +47,11 @@ export default function Navbar() {
             alt="InfoBash v5.0 logo"
             width={44}
             height={44}
-            className="h-10 w-10 object-contain sm:h-11 sm:w-11"
+            className="h-10 w-10 object-contain sm:h-11 sm:w-11 drop-shadow-[0_0_12px_rgba(255,107,0,0.4)]"
             priority
           />
           <span className="font-display text-2xl tracking-wide text-ivory-50 sm:text-[26px]">
-            INFO<span className="text-gradient-cyan">BASH</span>
+            INFO<span className="text-gradient-cyan font-bold">BASH</span>
           </span>
         </Link>
 
@@ -62,15 +62,14 @@ export default function Navbar() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`relative px-4 py-2 text-sm font-medium tracking-wide transition-colors ${
-                    active ? "text-cyan-300" : "text-ivory-200 hover:text-white"
-                  }`}
+                  className={`relative px-4 py-2 text-sm font-medium tracking-wide transition-colors ${active ? "text-orange-400" : "text-ivory-200 hover:text-white"
+                    }`}
                 >
                   {link.label}
                   {active && (
                     <motion.span
                       layoutId="nav-underline"
-                      className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-cyan-400 to-blue-500"
+                      className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_8px_#FF6B00]"
                     />
                   )}
                 </Link>
@@ -83,13 +82,13 @@ export default function Navbar() {
           <Link
             href="/admin/login"
             title="Organiser Dashboard"
-            className="text-ivory-400 transition-colors hover:text-cyan-300"
+            className="text-ivory-400 transition-colors hover:text-orange-400"
           >
             <ShieldCheck size={18} />
           </Link>
           <Link
             href="/register"
-            className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-5 py-2 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-5px_rgba(53,215,255,0.7)] transition-transform hover:scale-105"
+            className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)] transition-transform hover:scale-105"
           >
             Register Now
           </Link>
@@ -112,18 +111,17 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden border-t border-cyan-400/10 bg-navy-950/95 backdrop-blur-md lg:hidden"
+            className="overflow-hidden bg-navy-950/95 backdrop-blur-md lg:hidden"
           >
             <ul className="flex flex-col gap-1 px-5 py-4">
               {LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`block rounded-lg px-3 py-3 text-base font-medium ${
-                      pathname === link.href
-                        ? "bg-navy-800 text-cyan-300"
+                    className={`block rounded-lg px-3 py-3 text-base font-medium ${pathname === link.href
+                        ? "bg-navy-800 text-orange-400 font-bold"
                         : "text-ivory-200"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </Link>
@@ -132,7 +130,7 @@ export default function Navbar() {
               <li className="pt-2">
                 <Link
                   href="/register"
-                  className="block rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-4 py-3 text-center text-sm font-semibold text-navy-950"
+                  className="block rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-center text-sm font-bold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)]"
                 >
                   Register Now
                 </Link>

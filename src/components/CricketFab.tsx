@@ -17,13 +17,13 @@ export default function CricketFab() {
     >
       {/* pulse ring */}
       <motion.span
-        className="absolute inset-0 rounded-full bg-cyan-400/40"
+        className="absolute inset-0 rounded-full bg-[#FF6B00]/40"
         animate={{ scale: [1, 1.6, 1.6], opacity: [0.6, 0, 0] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
       />
       {/* button */}
       <motion.span
-        className="relative block h-16 w-16 overflow-hidden rounded-full border-2 border-cyan-400/70 bg-white shadow-[0_0_28px_-4px_rgba(53,215,255,0.85)] transition-transform group-hover:scale-110"
+        className="relative block h-16 w-16 overflow-hidden rounded-full border-2 border-orange-500/80 bg-white shadow-[0_0_28px_-4px_rgba(255,107,0,0.85)] transition-transform group-hover:scale-110"
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
       >

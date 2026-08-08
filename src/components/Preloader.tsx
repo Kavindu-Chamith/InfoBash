@@ -45,30 +45,30 @@ export default function Preloader() {
             className="pointer-events-none absolute inset-0 opacity-[0.05]"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(53,215,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(53,215,255,1) 1px,transparent 1px)",
+                "linear-gradient(rgba(255,107,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,1) 1px,transparent 1px)",
               backgroundSize: "44px 44px",
             }}
           />
 
           {/* Ambient glow */}
-          <div className="pointer-events-none absolute h-[420px] w-[420px] rounded-full bg-blue-600/15 blur-[130px]" />
+          <div className="pointer-events-none absolute h-[420px] w-[420px] rounded-full bg-[#FF6B00]/15 blur-[130px]" />
 
           {/* Logo + spinning rings */}
           <div className="relative z-10 flex h-32 w-32 items-center justify-center sm:h-36 sm:w-36">
             <motion.span
-              className="absolute inset-0 rounded-full border-2 border-cyan-400/70 border-t-transparent"
+              className="absolute inset-0 rounded-full border-2 border-orange-500/80 border-t-transparent"
               animate={{ rotate: 360 }}
               transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
             />
             <motion.span
-              className="absolute inset-2 rounded-full border-2 border-gold-400/50 border-b-transparent"
+              className="absolute inset-2 rounded-full border-2 border-amber-400/70 border-b-transparent"
               animate={{ rotate: -360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             />
             <motion.div
               animate={{ scale: [1, 1.08, 1] }}
               transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="relative flex h-20 w-20 items-center justify-center rounded-full bg-navy-900/60 shadow-[0_0_40px_-6px_rgba(53,215,255,0.6)] sm:h-24 sm:w-24"
+              className="relative flex h-20 w-20 items-center justify-center rounded-full bg-navy-900/60 shadow-[0_0_40px_-6px_rgba(255,107,0,0.6)] sm:h-24 sm:w-24"
             >
               <Image
                 src="/images/logo.png"
@@ -89,13 +89,13 @@ export default function Preloader() {
             className="relative z-10 mt-6 flex flex-col items-center gap-3"
           >
             <span className="font-display text-3xl tracking-wide text-ivory-50 sm:text-4xl">
-              INFO<span className="text-gradient-cyan">BASH</span>
+              INFO<span className="text-gradient-gold">BASH</span>
             </span>
             <div className="flex items-center gap-1.5">
               {[0, 1, 2].map((i) => (
                 <motion.span
                   key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-cyan-400"
+                  className="h-1.5 w-1.5 rounded-full bg-orange-500"
                   animate={{ opacity: [0.25, 1, 0.25] }}
                   transition={{
                     duration: 1.1,
