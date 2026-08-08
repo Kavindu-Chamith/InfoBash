@@ -87,9 +87,9 @@ interface MatchRow {
 
 const cardClass = "rounded-2xl border border-white/10 bg-navy-900/50 p-5";
 const inputClass =
-  "w-full rounded-lg border border-white/10 bg-navy-900/70 px-3 py-2 text-sm text-ivory-50 outline-none focus:border-cyan-400/60";
+  "w-full rounded-lg border border-white/10 bg-navy-900/70 px-3 py-2 text-sm text-ivory-50 outline-none focus:border-orange-500/80";
 const btnPrimary =
-  "inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-4 py-2 text-xs font-semibold text-navy-950 transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100";
+  "inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-[0_0_20px_-4px_rgba(255,107,0,0.6)] transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100";
 const btnGhost =
   "inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-ivory-200 hover:border-white/30";
 

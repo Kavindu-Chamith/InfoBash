@@ -1,6 +1,6 @@
 // Central place to tweak tournament-wide facts.
 // Update TOURNAMENT_DATE once the faculty confirms the match day.
-export const TOURNAMENT_DATE = new Date("2026-08-08T08:00:00+05:30");
+export const TOURNAMENT_DATE = new Date("2026-08-15T08:00:00+05:30");
 
 export const TOURNAMENT_INFO = {
   edition: "v5.0",
@@ -19,5 +19,5 @@ export const TICKER_ITEMS = [
   "12 TEAMS · 4 GROUPS (A, B, C, D)",
   "10-PLAYER SQUADS · 7 BOYS & 3 GIRLS",
   "FACULTY OF COMPUTING · SUSL",
-  "8TH AUGUST 2026 · PHYSICAL EDUCATION CENTER",
+  "15TH AUGUST 2026 · PHYSICAL EDUCATION CENTER",
 ];

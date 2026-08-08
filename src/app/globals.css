@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --color-navy-950: #050914;
+  --color-navy-950: #060a17;
   --color-navy-900: #0a1128;
-  --color-navy-850: #0d1735;
-  --color-navy-800: #101c42;
-  --color-navy-700: #16265a;
-  --color-blue-600: #2f6fed;
-  --color-blue-500: #3f82ff;
-  --color-cyan-400: #35d7ff;
-  --color-cyan-300: #7ce8ff;
-  --color-gold-400: #f5b942;
-  --color-gold-300: #ffd479;
+  --color-navy-850: #0e1736;
+  --color-navy-800: #121e42;
+  --color-navy-700: #192858;
+  --color-blue-600: #ff6b00;
+  --color-blue-500: #ffa800;
+  --color-cyan-400: #ff6b00;
+  --color-cyan-300: #ffa800;
+  --color-gold-400: #ffd700;
+  --color-gold-300: #ffe866;
   --color-magenta-500: #e23fa0;
-  --color-ivory-50: #f5f7fc;
-  --color-ivory-200: #cdd6ec;
-  --color-ivory-400: #93a0c4;
+  --color-ivory-50: #f8fafc;
+  --color-ivory-200: #cbd5e1;
+  --color-ivory-400: #94a3b8;
 
   --background: var(--color-navy-950);
   --foreground: var(--color-ivory-50);
@@ -42,6 +42,7 @@
   --color-ivory-400: var(--color-ivory-400);
 
   --font-display: var(--font-teko);
+  --font-anton: var(--font-anton);
   --font-sans: var(--font-manrope);
   --font-mono: var(--font-jetbrains);
 
@@ -121,42 +122,42 @@ body::-webkit-scrollbar:horizontal {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(5, 9, 20, 0.4);
+  background: rgba(6, 10, 23, 0.6);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(53, 215, 255, 0.35);
+  background: rgba(255, 107, 0, 0.4);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(53, 215, 255, 0.7);
+  background: rgba(255, 107, 0, 0.8);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(53, 215, 255, 0.35) rgba(5, 9, 20, 0.4);
+  scrollbar-color: rgba(255, 107, 0, 0.4) rgba(6, 10, 23, 0.6);
 }
 
 .glass-card {
-  background: linear-gradient(180deg, rgba(16, 28, 66, 0.65), rgba(10, 17, 40, 0.65));
-  border: 1px solid rgba(53, 215, 255, 0.18);
+  background: linear-gradient(180deg, rgba(14, 23, 54, 0.75), rgba(8, 14, 32, 0.85));
+  border: 1px solid rgba(255, 107, 0, 0.22);
   backdrop-filter: blur(14px);
 }
 
 .glow-border {
-  box-shadow: 0 0 0 1px rgba(53, 215, 255, 0.25), 0 0 40px -10px rgba(47, 111, 237, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.35), 0 0 40px -10px rgba(255, 107, 0, 0.5);
 }
 
 .text-gradient-gold {
-  background: linear-gradient(90deg, var(--color-gold-300), var(--color-gold-400));
+  background: linear-gradient(90deg, #ffd700, #ff6b00);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .text-gradient-cyan {
-  background: linear-gradient(90deg, var(--color-cyan-300), var(--color-blue-500));
+  background: linear-gradient(90deg, #ff6b00, #ffa800);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -165,9 +166,9 @@ body::-webkit-scrollbar:horizontal {
 .text-shimmer {
   background: linear-gradient(90deg,
       var(--color-ivory-50) 0%,
-      var(--color-cyan-300) 22%,
-      var(--color-blue-500) 40%,
-      var(--color-cyan-300) 58%,
+      #ffd700 22%,
+      #ff6b00 40%,
+      #ffd700 58%,
       var(--color-ivory-50) 80%,
       var(--color-ivory-50) 100%);
   background-size: 250% auto;
@@ -179,8 +180,8 @@ body::-webkit-scrollbar:horizontal {
 
 .pitch-lines {
   background-image:
-    linear-gradient(rgba(53, 215, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(53, 215, 255, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(255, 107, 0, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 107, 0, 0.07) 1px, transparent 1px);
   background-size: 42px 42px;
 }
 
@@ -200,7 +201,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--color-cyan-400);
+  outline: 2px solid #ff6b00;
   outline-offset: 3px;
   border-radius: 4px;
 }

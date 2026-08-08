@@ -45,23 +45,23 @@ export default function RulesPage() {
           className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(53,215,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(53,215,255,1) 1px,transparent 1px)",
+              "linear-gradient(rgba(255,107,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,1) 1px,transparent 1px)",
             backgroundSize: "44px 44px",
           }}
         />
-        <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-cyan-500/8 blur-[180px]" />
-        <div className="absolute -right-32 top-2/3 h-[400px] w-[400px] rounded-full bg-blue-500/8 blur-[160px]" />
+        <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-orange-500/8 blur-[180px]" />
+        <div className="absolute -right-32 top-2/3 h-[400px] w-[400px] rounded-full bg-amber-500/8 blur-[160px]" />
         <div className="absolute bottom-0 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-gold-400/6 blur-[140px]" />
       </div>
 
       {/* Page Header */}
-      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-10 pt-14 text-center">
+      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-10 pt-20 sm:pt-24 text-center">
         <span className="font-mono text-[11px] uppercase tracking-[0.45em] text-gold-400 font-bold">
           InfoBash V5.0 · Faculty of Computing · SUSL
         </span>
 
         <h1 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
-          Rules &amp; <span className="text-gradient-cyan">Regulations</span>
+          Rules &amp; <span className="text-gradient-gold">Regulations</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ivory-400">
@@ -73,9 +73,9 @@ export default function RulesPage() {
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 space-y-12">
 
         {/* 5.1 Registration */}
-        <section className="rounded-3xl border border-cyan-500/20 bg-navy-900/60 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6">
+        <section className="rounded-3xl border border-orange-500/25 bg-navy-900/60 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400">
               <span className="font-mono text-sm font-bold">5.1</span>
             </div>
             <div>
@@ -88,10 +88,10 @@ export default function RulesPage() {
 
           <ul className="space-y-4 text-sm leading-relaxed text-ivory-200">
             <li className="flex gap-3">
-              <CheckCircle2 size={18} className="text-cyan-400 shrink-0 mt-0.5" />
+              <CheckCircle2 size={18} className="text-orange-400 shrink-0 mt-0.5" />
               <span>
                 Team registration must be completed through the{" "}
-                <Link href="/register" className="text-cyan-300 font-semibold underline underline-offset-4 hover:text-white transition-colors">
+                <Link href="/register" className="text-orange-400 font-semibold underline underline-offset-4 hover:text-white transition-colors">
                   INFO BASH 5.0 Web Application
                 </Link>{" "}
                 within the registration period announced by the organizing committee.

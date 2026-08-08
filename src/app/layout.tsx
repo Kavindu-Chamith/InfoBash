@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Teko, Manrope, JetBrains_Mono } from "next/font/google";
+import { Teko, Manrope, JetBrains_Mono, Anton } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,6 +10,12 @@ const teko = Teko({
   variable: "--font-teko",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const anton = Anton({
+  variable: "--font-anton",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 const manrope = Manrope({
@@ -39,11 +45,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${teko.variable} ${manrope.variable} ${jetbrainsMono.variable} antialiased bg-navy-950 text-ivory-50`}
+        className={`${teko.variable} ${anton.variable} ${manrope.variable} ${jetbrainsMono.variable} antialiased bg-navy-950 text-ivory-50`}
       >
         <Preloader />
         <Navbar />
-        <main className="pt-[64px]">{children}</main>
+        <main>{children}</main>
         <Footer />
         <CricketFab />
       </body>

@@ -151,7 +151,7 @@ export default function MemoriesGallery() {
   const headingInView = useInView(headingRef, { once: true, margin: "-60px" });
 
   return (
-    <section className="relative overflow-hidden bg-[#060c1a] py-24">
+    <section className="relative overflow-hidden bg-navy-950 py-24">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-0 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[160px]" />

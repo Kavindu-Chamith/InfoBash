@@ -12,7 +12,6 @@ import {
   MapPin,
 } from "lucide-react";
 import Hero from "@/components/Hero";
-import ScoreTicker from "@/components/ScoreTicker";
 import Countdown from "@/components/Countdown";
 import MemoriesGallery from "@/components/MemoriesGallery";
 import { TOURNAMENT_INFO } from "@/lib/config";
@@ -47,19 +46,17 @@ export default function Home() {
     <>
       <Hero />
 
-      <ScoreTicker />
-
       {/* ══════════════════════════════════════
           COUNTDOWN  —  Big, centered, standalone
       ══════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-navy-900 py-16">
+      <section className="relative overflow-hidden bg-navy-950 py-16">
         {/* Glow */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[400px] w-[700px] rounded-full bg-blue-600/10 blur-[120px]" />
+          <div className="h-[400px] w-[700px] rounded-full bg-[#FF6B00]/10 blur-[120px]" />
         </div>
 
         <Reveal className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 text-center">
-          <span className="font-mono-score text-xs uppercase tracking-[0.4em] text-cyan-400">
+          <span className="font-mono-score text-xs uppercase tracking-[0.4em] text-orange-400">
             Countdown to Match Day
           </span>
           <div className="mt-8 w-full">
@@ -69,134 +66,29 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════
-          ABOUT / FEATURES
+          ABOUT / DETAILS (Proposal Context)
       ══════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-navy-900 py-24">
-        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/10 blur-[160px]" />
-        <div className="relative mx-auto max-w-6xl px-6">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <span className="font-mono-score text-xs uppercase tracking-[0.35em] text-cyan-400">
-              What is InfoBash
+      <section className="relative overflow-hidden bg-navy-950 py-16">
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6B00]/10 blur-[160px]" />
+        <div className="relative mx-auto max-w-4xl px-6">
+          <Reveal className="text-center">
+            <span className="font-mono-score text-xs uppercase tracking-[0.35em] text-orange-400">
+              What is InfoBash 5.0
             </span>
             <h2 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
               Unity, Sportsmanship &amp;{" "}
               <span className="text-gradient-gold">Healthy Competition</span>
             </h2>
-            <p className="mt-5 text-ivory-300">
-              INFO BASH 5.0 is the annual cricket tournament organized by the Sports Sub Committee of the Students&apos; Union, Faculty of Computing, Sabaragamuwa University of Sri Lanka. Bringing together undergraduates and academic staff in a spirit of teamwork and sportsmanship.
-            </p>
           </Reveal>
 
-          <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: ShieldCheck,
-                title: "12 Teams & 4 Groups",
-                desc: "12 teams randomly divided into 4 groups (Group A, B, C, D) with 3 teams per group.",
-                accent: "from-cyan-400/20 to-blue-500/20",
-                glow: "rgba(53,215,255,0.35)",
-                iconColor: "text-cyan-300",
-                iconBg: "from-cyan-500/25 to-blue-600/25",
-                borderGlow: "rgba(53,215,255,0.5)",
-              },
-              {
-                icon: Users,
-                title: "10-Player Squads",
-                desc: "Each squad consists of 10 players. 7 Boys & 3 Girls, uniting students and academic staff.",
-                accent: "from-gold-400/20 to-gold-300/10",
-                glow: "rgba(245,185,66,0.35)",
-                iconColor: "text-gold-300",
-                iconBg: "from-gold-400/25 to-gold-300/15",
-                borderGlow: "rgba(245,185,66,0.5)",
-              },
-              {
-                icon: CalendarDays,
-                title: "5-Over Match Format",
-                desc: "Group matches feature 5 overs (4 balls per over). Semi-Finals & Finals play 5 overs (6 balls per over).",
-                accent: "from-cyan-400/20 to-blue-500/20",
-                glow: "rgba(53,215,255,0.35)",
-                iconColor: "text-cyan-300",
-                iconBg: "from-cyan-500/25 to-blue-600/25",
-                borderGlow: "rgba(53,215,255,0.5)",
-              },
-              {
-                icon: Trophy,
-                title: "Mandatory Female Overs",
-                desc: "The first over of both batting and bowling in every match is played by female team members.",
-                accent: "from-gold-400/20 to-gold-300/10",
-                glow: "rgba(245,185,66,0.35)",
-                iconColor: "text-gold-300",
-                iconBg: "from-gold-400/25 to-gold-300/15",
-                borderGlow: "rgba(245,185,66,0.5)",
-              },
-            ].map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -6, transition: { duration: 0.22 } }}
-                className="group relative overflow-hidden rounded-2xl border border-white/8 cursor-pointer"
-                style={{
-                  background: "linear-gradient(145deg, rgba(13,19,52,0.95) 0%, rgba(8,13,38,0.98) 100%)",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
-                }}
-              >
-                {/* Starfield dot pattern — spreads from bottom-left corner on hover */}
-                <div
-                  className="absolute inset-0 z-[0] opacity-0 group-hover:opacity-75 transition-opacity duration-[1200ms] ease-out pointer-events-none"
-                  style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px)`,
-                    backgroundSize: "22px 22px",
-                    WebkitMaskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
-                    maskImage: "radial-gradient(ellipse 180% 180% at 0% 100%, black 30%, transparent 70%)",
-                  }}
-                />
-
-                {/* Top glow blob */}
-                <div
-                  className="absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 z-[0] rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: f.glow }}
-                />
-
-                {/* Shimmer sweep on hover */}
-                <div className="absolute inset-0 z-[0] -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none" />
-
-                {/* Glowing border on hover */}
-                <div
-                  className="absolute inset-0 z-[1] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                  style={{ boxShadow: `inset 0 0 0 1px ${f.borderGlow}` }}
-                />
-
-                {/* Content */}
-                <div className="relative z-10 p-7 flex flex-col gap-5">
-                  {/* Icon badge */}
-                  <div
-                    className={`h-14 w-14 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center border border-white/10 shadow-lg`}
-                    style={{ boxShadow: `0 0 20px ${f.glow}` }}
-                  >
-                    <f.icon size={24} className={f.iconColor} />
-                  </div>
-
-                  <div>
-                    <h3 className="font-display text-2xl tracking-wide text-ivory-50 leading-tight">
-                      {f.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-ivory-400 group-hover:text-ivory-200 transition-colors duration-300">
-                      {f.desc}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom spacer */}
-                <div className="relative z-10 px-7 pb-2">
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-
+          <Reveal delay={0.15} className="mt-8 space-y-6 text-ivory-300 text-base sm:text-lg leading-relaxed text-justify sm:text-center font-normal">
+            <p>
+              <strong className="text-white font-semibold">INFO BASH 5.0</strong> is the annual cricket tournament organized by the Sports Sub Committee of the Students&apos; Union, Faculty of Computing at Sabaragamuwa University of Sri Lanka. Building on the resounding success of four previous editions, INFO BASH 5.0 serves as a flagship event designed to bring together undergraduates and academic staff in a spirit of teamwork, sportsmanship, and healthy competition while strengthening unity across the faculty.
+            </p>
+            <p>
+              The primary aim of INFO BASH 5.0 is to promote holistic development by providing a vibrant platform for students and lecturers to showcase their athletic talent. Beyond the boundaries of the pitch, the tournament strives to foster confidence, leadership, decision-making, and mutual respect in an informal and engaging environment that contributes directly to personal growth and well-being.
+            </p>
+          </Reveal>
         </div>
       </section>
 
@@ -341,10 +233,10 @@ export default function Home() {
       {/* ══════════════════════════════════════
           VENUE / CTA
       ══════════════════════════════════════ */}
-      <section className="relative border-y border-cyan-400/10 bg-navy-950 py-16">
+      <section className="relative border-y border-orange-500/15 bg-navy-950 py-16">
         <Reveal>
           <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 text-center">
-            <div className="flex items-center gap-2 text-cyan-300">
+            <div className="flex items-center gap-2 text-orange-400 font-semibold">
               <MapPin size={18} />
               <span className="font-mono-score text-sm tracking-wide">
                 {TOURNAMENT_INFO.venue}
@@ -352,11 +244,11 @@ export default function Home() {
             </div>
             <h2 className="font-display text-4xl tracking-wide text-ivory-50 sm:text-5xl">
               Gather your squad.{" "}
-              <span className="text-gradient-cyan">Register before slots fill up.</span>
+              <span className="text-gradient-gold">Register before slots fill up.</span>
             </h2>
             <Link
               href="/register"
-              className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-8 py-3.5 text-sm font-semibold text-navy-950 shadow-[0_0_30px_-6px_rgba(53,215,255,0.8)] transition-transform hover:scale-105"
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105"
             >
               Register Your Team <ArrowRight size={16} />
             </Link>

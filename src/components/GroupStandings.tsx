@@ -30,8 +30,8 @@ export interface GroupMatch {
 
 const statusStyles: Record<GroupMatch["status"], string> = {
   scheduled: "border-white/15 text-ivory-400",
-  live: "border-gold-400/40 text-gold-300",
-  completed: "border-cyan-400/30 text-cyan-300",
+  live: "border-gold-400/40 text-gold-400 font-bold",
+  completed: "border-orange-500/40 text-orange-400",
 };
 
 function StatusBadge({ status }: { status: GroupMatch["status"] }) {
@@ -87,7 +87,7 @@ export default function GroupStandings({
                         {idx === 0 && t.wins > 0 && <Trophy size={12} className="text-gold-400" />}
                         {t.teamName}
                       </td>
-                      <td className="py-1.5 text-right text-cyan-300">{t.wins}</td>
+                      <td className="py-1.5 text-right text-orange-400 font-bold">{t.wins}</td>
                       <td className="py-1.5 text-right text-ivory-400">{t.losses}</td>
                     </tr>
                   ))}

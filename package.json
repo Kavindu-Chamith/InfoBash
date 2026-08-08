@@ -7,7 +7,8 @@
     "build": "node scripts/migrate.mjs && next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed": "node scripts/seed-14-teams.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",

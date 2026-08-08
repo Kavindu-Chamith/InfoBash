@@ -34,15 +34,15 @@ export default function AdminLoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#060c1a] px-4">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/15 blur-[160px]" />
-        <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-400/10 blur-[140px]" />
+        <div className="absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-[#FF6B00]/15 blur-[160px]" />
+        <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-amber-500/10 blur-[140px]" />
       </div>
 
       <form
         onSubmit={submit}
         className="glass-card glow-border relative z-10 w-full max-w-sm rounded-3xl p-8 sm:p-10"
       >
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 text-navy-950">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-[0_0_20px_rgba(255,107,0,0.5)]">
           <ShieldCheck size={24} />
         </div>
         <h1 className="mt-5 text-center font-display text-3xl tracking-wide text-ivory-50">
@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 outline-none transition-colors focus:border-cyan-400/60"
+            className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 outline-none transition-colors focus:border-orange-500/80"
             placeholder="••••••••"
           />
         </div>
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
         <button
           type="submit"
           disabled={state.status === "submitting"}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-6px_rgba(53,215,255,0.8)] transition-transform hover:scale-105 disabled:opacity-70"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-bold text-white shadow-[0_0_20px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105 disabled:opacity-70"
         >
           {state.status === "submitting" ? <Loader2 size={16} className="animate-spin" /> : "Sign In"}
         </button>

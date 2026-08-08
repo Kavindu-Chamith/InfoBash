@@ -37,7 +37,7 @@ function Unit({ value, label }: { value: number; label: string }) {
   const str = value.toString().padStart(2, "0");
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="glass-card glow-border flex rounded-2xl px-3 py-3 font-mono-score text-3xl font-bold text-cyan-300 sm:px-5 sm:py-4 sm:text-5xl">
+      <div className="glass-card glow-border flex rounded-2xl px-3 py-3 font-mono-score text-3xl font-bold text-orange-400 sm:px-5 sm:py-4 sm:text-5xl">
         {str.split("").map((d, i) => (
           <Digit key={i} value={d} />
         ))}
