@@ -106,7 +106,7 @@ export function TeamDrawer({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[100] flex justify-end">
           {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -114,7 +114,7 @@ export function TeamDrawer({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={onClose}
-            className="fixed inset-0 bg-navy-950/80 backdrop-blur-md"
+            className="fixed inset-0 bg-navy-950/85 backdrop-blur-md"
           />
 
           {/* Slide-over sidebar container */}
@@ -123,12 +123,12 @@ export function TeamDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 320 }}
-            className="relative z-50 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#070e20] shadow-2xl"
+            className="relative z-10 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#070e20] shadow-2xl"
           >
             {/* Drawer Top Header / Navigation */}
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
               <span className="font-mono-score text-[10px] uppercase tracking-[0.4em] text-ivory-400">
-                Team Profile & Squad
+                Team Profile &amp; Squad
               </span>
               <button
                 onClick={onClose}
