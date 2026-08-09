@@ -94,11 +94,16 @@ export function TeamDrawer({
       if (e.key === "Escape") onClose();
     }
     if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -186,43 +191,22 @@ export function TeamDrawer({
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
                   <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Squad Size</p>
                   <p className="mt-1 font-display text-2xl text-ivory-100">{team.players.length}</p>
-                  <span className="text-[10px] text-ivory-400">Players Registered</span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
                   <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Gender Ratio</p>
                   <p className="mt-1 font-display text-xl text-cyan-300">{maleCount} M / {femaleCount} F</p>
-                  <span className="text-[10px] text-ivory-400">Squad Composition</span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
                   <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Group Stage</p>
                   <p className="mt-1 font-display text-xl text-gold-400">{team.group_name ?? "Unassigned"}</p>
-                  <span className="text-[10px] text-ivory-400">Tournament Group</span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-center">
                   <p className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-500">Batch Year</p>
                   <p className="mt-1 font-display text-xl" style={{ color: theme.color }}>{team.batch}</p>
-                  <span className="text-[10px] text-ivory-400">Faculty Year</span>
                 </div>
               </div>
 
-              {/* Captain & Contact Card */}
-              {(team.captain_email || team.captain_contact) && (
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-2">
-                  <p className="font-mono-score text-[10px] uppercase tracking-widest text-gold-400">Captain Contact</p>
-                  {team.captain_email && (
-                    <div className="flex items-center gap-2.5 text-xs text-ivory-200">
-                      <Mail size={13} className="text-cyan-400" />
-                      <span>{team.captain_email}</span>
-                    </div>
-                  )}
-                  {team.captain_contact && (
-                    <div className="flex items-center gap-2.5 text-xs text-ivory-200">
-                      <Phone size={13} className="text-cyan-400" />
-                      <span>{team.captain_contact}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+
 
               {/* Full Squad Roster List */}
               <div>
@@ -230,7 +214,6 @@ export function TeamDrawer({
                   <h3 className="font-mono-score text-xs uppercase tracking-[0.3em] text-ivory-300">
                     Squad Roster ({team.players.length} Players)
                   </h3>
-                  <span className="text-[10px] text-ivory-500">11-A-Side</span>
                 </div>
 
                 <div className="space-y-2">
@@ -243,49 +226,44 @@ export function TeamDrawer({
                     .map((p, i) => {
                       const isCaptain = p.fullName === team.captain_name;
                       const posNumber = String(i + 1).padStart(2, "0");
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
-                      >
-                        <span className="font-mono-score text-xs font-bold text-ivory-500">
-                          #{posNumber}
-                        </span>
-
-                        <span
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold shadow-inner"
-                          style={{ background: `${theme.color}22`, color: theme.color }}
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
                         >
-                          {initials(p.fullName)}
-                        </span>
+                          <span className="font-mono-score text-xs font-bold text-ivory-500">
+                            #{posNumber}
+                          </span>
 
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate text-sm font-medium text-ivory-100">
-                            {p.fullName}
-                          </p>
-                          {p.studentId && (
-                            <p className="font-mono-score text-[10px] text-ivory-500">
-                              {p.studentId}
+                          <span
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold shadow-inner"
+                            style={{ background: `${theme.color}22`, color: theme.color }}
+                          >
+                            {initials(p.fullName)}
+                          </span>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-sm font-medium text-ivory-100">
+                              {p.fullName}
                             </p>
-                          )}
-                        </div>
+                          </div>
 
-                        {/* Badges */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {isCaptain && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-gold-400/40 bg-gold-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-400">
-                              <Crown size={9} /> Captain
-                            </span>
-                          )}
-                          {p.gender === "female" && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-pink-400/40 bg-pink-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-pink-300">
-                              <Shield size={9} /> Female
-                            </span>
-                          )}
+                          {/* Badges */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {isCaptain && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-gold-400/40 bg-gold-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-400">
+                                <Crown size={9} /> Captain
+                              </span>
+                            )}
+                            {p.gender === "female" && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-pink-400/40 bg-pink-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-pink-300">
+                                <Shield size={9} /> Female
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -468,16 +446,16 @@ export function FilterPill({
       style={
         active
           ? {
-              background: color ? `${color}20` : "rgba(255,107,0,0.15)",
-              borderColor: color ?? "#FF6B00",
-              color: color ?? "#FF6B00",
-              boxShadow: `0 0 16px -4px ${color ?? "#FF6B00"}60`,
-            }
+            background: color ? `${color}20` : "rgba(255,107,0,0.15)",
+            borderColor: color ?? "#FF6B00",
+            color: color ?? "#FF6B00",
+            boxShadow: `0 0 16px -4px ${color ?? "#FF6B00"}60`,
+          }
           : {
-              background: "rgba(255,255,255,0.04)",
-              borderColor: "rgba(255,255,255,0.1)",
-              color: "#94a3b8",
-            }
+            background: "rgba(255,255,255,0.04)",
+            borderColor: "rgba(255,255,255,0.1)",
+            color: "#94a3b8",
+          }
       }
     >
       {label}
