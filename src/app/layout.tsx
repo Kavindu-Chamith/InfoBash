@@ -37,21 +37,25 @@ export const metadata: Metadata = {
   icons: { icon: "/images/logo.png" },
 };
 
+import { ToastProvider } from "@/components/ToastProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         className={`${teko.variable} ${anton.variable} ${manrope.variable} ${jetbrainsMono.variable} antialiased bg-navy-950 text-ivory-50`}
       >
-        <Preloader />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <CricketFab />
+        <ToastProvider>
+          <Preloader />
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+          <CricketFab />
+        </ToastProvider>
       </body>
     </html>
   );
