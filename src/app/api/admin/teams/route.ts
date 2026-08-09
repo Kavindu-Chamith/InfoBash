@@ -10,9 +10,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const teamsResult = await pool.query(
-      `SELECT id, team_name, batch, captain_name, captain_contact, captain_email,
-              vice_captain_name, notes, created_at
-       FROM teams ORDER BY created_at DESC`
+      `SELECT t.id, t.team_name, t.batch, t.captain_name, t.captain_contact, t.captain_email,
+              t.vice_captain_name, t.notes, t.created_at, t.group_id, g.name AS group_name
+       FROM teams t
+       LEFT JOIN groups g ON g.id = t.group_id
+       ORDER BY t.created_at DESC`
     );
     const playersResult = await pool.query(
       `SELECT team_id, position, full_name, student_id, gender
