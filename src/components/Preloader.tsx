@@ -25,8 +25,10 @@ export default function Preloader() {
   }, []);
 
   useEffect(() => {
+    document.documentElement.style.overflow = visible ? "hidden" : "";
     document.body.style.overflow = visible ? "hidden" : "";
     return () => {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, [visible]);
