@@ -48,11 +48,10 @@ export interface MatchApiRow {
   winner_name: string | null;
 }
 
-export type StageRound = "round1" | "quarterfinal" | "semifinal" | "final";
+export type StageRound = "round1" | "semifinal" | "final";
 
 export const TOURNAMENT_ROUNDS: { id: StageRound; label: string; shortLabel: string }[] = [
   { id: "round1", label: "1st Round", shortLabel: "Round 1" },
-  { id: "quarterfinal", label: "Quarterfinals", shortLabel: "QF" },
   { id: "semifinal", label: "Semifinals", shortLabel: "SF" },
   { id: "final", label: "Final", shortLabel: "Final" },
 ];
@@ -114,42 +113,7 @@ const DEFAULT_ROUNDS_UPCOMING: Record<StageRound, MatchApiRow[]> = {
       winner_name: null,
     },
   ],
-  quarterfinal: [
-    {
-      id: "qf-1",
-      stage: "quarterfinal",
-      label: "QUARTERFINAL · GAME 01",
-      status: "scheduled",
-      team_a_score: null,
-      team_b_score: null,
-      scheduled_at: "2026-05-29T14:00:00Z",
-      venue: "Main Ground",
-      group_name: "QF 1",
-      team_a_id: "q1",
-      team_a_name: "PHOENIX LIONS",
-      team_b_id: "q2",
-      team_b_name: "ROYAL STRIKERS",
-      winner_id: null,
-      winner_name: null,
-    },
-    {
-      id: "qf-2",
-      stage: "quarterfinal",
-      label: "QUARTERFINAL · GAME 02",
-      status: "scheduled",
-      team_a_score: null,
-      team_b_score: null,
-      scheduled_at: "2026-05-29T16:30:00Z",
-      venue: "Main Ground",
-      group_name: "QF 2",
-      team_a_id: "q3",
-      team_a_name: "LEGACY KINGS",
-      team_b_id: "q4",
-      team_b_name: "BYTE FORCE",
-      winner_id: null,
-      winner_name: null,
-    },
-  ],
+
   semifinal: [
     {
       id: "sf-1",
@@ -213,27 +177,7 @@ const DEFAULT_ROUNDS_LIVE: Record<StageRound, MatchApiRow> = {
     winner_id: null,
     winner_name: null,
   },
-  quarterfinal: {
-    id: "live-qf",
-    stage: "quarterfinal",
-    label: "INFOBASH V5.0 · QUARTERFINAL",
-    status: "live",
-    team_a_score: 154,
-    team_b_score: 120,
-    team_a_wickets: 6,
-    team_b_wickets: 3,
-    team_a_overs: "20.0",
-    team_b_overs: "15.4",
-    scheduled_at: "2026-05-27T14:00:00Z",
-    venue: "Main Ground",
-    group_name: "Quarterfinal Spotlight",
-    team_a_id: "ck",
-    team_a_name: "CYBER KNIGHTS",
-    team_b_id: "tx",
-    team_b_name: "TITAN XI",
-    winner_id: null,
-    winner_name: null,
-  },
+
   semifinal: {
     id: "live-sf",
     stage: "semifinal",
@@ -324,29 +268,7 @@ const DEFAULT_ROUNDS_COMPLETED: Record<StageRound, MatchApiRow[]> = {
       winner_name: "TITAN XI",
     },
   ],
-  quarterfinal: [
-    {
-      id: "comp-qf-1",
-      stage: "quarterfinal",
-      label: "QUARTERFINAL · GAME 01",
-      status: "completed",
-      team_a_score: 172,
-      team_b_score: 157,
-      team_a_wickets: 4,
-      team_b_wickets: 9,
-      team_a_overs: "20.0",
-      team_b_overs: "20.0",
-      scheduled_at: "2026-05-27T11:00:00Z",
-      venue: "Ground B",
-      group_name: "QF 1",
-      team_a_id: "tb",
-      team_a_name: "THUNDERBOLTS",
-      team_b_id: "rt",
-      team_b_name: "RANTHARU",
-      winner_id: "tb",
-      winner_name: "THUNDERBOLTS",
-    },
-  ],
+
   semifinal: [
     {
       id: "comp-sf-1",
@@ -785,11 +707,10 @@ export default function MatchesLive() {
                   setSelectedRound(round.id);
                   setUserHasSelectedRound(true);
                 }}
-                className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-300 sm:px-5 sm:py-2.5 ${
-                  isSelected
+                className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-300 sm:px-5 sm:py-2.5 ${isSelected
                     ? "bg-gradient-to-r from-emerald-500 to-cyan-400 text-navy-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] scale-105"
                     : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-emerald-500/40 hover:text-white"
-                }`}
+                  }`}
               >
                 {/* Live Indicator Pulse Badge if this round is live right now */}
                 {isLiveNow && (
@@ -804,11 +725,10 @@ export default function MatchesLive() {
                 {/* LIVE badge label tag */}
                 {isLiveNow && (
                   <span
-                    className={`rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
-                      isSelected
+                    className={`rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${isSelected
                         ? "bg-navy-950/80 text-emerald-300"
                         : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                      }`}
                   >
                     LIVE
                   </span>
@@ -1018,18 +938,16 @@ export default function MatchesLive() {
                 <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-7">
                   {/* Team A Scorebox */}
                   <div
-                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${
-                      isTeamAWinner
+                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${isTeamAWinner
                         ? "border border-gold-400/30 bg-gold-400/10 shadow-[0_0_15px_rgba(245,185,66,0.1)]"
                         : "bg-white/[0.02]"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-1.5">
                       {isTeamAWinner && <Crown size={14} className="text-gold-400" />}
                       <span
-                        className={`font-display text-sm font-bold sm:text-base ${
-                          isTeamAWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
-                        }`}
+                        className={`font-display text-sm font-bold sm:text-base ${isTeamAWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
+                          }`}
                       >
                         {match.team_a_name ?? "TEAM A"}
                       </span>
@@ -1052,18 +970,16 @@ export default function MatchesLive() {
 
                   {/* Team B Scorebox */}
                   <div
-                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${
-                      isTeamBWinner
+                    className={`flex items-center justify-between rounded-xl p-3 sm:col-span-3 sm:flex-col sm:justify-center ${isTeamBWinner
                         ? "border border-gold-400/30 bg-gold-400/10 shadow-[0_0_15px_rgba(245,185,66,0.1)]"
                         : "bg-white/[0.02]"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-1.5">
                       {isTeamBWinner && <Crown size={14} className="text-gold-400" />}
                       <span
-                        className={`font-display text-sm font-bold sm:text-base ${
-                          isTeamBWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
-                        }`}
+                        className={`font-display text-sm font-bold sm:text-base ${isTeamBWinner ? "text-gold-300 font-extrabold" : "text-ivory-100"
+                          }`}
                       >
                         {match.team_b_name ?? "TEAM B"}
                       </span>
