@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
   try {
     await client.query("BEGIN");
 
-    const groupsResult = await client.query(`SELECT id FROM groups ORDER BY name ASC`);
-    const groups = groupsResult.rows as { id: string }[];
+    const groupsResult = await client.query(`SELECT id, name FROM groups ORDER BY name ASC`);
+    const groups = groupsResult.rows as { id: string; name: string }[];
     if (groups.length === 0) {
       await client.query("ROLLBACK");
       return NextResponse.json(
@@ -38,24 +38,29 @@ export async function POST(req: NextRequest) {
       teamIds: teamsByGroup.get(g.id) ?? [],
     }));
 
-    // Clear any previously generated round-1 fixtures before regenerating.
-    await client.query(`DELETE FROM matches WHERE stage = 'group' AND round = 1`);
+    // Clear any previously generated round-1 or group stage fixtures before regenerating.
+    await client.query(`DELETE FROM matches WHERE stage IN ('group', 'round1')`);
 
     const pairings = generateRound1(assignments);
     let created = 0;
+    const matchCountByGroup = new Map<string, number>();
+
     for (const pairing of pairings) {
-      const groupId = groups[pairing.groupIndex].id;
-      const isBye = pairing.teamBId === null;
+      const groupRow = groups[pairing.groupIndex];
+      const groupId = groupRow.id;
+      const currentMatchNum = (matchCountByGroup.get(groupId) ?? 0) + 1;
+      matchCountByGroup.set(groupId, currentMatchNum);
+
+      const groupName = groupRow.name || `Group ${pairing.groupIndex + 1}`;
+
       await client.query(
-        `INSERT INTO matches (stage, group_id, round, label, team_a_id, team_b_id, status, winner_id)
-         VALUES ('group', $1, 1, $2, $3, $4, $5, $6)`,
+        `INSERT INTO matches (stage, group_id, round, label, team_a_id, team_b_id, status)
+         VALUES ('group', $1, 1, $2, $3, $4, 'scheduled')`,
         [
           groupId,
-          isBye ? "Round 1 · Bye" : "Round 1",
+          `${groupName} · Match ${currentMatchNum}`,
           pairing.teamAId,
           pairing.teamBId,
-          isBye ? "completed" : "scheduled",
-          isBye ? pairing.teamAId : null,
         ]
       );
       created++;
@@ -63,10 +68,11 @@ export async function POST(req: NextRequest) {
 
     await client.query("COMMIT");
     return NextResponse.json({ success: true, matchesCreated: created });
-  } catch (err) {
+  } catch (err: unknown) {
     await client.query("ROLLBACK");
+    const errMsg = err instanceof Error ? err.message : "Failed to generate round-1 matches";
     console.error("Round 1 generation error:", err);
-    return NextResponse.json({ error: "Failed to generate round-1 matches" }, { status: 500 });
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   } finally {
     client.release();
   }

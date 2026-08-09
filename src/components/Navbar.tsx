@@ -68,7 +68,9 @@ export default function Navbar() {
                   {link.label}
                   {active && (
                     <motion.span
-                      layoutId="nav-underline"
+                      initial={{ opacity: 0, scaleX: 0.85 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
                       className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_8px_#FF6B00]"
                     />
                   )}

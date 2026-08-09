@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 import {
   Download,
   Loader2,
@@ -24,6 +25,8 @@ import {
   List,
   User,
   ShieldCheck,
+  Crown,
+  Trophy,
 } from "lucide-react";
 
 type Tab = "teams" | "groups" | "matches";
@@ -45,6 +48,8 @@ interface AdminTeam {
   vice_captain_name: string | null;
   notes: string | null;
   created_at: string;
+  group_id?: string | null;
+  group_name?: string | null;
   players: AdminTeamPlayer[];
 }
 
@@ -76,6 +81,7 @@ interface MatchRow {
   team_b_overs?: string | null;
   scheduled_at: string | null;
   venue: string | null;
+  group_id?: string | null;
   group_name: string | null;
   team_a_id: string | null;
   team_a_name: string | null;
@@ -95,6 +101,7 @@ const btnGhost =
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
   const [authChecked, setAuthChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("teams");
 
@@ -102,7 +109,6 @@ export default function AdminDashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -128,6 +134,18 @@ export default function AdminDashboard() {
     setLoading(false);
   }, [router]);
 
+  const handleChanged = useCallback(
+    (message: string, isError: boolean = false, title?: string) => {
+      if (isError) {
+        showError(message, title || "Action Failed");
+      } else {
+        showSuccess(message, title || "Success");
+        loadAll();
+      }
+    },
+    [showError, showSuccess, loadAll]
+  );
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data load on mount
     loadAll();
@@ -147,7 +165,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-[#060c1a] px-4 py-10 sm:px-8">
+    <main className="min-h-screen bg-[#060c1a] px-4 pt-24 pb-12 sm:px-8 sm:pt-28">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -166,22 +184,15 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {actionMessage && (
-          <div className="mb-6 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-200">
-            {actionMessage}
-          </div>
-        )}
-
         <div className="mb-6 flex gap-2 border-b border-white/10 pb-px">
           {(["teams", "groups", "matches"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-t-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                tab === t
-                  ? "border-b-2 border-cyan-400 text-cyan-300"
-                  : "text-ivory-400 hover:text-ivory-200"
-              }`}
+              className={`rounded-t-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${tab === t
+                ? "border-b-2 border-cyan-400 text-cyan-300"
+                : "text-ivory-400 hover:text-ivory-200"
+                }`}
             >
               {t}
             </button>
@@ -197,30 +208,21 @@ export default function AdminDashboard() {
             {tab === "teams" && (
               <TeamsTab
                 teams={teams}
-                onChanged={(msg) => {
-                  setActionMessage(msg);
-                  loadAll();
-                }}
+                onChanged={handleChanged}
               />
             )}
             {tab === "groups" && (
               <GroupsTab
                 groups={groups}
                 teamCount={teams.length}
-                onChanged={(msg) => {
-                  setActionMessage(msg);
-                  loadAll();
-                }}
+                onChanged={handleChanged}
               />
             )}
             {tab === "matches" && (
               <MatchesTab
                 matches={matches}
                 teams={teams}
-                onChanged={(msg) => {
-                  setActionMessage(msg);
-                  loadAll();
-                }}
+                onChanged={handleChanged}
               />
             )}
           </>
@@ -242,7 +244,7 @@ function TeamsTab({
   onChanged,
 }: {
   teams: AdminTeam[];
-  onChanged: (message: string) => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
   const [editingTeam, setEditingTeam] = useState<AdminTeam | null>(null);
   const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
@@ -262,21 +264,19 @@ function TeamsTab({
         <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-navy-900/60 p-1">
           <button
             onClick={() => setViewMode("cards")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              viewMode === "cards"
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-                : "text-ivory-400 hover:text-ivory-200"
-            }`}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "cards"
+              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+              : "text-ivory-400 hover:text-ivory-200"
+              }`}
           >
             <LayoutGrid size={14} /> Cards
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              viewMode === "table"
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-                : "text-ivory-400 hover:text-ivory-200"
-            }`}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "table"
+              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+              : "text-ivory-400 hover:text-ivory-200"
+              }`}
           >
             <List size={14} /> Table
           </button>
@@ -460,25 +460,25 @@ function AdminTeamCard({
             <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-white/10 bg-navy-950/70 p-2.5 space-y-1.5 text-xs">
               {team.players
                 ? [...team.players]
-                    .sort((a, b) => {
-                      if (a.gender === "female" && b.gender !== "female") return 1;
-                      if (a.gender !== "female" && b.gender === "female") return -1;
-                      return (a.position || 0) - (b.position || 0);
-                    })
-                    .map((p, idx) => (
-                      <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{idx + 1}</span>
-                          <span className="truncate">{p.full_name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
-                          <span className="text-ivory-400">{p.student_id}</span>
-                          <span className={`rounded px-1.5 py-0.5 font-semibold text-[9px] ${p.gender === "female" ? "bg-pink-500/20 text-pink-300 border border-pink-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"}`}>
-                            {p.gender === "female" ? "Female" : "Male"}
-                          </span>
-                        </div>
+                  .sort((a, b) => {
+                    if (a.gender === "female" && b.gender !== "female") return 1;
+                    if (a.gender !== "female" && b.gender === "female") return -1;
+                    return (a.position || 0) - (b.position || 0);
+                  })
+                  .map((p, idx) => (
+                    <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{idx + 1}</span>
+                        <span className="truncate">{p.full_name}</span>
                       </div>
-                    ))
+                      <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
+                        <span className="text-ivory-400">{p.student_id}</span>
+                        <span className={`rounded px-1.5 py-0.5 font-semibold text-[9px] ${p.gender === "female" ? "bg-pink-500/20 text-pink-300 border border-pink-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"}`}>
+                          {p.gender === "female" ? "Female" : "Male"}
+                        </span>
+                      </div>
+                    </div>
+                  ))
                 : null}
             </div>
           )}
@@ -536,32 +536,38 @@ function DeleteTeamModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-navy-950 p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-[#070e1c] p-6 shadow-2xl space-y-4 text-left">
         <div className="flex items-center gap-3 text-rose-400">
           <AlertTriangle size={24} />
-          <h3 className="font-display text-xl tracking-wide text-ivory-50">Delete Team</h3>
+          <h3 className="font-display text-xl font-bold tracking-wide text-ivory-50">Delete Team</h3>
         </div>
-        <p className="mt-3 text-sm text-ivory-300">
-          Are you sure you want to delete <strong className="text-ivory-50">{team.team_name}</strong>? This will permanently delete the team squad and remove it from any allocated groups or matches.
+        <p className="text-sm leading-relaxed text-ivory-300">
+          Are you sure you want to delete <strong className="text-white font-semibold">{team.team_name}</strong>? This will permanently delete the team squad and remove it from any allocated groups or matches.
         </p>
 
         {error && (
-          <div className="mt-3 rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5 text-xs text-rose-300">
+          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5 text-xs text-rose-300">
             {error}
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button onClick={onClose} disabled={loading} className={btnGhost}>
+        <div className="pt-2 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold text-ivory-200 transition-colors hover:bg-white/10 hover:text-white"
+          >
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition-transform hover:scale-105 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow-md shadow-rose-600/30 transition-all hover:bg-rose-500 active:scale-95 disabled:opacity-60"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
             Delete Team
           </button>
         </div>
@@ -813,83 +819,210 @@ function GroupsTab({
 }: {
   groups: Group[];
   teamCount: number;
-  onChanged: (message: string) => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
-  const [groupCount, setGroupCount] = useState(Math.max(2, Math.ceil(teamCount / 4) || 2));
   const [busy, setBusy] = useState<"allocate" | "round1" | null>(null);
+  const [confirmModal, setConfirmModal] = useState<"allocate" | "round1" | null>(null);
+
+  const isValidTeamCount = teamCount >= 12 && teamCount <= 16;
 
   async function allocate() {
     setBusy("allocate");
-    const res = await fetch("/api/admin/groups/allocate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ groupCount }),
-    });
-    const json = await res.json();
-    setBusy(null);
-    onChanged(res.ok ? `Allocated ${json.groupCount} groups.` : json.error);
+    try {
+      const res = await fetch("/api/admin/groups/allocate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      setBusy(null);
+      if (res.ok) {
+        onChanged(json.message || "Successfully allocated 4 groups.", false, "Group Allocation");
+      } else {
+        onChanged(json.error || "Failed to allocate groups.", true, "Allocation Error");
+      }
+    } catch {
+      setBusy(null);
+      onChanged("Failed to allocate groups. Please try again.", true, "Connection Error");
+    }
   }
 
   async function generateRound1() {
     setBusy("round1");
-    const res = await fetch("/api/admin/matches/generate-round1", { method: "POST" });
-    const json = await res.json();
-    setBusy(null);
-    onChanged(res.ok ? `Created ${json.matchesCreated} round-1 fixtures.` : json.error);
+    try {
+      const res = await fetch("/api/admin/matches/generate-round1", { method: "POST" });
+      const json = await res.json();
+      setBusy(null);
+      if (res.ok) {
+        onChanged(`Created ${json.matchesCreated} round-1 fixtures.`, false, "Matches Generated");
+      } else {
+        onChanged(json.error || "Failed to generate round 1 matches.", true, "Fixture Error");
+      }
+    } catch {
+      setBusy(null);
+      onChanged("Failed to generate round 1 matches.", true, "Connection Error");
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className={`${cardClass} flex flex-wrap items-end gap-4`}>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
-            Number of Groups
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={20}
-            value={groupCount}
-            onChange={(e) => setGroupCount(Number(e.target.value))}
-            className={`${inputClass} w-24`}
-          />
+      <div className={`${cardClass} space-y-4`}>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-2xl tracking-wide text-ivory-50">
+              Four-Group Tournament System
+            </h3>
+            <p className="mt-1 text-xs text-ivory-300">
+              Allocates teams into <strong>Group A, Group B, Group C, and Group D</strong> (3 or 4 teams per group).
+            </p>
+          </div>
+          <div
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-semibold border ${isValidTeamCount
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+              : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+              }`}
+          >
+            <Users size={14} />
+            <span>
+              {teamCount} Teams Registered
+            </span>
+          </div>
         </div>
-        <button onClick={allocate} disabled={busy !== null || teamCount === 0} className={btnPrimary}>
-          {busy === "allocate" ? <Loader2 size={14} className="animate-spin" /> : <Shuffle size={14} />}
-          Randomly Allocate Groups
-        </button>
-        <button
-          onClick={generateRound1}
-          disabled={busy !== null || groups.length === 0}
-          className={btnGhost}
-        >
-          {busy === "round1" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-          Generate Round 1 Matches
-        </button>
-        <p className="w-full text-xs text-ivory-400">
-          Re-allocating clears existing groups and any generated round-1 fixtures.
+
+        {!isValidTeamCount && (
+          <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+            ⚠️ Group allocation requires between <strong>12 and 16</strong> registered teams. Currently, there are <strong>{teamCount}</strong> team(s) registered.
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <button
+            onClick={() => setConfirmModal("allocate")}
+            disabled={busy !== null || !isValidTeamCount}
+            className={btnPrimary}
+          >
+            {busy === "allocate" ? <Loader2 size={14} className="animate-spin" /> : <Shuffle size={14} />}
+            Randomly Allocate 4 Groups
+          </button>
+
+          <button
+            onClick={() => setConfirmModal("round1")}
+            disabled={busy !== null || groups.length === 0}
+            className={btnGhost}
+          >
+            {busy === "round1" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+            Generate Round 1 Matches
+          </button>
+        </div>
+
+        <p className="text-[11px] text-ivory-400">
+          * Re-allocating randomly redistributes teams into Group A–D and resets any existing group fixtures.
         </p>
       </div>
 
       {groups.length === 0 ? (
-        <p className="text-sm text-ivory-400">No groups allocated yet.</p>
+        <div className={`${cardClass} py-12 text-center`}>
+          <Users size={32} className="mx-auto text-ivory-500 mb-3 opacity-60" />
+          <p className="text-sm font-medium text-ivory-300">No groups allocated yet.</p>
+          <p className="mt-1 text-xs text-ivory-400">
+            {isValidTeamCount
+              ? "Click 'Randomly Allocate 4 Groups' to split registered teams into Group A, B, C, and D."
+              : "Register between 12 and 16 teams to enable 4-group allocation."}
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {groups.map((g) => (
-            <div key={g.id} className={cardClass}>
-              <h3 className="font-display text-xl tracking-wide text-cyan-300">{g.name}</h3>
-              <ul className="mt-3 space-y-1.5 text-sm">
-                {g.teams.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between text-ivory-200">
-                    <span>{t.teamName}</span>
-                    <span className="text-xs text-ivory-400">
-                      {t.wins}W – {t.losses}L
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            <div key={g.id} className={`${cardClass} flex flex-col justify-between`}>
+              <div>
+                <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+                  <h3 className="font-display text-xl tracking-wide text-cyan-300">{g.name}</h3>
+                  <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 font-mono-score text-[10px] font-bold text-cyan-300">
+                    {g.teams.length} Teams
+                  </span>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  {g.teams.map((t, idx) => (
+                    <li key={t.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-ivory-200">
+                      <span className="flex items-center gap-2 font-medium text-xs">
+                        <span className="font-mono-score text-[10px] text-ivory-500">#{idx + 1}</span>
+                        {t.teamName}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Confirmation Modal for Group Allocation */}
+      {confirmModal === "allocate" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-cyan-500/30 bg-navy-950 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 text-cyan-400">
+              <Shuffle size={24} />
+              <h3 className="font-display text-xl tracking-wide text-ivory-50">Allocate Groups</h3>
+            </div>
+            <p className="mt-3 text-sm text-ivory-300 leading-relaxed">
+              Are you sure you want to randomly allocate groups? This will divide the registered teams into <strong className="text-cyan-300">Group A, Group B, Group C, and Group D</strong>. Any existing group assignments or round-1 fixtures will be reset.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setConfirmModal(null)}
+                disabled={busy !== null}
+                className={btnGhost}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await allocate();
+                  setConfirmModal(null);
+                }}
+                disabled={busy !== null}
+                className={btnPrimary}
+              >
+                {busy === "allocate" ? <Loader2 size={14} className="animate-spin" /> : <Shuffle size={14} />}
+                Allocate Groups
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Round 1 Match Generation */}
+      {confirmModal === "round1" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-cyan-500/30 bg-navy-950 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 text-emerald-400">
+              <Play size={24} />
+              <h3 className="font-display text-xl tracking-wide text-ivory-50">Generate Round 1 Matches</h3>
+            </div>
+            <p className="mt-3 text-sm text-ivory-300 leading-relaxed">
+              Are you sure you want to generate Round 1 matches? This will clear any existing Round 1 fixtures and regenerate match pairings for all groups.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setConfirmModal(null)}
+                disabled={busy !== null}
+                className={btnGhost}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await generateRound1();
+                  setConfirmModal(null);
+                }}
+                disabled={busy !== null}
+                className={btnPrimary}
+              >
+                {busy === "round1" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                Generate Round 1 Matches
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -903,10 +1036,18 @@ function MatchesTab({
 }: {
   matches: MatchRow[];
   teams: AdminTeam[];
-  onChanged: (message: string) => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
   // Selected Round filter in Admin Matches Tab
   const [adminRound, setAdminRound] = useState<MatchRow["stage"]>("round1");
+  const [selectedMatchForDetails, setSelectedMatchForDetails] = useState<MatchRow | null>(null);
+  const [editingMatchModal, setEditingMatchModal] = useState<MatchRow | null>(null);
+  const [deletingMatchModal, setDeletingMatchModal] = useState<MatchRow | null>(null);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+
+  useEffect(() => {
+    setSelectedGroupFilter("all");
+  }, [adminRound]);
 
   // Form for creating fixture
   const [form, setForm] = useState<{
@@ -936,8 +1077,23 @@ function MatchesTab({
     (m) => m.stage === adminRound || (adminRound === "round1" && m.stage === "group")
   );
 
-  const upcomingRoundMatches = roundMatches.filter((m) => m.status !== "completed");
-  const completedRoundMatches = roundMatches.filter((m) => m.status === "completed");
+  const availableGroupNames = Array.from(
+    new Set(
+      roundMatches
+        .map((m) => m.group_name)
+        .filter((name): name is string => Boolean(name))
+    )
+  ).sort();
+
+  const filteredMatches = roundMatches.filter(
+    (m) =>
+      selectedGroupFilter === "all" ||
+      m.group_name === selectedGroupFilter ||
+      m.label?.includes(selectedGroupFilter)
+  );
+
+  const upcomingRoundMatches = filteredMatches.filter((m) => m.status !== "completed");
+  const completedRoundMatches = filteredMatches.filter((m) => m.status === "completed");
 
   // Live Controller state
   const liveMatchInDb = matches.find((m) => m.status === "live");
@@ -1010,7 +1166,9 @@ function MatchesTab({
         ? newStatus === "live"
           ? `Match "${selectedMatchObj?.team_a_name ?? 'Team A'} vs ${selectedMatchObj?.team_b_name ?? 'Team B'}" is now LIVE! Scores broadcasting.`
           : `Match completed! Moved to Match Results section.`
-        : json.error
+        : json.error,
+      !res.ok,
+      res.ok ? "Match Updated" : "Match Error"
     );
   }
 
@@ -1031,7 +1189,11 @@ function MatchesTab({
     });
     const json = await res.json();
     setCreating(false);
-    onChanged(res.ok ? "New match fixture created." : json.error);
+    onChanged(
+      res.ok ? "New match fixture created." : json.error,
+      !res.ok,
+      res.ok ? "Match Created" : "Fixture Error"
+    );
     if (res.ok) setForm((f) => ({ ...f, label: "", teamAId: "", teamBId: "" }));
   }
 
@@ -1052,7 +1214,7 @@ function MatchesTab({
           setMatchesPublished(json.matchesPublished);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const [submittingRound, setSubmittingRound] = useState(false);
@@ -1072,10 +1234,12 @@ function MatchesTab({
       onChanged(
         newValue
           ? "Matches & Schedules are now UNHIDDEN and PUBLICLY VISIBLE to users on /matches!"
-          : "Matches page is now HIDDEN in 'Coming Soon' mode for users."
+          : "Matches page is now HIDDEN in 'Coming Soon' mode for users.",
+        false,
+        "Visibility Setting"
       );
     } else {
-      onChanged(json.error || "Failed to update visibility setting");
+      onChanged(json.error || "Failed to update visibility setting", true, "Visibility Error");
     }
   }
 
@@ -1092,17 +1256,15 @@ function MatchesTab({
     const roundLabel =
       adminRound === "round1"
         ? "1st Round"
-        : adminRound === "quarterfinal"
-        ? "Quarterfinals"
         : adminRound === "semifinal"
-        ? "Semifinals"
-        : "Final";
+          ? "Semifinals"
+          : "Final";
 
     if (res.ok) {
       setServerActiveRound(adminRound);
-      onChanged(`Successfully published "${roundLabel}" as the Current Live Round on user matches page!`);
+      onChanged(`Successfully published "${roundLabel}" as the Current Live Round on user matches page!`, false, "Live Round Published");
     } else {
-      onChanged(json.error);
+      onChanged(json.error || "Failed to publish active round", true, "Publish Error");
     }
   }
 
@@ -1123,8 +1285,8 @@ function MatchesTab({
           </div>
           <p className="mt-1 text-xs text-ivory-300">
             {matchesPublished
-              ? "🟢 Matches & Schedules are currently UNHIDDEN & PUBLICLY VISIBLE on /matches."
-              : "🔒 Matches & Schedules are currently HIDDEN (Users see 'Coming Soon' notice until you unhide manually)."}
+              ? "Matches & Schedules are currently UNHIDDEN & PUBLICLY VISIBLE"
+              : "Matches & Schedules are currently HIDDEN"}
           </p>
         </div>
 
@@ -1132,18 +1294,17 @@ function MatchesTab({
           type="button"
           onClick={toggleMatchesPublished}
           disabled={togglingPublish}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-lg ${
-            matchesPublished
-              ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30"
-              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
-          }`}
+          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-lg ${matchesPublished
+            ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30"
+            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+            }`}
         >
           {togglingPublish ? (
             <Loader2 size={15} className="animate-spin" />
           ) : matchesPublished ? (
-            <>🔒 Hide Matches (Set &apos;Coming Soon&apos; Mode)</>
+            <>Hide Matches (Set &apos;Coming Soon&apos; Mode)</>
           ) : (
-            <>🔓 Unhide &amp; Publish Matches for Users</>
+            <>Unhide &amp; Publish Matches for Users</>
           )}
         </button>
       </div>
@@ -1162,11 +1323,9 @@ function MatchesTab({
               <strong className="text-emerald-400 font-bold uppercase">
                 {serverActiveRound === "round1"
                   ? "1st Round"
-                  : serverActiveRound === "quarterfinal"
-                  ? "Quarterfinals"
                   : serverActiveRound === "semifinal"
-                  ? "Semifinals"
-                  : "Final"}
+                    ? "Semifinals"
+                    : "Final"}
               </strong>
             </span>
           </div>
@@ -1190,7 +1349,6 @@ function MatchesTab({
         <div className="flex flex-wrap items-center gap-2.5">
           {[
             { id: "round1", label: "1st Round" },
-            { id: "quarterfinal", label: "Quarterfinals" },
             { id: "semifinal", label: "Semifinals" },
             { id: "final", label: "Final" },
           ].map((r) => {
@@ -1205,20 +1363,18 @@ function MatchesTab({
                   setAdminRound(r.id as MatchRow["stage"]);
                   setSelectedLiveId("");
                 }}
-                className={`relative inline-flex items-center gap-2 rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                  isSelected
-                    ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105"
-                    : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-cyan-400/40 hover:text-white"
-                }`}
+                className={`relative inline-flex items-center gap-2 rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${isSelected
+                  ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105"
+                  : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-cyan-400/40 hover:text-white"
+                  }`}
               >
                 <span>{r.label}</span>
                 {isLiveOnWebsite && (
                   <span
-                    className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold tracking-wider ${
-                      isSelected
-                        ? "bg-navy-950/80 text-emerald-300 border border-emerald-400/40"
-                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                    }`}
+                    className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold tracking-wider ${isSelected
+                      ? "bg-navy-950/80 text-emerald-300 border border-emerald-400/40"
+                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      }`}
                   >
                     ● LIVE NOW
                   </span>
@@ -1413,7 +1569,6 @@ function MatchesTab({
             className={inputClass}
           >
             <option value="round1">1st Round</option>
-            <option value="quarterfinal">Quarterfinal</option>
             <option value="semifinal">Semifinal</option>
             <option value="final">Final</option>
             <option value="group">Group Stage</option>
@@ -1466,16 +1621,57 @@ function MatchesTab({
           4. ALL MATCHES LIST (UPCOMING & RESULTS FOR SELECTED ROUND)
       ══════════════════════════════════════════════════════════════ */}
       <div className="space-y-6">
-        <h3 className="font-display text-xl tracking-wide text-ivory-50">
-          Match List for {adminRound.toUpperCase()}
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-2xl tracking-wide text-ivory-50">
+              Match List for {adminRound.toUpperCase()}
+            </h3>
+            <p className="mt-1 text-xs text-ivory-300">
+              {selectedGroupFilter === "all"
+                ? `Showing all ${roundMatches.length} matches for ${adminRound.toUpperCase()}.`
+                : `Showing fixtures for ${selectedGroupFilter}.`}
+            </p>
+          </div>
+
+          {/* Group Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-1 rounded-xl border border-white/10 bg-navy-950 p-1">
+            <button
+              type="button"
+              onClick={() => setSelectedGroupFilter("all")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${selectedGroupFilter === "all"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                : "text-ivory-400 hover:text-ivory-200"
+                }`}
+            >
+              All Groups ({roundMatches.length})
+            </button>
+            {(availableGroupNames.length > 0 ? availableGroupNames : ["Group A", "Group B", "Group C", "Group D"]).map((gName) => {
+              const count = roundMatches.filter(
+                (m) => m.group_name === gName || m.label?.includes(gName)
+              ).length;
+              return (
+                <button
+                  key={gName}
+                  type="button"
+                  onClick={() => setSelectedGroupFilter(gName)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${selectedGroupFilter === gName
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                    : "text-ivory-400 hover:text-ivory-200"
+                    }`}
+                >
+                  {gName} ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Upcoming / Live Matches list (Compact Cards like User Side) */}
         <div>
           <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-400">
             • Live & Scheduled Fixtures ({upcomingRoundMatches.length})
           </h4>
-          <div className="flex flex-wrap gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
             {upcomingRoundMatches.length === 0 ? (
               <p className="text-xs text-ivory-400">No scheduled or live matches in this round.</p>
             ) : (
@@ -1485,6 +1681,9 @@ function MatchesTab({
                   match={m}
                   teams={teams}
                   onSelectLive={(id) => handleLiveSelect(id)}
+                  onViewDetails={(match) => setSelectedMatchForDetails(match)}
+                  onEditMatch={(match) => setEditingMatchModal(match)}
+                  onDeleteMatch={(match) => setDeletingMatchModal(match)}
                   onChanged={onChanged}
                 />
               ))
@@ -1502,12 +1701,46 @@ function MatchesTab({
               <p className="text-xs text-ivory-400">No completed match results in this round yet.</p>
             ) : (
               completedRoundMatches.map((m) => (
-                <MatchEditor key={m.id} match={m} teams={teams} onChanged={onChanged} />
+                <MatchEditor
+                  key={m.id}
+                  match={m}
+                  teams={teams}
+                  onViewDetails={(match) => setSelectedMatchForDetails(match)}
+                  onChanged={onChanged}
+                />
               ))
             )}
           </div>
         </div>
       </div>
+
+      {/* Match Team Details Modal Overlay */}
+      {selectedMatchForDetails && (
+        <MatchTeamDetailsModal
+          match={selectedMatchForDetails}
+          teams={teams}
+          onClose={() => setSelectedMatchForDetails(null)}
+        />
+      )}
+
+      {/* Standalone Match Edit Modal Overlay */}
+      {editingMatchModal && (
+        <EditMatchModal
+          match={editingMatchModal}
+          teams={teams}
+          onClose={() => setEditingMatchModal(null)}
+          onChanged={onChanged}
+        />
+      )}
+
+      {/* Standalone Match Delete Modal Overlay */}
+      {deletingMatchModal && (
+        <DeleteMatchModal
+          match={deletingMatchModal}
+          onClose={() => setDeletingMatchModal(null)}
+          onDeleted={onChanged}
+        />
+      )}
     </div>
   );
 }
@@ -1516,25 +1749,33 @@ function CompactAdminMatchCard({
   match,
   teams,
   onSelectLive,
+  onViewDetails,
+  onEditMatch,
+  onDeleteMatch,
   onChanged,
 }: {
   match: MatchRow;
   teams: AdminTeam[];
   onSelectLive: (id: string) => void;
-  onChanged: (message: string) => void;
+  onViewDetails?: (match: MatchRow) => void;
+  onEditMatch?: (match: MatchRow) => void;
+  onDeleteMatch?: (match: MatchRow) => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
-  const [showEdit, setShowEdit] = useState(false);
-
   async function remove() {
     if (!confirm(`Are you sure you want to delete fixture "${match.team_a_name ?? 'Team A'} vs ${match.team_b_name ?? 'Team B'}"?`)) return;
     const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
     const json = await res.json();
-    onChanged(res.ok ? "Match fixture deleted." : json.error);
+    onChanged(
+      res.ok ? "Match fixture deleted." : json.error,
+      !res.ok,
+      res.ok ? "Match Deleted" : "Delete Error"
+    );
   }
 
   return (
-    <div className="group relative flex w-full max-w-[240px] sm:max-w-[250px] flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]">
-      {/* Top Teams Row (Exact Match to User Side Screenshot) */}
+    <div className="group relative flex w-full flex-col justify-between rounded-xl border border-white/10 bg-[#070e1c]/80 p-3.5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]">
+      {/* Top Teams Row */}
       <div className="my-1 flex items-center justify-between gap-1.5 text-center">
         {/* Team A */}
         <div className="flex-1 min-w-0">
@@ -1560,9 +1801,12 @@ function CompactAdminMatchCard({
       <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2.5">
         <button
           type="button"
-          onClick={() => onSelectLive(match.id)}
+          onClick={() => {
+            onSelectLive(match.id);
+            onViewDetails?.(match);
+          }}
           className="inline-flex items-center gap-1 font-mono-score text-[11px] font-semibold tracking-wider text-emerald-400 transition-colors hover:text-emerald-300"
-          title="Select for Live Scoreboard Control"
+          title="View Squad & Team Details"
         >
           <span>View Details</span>
           <ChevronRight size={12} />
@@ -1571,29 +1815,225 @@ function CompactAdminMatchCard({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowEdit(!showEdit)}
+            onClick={() => onEditMatch?.(match)}
             className="text-ivory-300 hover:text-white text-xs"
-            title="Edit Fixture"
+            title="Edit Fixture Allocation"
           >
             ✏️
           </button>
           <button
             type="button"
-            onClick={remove}
-            className="text-red-400 hover:text-red-300"
+            onClick={() => (onDeleteMatch ? onDeleteMatch(match) : remove())}
+            className="text-red-400 hover:text-red-300 transition-colors"
             title="Delete Fixture"
           >
             <Trash2 size={13} />
           </button>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Popover Inline Editor when clicking edit */}
-      {showEdit && (
-        <div className="mt-3 border-t border-white/10 pt-2">
-          <MatchEditor match={match} teams={teams} onChanged={onChanged} />
+function EditMatchModal({
+  match,
+  teams,
+  onClose,
+  onChanged,
+}: {
+  match: MatchRow;
+  teams: AdminTeam[];
+  onClose: () => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
+}) {
+  const [teamAId, setTeamAId] = useState(match.team_a_id ?? "");
+  const [teamBId, setTeamBId] = useState(match.team_b_id ?? "");
+  const [label, setLabel] = useState(match.label ?? "");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (teamAId && teamBId && teamAId === teamBId) {
+      onChanged("Team A and Team B cannot be the same team.", true, "Invalid Allocation");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/matches/${match.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamAId: teamAId === "" ? null : teamAId,
+          teamBId: teamBId === "" ? null : teamBId,
+          label: label === "" ? null : label,
+        }),
+      });
+      const json = await res.json();
+      setSaving(false);
+      if (res.ok) {
+        onChanged("Match fixture updated successfully.", false, "Fixture Saved");
+        onClose();
+      } else {
+        onChanged(json.error || "Failed to update match fixture.", true, "Update Error");
+      }
+    } catch {
+      setSaving(false);
+      onChanged("Connection error updating match fixture.", true, "Connection Error");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-cyan-500/30 bg-navy-950 p-6 shadow-2xl space-y-4 text-left">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <Pencil size={18} />
+            <h3 className="font-display text-xl tracking-wide text-ivory-50">Reallocate Fixture Teams</h3>
+          </div>
+          <button onClick={onClose} className="text-ivory-400 hover:text-ivory-200">
+            <X size={18} />
+          </button>
         </div>
-      )}
+
+        {/* Form */}
+        <form onSubmit={handleSave} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block font-semibold text-ivory-300 mb-1">Match Label</label>
+            <input
+              type="text"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g. Round 1 · Match 1"
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-ivory-300 mb-1">Team A</label>
+            <select
+              value={teamAId}
+              onChange={(e) => setTeamAId(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">-- Select Team A --</option>
+              {(match.group_id ? teams.filter((t) => t.group_id === match.group_id) : teams).map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.team_name} ({t.group_name || t.batch})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-ivory-300 mb-1">Team B</label>
+            <select
+              value={teamBId}
+              onChange={(e) => setTeamBId(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">-- Select Team B --</option>
+              {(match.group_id ? teams.filter((t) => t.group_id === match.group_id) : teams).map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.team_name} ({t.group_name || t.batch})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className={btnGhost}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className={btnPrimary}
+            >
+              {saving ? <Loader2 size={14} className="animate-spin" /> : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteMatchModal({
+  match,
+  onClose,
+  onDeleted,
+}: {
+  match: MatchRow;
+  onClose: () => void;
+  onDeleted: (msg: string, isError?: boolean, title?: string) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const matchTitle = `${match.team_a_name ?? "Team A"} vs ${match.team_b_name ?? "Team B"}`;
+
+  async function handleDelete() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to delete match fixture");
+      }
+      onDeleted("Match fixture deleted successfully.", false, "Match Deleted");
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error deleting match fixture");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-[#070e1c] p-6 shadow-2xl space-y-4 text-left">
+        <div className="flex items-center gap-3 text-rose-400">
+          <AlertTriangle size={24} />
+          <h3 className="font-display text-xl font-bold tracking-wide text-ivory-50">Delete Fixture</h3>
+        </div>
+
+        <p className="text-sm leading-relaxed text-ivory-300">
+          Are you sure you want to delete <strong className="text-white font-semibold">{matchTitle}</strong>? This will permanently remove this match fixture from the tournament schedule.
+        </p>
+
+        {error && (
+          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5 text-xs text-rose-300">
+            {error}
+          </div>
+        )}
+
+        <div className="pt-2 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold text-ivory-200 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow-md shadow-rose-600/30 transition-all hover:bg-rose-500 active:scale-95 disabled:opacity-60"
+          >
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+            Delete Fixture
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1601,11 +2041,13 @@ function CompactAdminMatchCard({
 function MatchEditor({
   match,
   teams,
+  onViewDetails,
   onChanged,
 }: {
   match: MatchRow;
   teams: AdminTeam[];
-  onChanged: (message: string) => void;
+  onViewDetails?: (match: MatchRow) => void;
+  onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
   const [status, setStatus] = useState(match.status);
   const [stage, setStage] = useState(match.stage);
@@ -1636,22 +2078,43 @@ function MatchEditor({
     });
     const json = await res.json();
     setSaving(false);
-    onChanged(res.ok ? "Match updated successfully." : json.error);
+    onChanged(
+      res.ok ? "Match updated successfully." : json.error,
+      !res.ok,
+      res.ok ? "Match Updated" : "Update Error"
+    );
   }
 
   async function remove() {
     const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
     const json = await res.json();
-    onChanged(res.ok ? "Match deleted." : json.error);
+    onChanged(
+      res.ok ? "Match deleted." : json.error,
+      !res.ok,
+      res.ok ? "Match Deleted" : "Delete Error"
+    );
   }
 
   return (
     <div className={`${cardClass} space-y-3`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-2">
         <div>
-          <span className="font-mono-score text-xs uppercase tracking-wide text-cyan-400">
-            {match.stage.toUpperCase()} {match.label ? `· ${match.label}` : ""}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono-score text-xs uppercase tracking-wide text-cyan-400">
+              {match.stage.toUpperCase()} {match.label ? `· ${match.label}` : ""}
+            </span>
+            {onViewDetails && (
+              <button
+                type="button"
+                onClick={() => onViewDetails(match)}
+                className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                title="View Team Squad Details"
+              >
+                <span>View Details</span>
+                <ChevronRight size={11} />
+              </button>
+            )}
+          </div>
           <h4 className="text-sm font-bold text-ivory-100">
             {match.team_a_name ?? "TBD"} <span className="text-ivory-400">vs</span> {match.team_b_name ?? "TBD"}
           </h4>
@@ -1661,13 +2124,12 @@ function MatchEditor({
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as MatchRow["status"])}
-            className={`${inputClass} w-32 font-semibold ${
-              status === "live"
-                ? "border-emerald-500 text-emerald-400"
-                : status === "completed"
+            className={`${inputClass} w-32 font-semibold ${status === "live"
+              ? "border-emerald-500 text-emerald-400"
+              : status === "completed"
                 ? "border-gold-400 text-gold-300"
                 : ""
-            }`}
+              }`}
           >
             <option value="scheduled">Scheduled</option>
             <option value="live">Live Now</option>
@@ -1777,6 +2239,168 @@ function MatchEditor({
           </button>
           <button onClick={remove} className="text-red-400 hover:text-red-300">
             <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchTeamDetailsModal({
+  match,
+  teams,
+  onClose,
+}: {
+  match: MatchRow;
+  teams: AdminTeam[];
+  onClose: () => void;
+}) {
+  const teamA = teams.find((t) => t.id === match.team_a_id);
+  const teamB = teams.find((t) => t.id === match.team_b_id);
+
+  const teamAPlayers = teamA?.players && teamA.players.length > 0
+    ? [...teamA.players].sort((a, b) => (a.position || 0) - (b.position || 0))
+    : [];
+
+  const teamBPlayers = teamB?.players && teamB.players.length > 0
+    ? [...teamB.players].sort((a, b) => (a.position || 0) - (b.position || 0))
+    : [];
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/90 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+      <div className="relative my-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-500/40 bg-[#070e1c] p-4 sm:p-5 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute right-3.5 top-3.5 rounded-full p-1.5 text-ivory-400 hover:bg-white/10 hover:text-white transition-colors"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Modal Header */}
+        <div className="mb-4 text-center">
+          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-0.5 text-[10px] font-bold text-emerald-400 font-mono-score tracking-wider uppercase">
+            <Trophy size={12} />
+            <span>{match.label || `${match.stage.toUpperCase()} MATCH`}</span>
+          </div>
+          <h3 className="font-display text-xl font-bold tracking-wide text-ivory-50 sm:text-2xl">
+            Match Team Details
+          </h3>
+        </div>
+
+        {/* Team Details Comparison Grid (2 Columns) */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Team A Details Card */}
+          <div className="rounded-xl border border-emerald-500/20 bg-white/[0.02] p-3.5">
+            <div className="mb-2.5 flex items-center justify-between border-b border-white/10 pb-2">
+              <div>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-emerald-400">TEAM A</span>
+                <h4 className="font-display text-base font-bold text-ivory-50">{teamA?.team_name ?? match.team_a_name ?? "Team A"}</h4>
+              </div>
+              {teamA?.batch && (
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono-score text-[10px] font-bold text-emerald-300">
+                  {teamA.batch}
+                </span>
+              )}
+            </div>
+
+            {/* Captain Info */}
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300 border border-emerald-500/20">
+              <Crown size={14} className="text-emerald-400 shrink-0" />
+              <div className="truncate">
+                <span className="block text-[9px] uppercase font-mono text-ivory-400">TEAM CAPTAIN</span>
+                <strong className="text-ivory-100 font-semibold text-xs">{teamA?.captain_name || "N/A"}</strong>
+              </div>
+            </div>
+
+            {/* Squad List */}
+            <div>
+              <h5 className="mb-2 flex items-center gap-1.5 font-mono-score text-[11px] font-bold uppercase tracking-wider text-ivory-300">
+                <Users size={12} className="text-emerald-400" />
+                PLAYING SQUAD ({teamAPlayers.length})
+              </h5>
+              {teamAPlayers.length === 0 ? (
+                <p className="text-[11px] text-ivory-500 italic">No registered squad players found.</p>
+              ) : (
+                <ul className="max-h-44 space-y-1.5 overflow-y-auto pr-1 text-xs">
+                  {teamAPlayers.map((p, idx) => {
+                    const isCaptain = teamA && p.full_name.trim().toLowerCase() === teamA.captain_name.trim().toLowerCase();
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-2.5 py-1.5 border border-white/5 text-ivory-100"
+                      >
+                        <User size={12} className="text-emerald-400 shrink-0" />
+                        <span className="font-medium truncate">
+                          {idx + 1}. {p.full_name} {isCaptain ? "(C)" : ""}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Team B Details Card */}
+          <div className="rounded-xl border border-emerald-500/20 bg-white/[0.02] p-3.5">
+            <div className="mb-2.5 flex items-center justify-between border-b border-white/10 pb-2">
+              <div>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-emerald-400">TEAM B</span>
+                <h4 className="font-display text-base font-bold text-ivory-50">{teamB?.team_name ?? match.team_b_name ?? "Team B"}</h4>
+              </div>
+              {teamB?.batch && (
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono-score text-[10px] font-bold text-emerald-300">
+                  {teamB.batch}
+                </span>
+              )}
+            </div>
+
+            {/* Captain Info */}
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300 border border-emerald-500/20">
+              <Crown size={14} className="text-emerald-400 shrink-0" />
+              <div className="truncate">
+                <span className="block text-[9px] uppercase font-mono text-ivory-400">TEAM CAPTAIN</span>
+                <strong className="text-ivory-100 font-semibold text-xs">{teamB?.captain_name || "N/A"}</strong>
+              </div>
+            </div>
+
+            {/* Squad List */}
+            <div>
+              <h5 className="mb-2 flex items-center gap-1.5 font-mono-score text-[11px] font-bold uppercase tracking-wider text-ivory-300">
+                <Users size={12} className="text-emerald-400" />
+                PLAYING SQUAD ({teamBPlayers.length})
+              </h5>
+              {teamBPlayers.length === 0 ? (
+                <p className="text-[11px] text-ivory-500 italic">No registered squad players found.</p>
+              ) : (
+                <ul className="max-h-44 space-y-1.5 overflow-y-auto pr-1 text-xs">
+                  {teamBPlayers.map((p, idx) => {
+                    const isCaptain = teamB && p.full_name.trim().toLowerCase() === teamB.captain_name.trim().toLowerCase();
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-2.5 py-1.5 border border-white/5 text-ivory-100"
+                      >
+                        <User size={12} className="text-emerald-400 shrink-0" />
+                        <span className="font-medium truncate">
+                          {idx + 1}. {p.full_name} {isCaptain ? "(C)" : ""}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Close Button */}
+        <div className="mt-5 flex items-center justify-end border-t border-white/10 pt-3">
+          <button
+            onClick={onClose}
+            className="rounded-full bg-emerald-500 hover:bg-emerald-400 px-6 py-2 text-xs font-bold text-navy-950 transition-transform hover:scale-105"
+          >
+            Close
           </button>
         </div>
       </div>

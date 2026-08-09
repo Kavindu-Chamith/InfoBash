@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { ADMIN_COOKIE, verifyAdminSessionToken } from "@/lib/adminAuth";
 
-const VALID_ROUNDS = ["round1", "quarterfinal", "semifinal", "final"] as const;
+const VALID_ROUNDS = ["round1", "semifinal", "final"] as const;
 
 export async function GET() {
   try {

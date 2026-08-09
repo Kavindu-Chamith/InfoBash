@@ -26,7 +26,9 @@ import {
   REQUIRED_FEMALE_PLAYERS,
   MIN_FEMALE_PLAYERS,
   MAX_LOGO_BYTES,
+  isValidStudentId,
 } from "@/lib/validation";
+import { useToast } from "@/components/ToastProvider";
 
 declare global {
   interface Window {
@@ -76,48 +78,45 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
   const [state, setState] = useState<{ status: "idle" | "submitting"; error?: string }>({
     status: "idle",
   });
-  const [showEmailInput, setShowEmailInput] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [customEmail, setCustomEmail] = useState("");
 
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "777108603505-kstarddpklbbl96l54pbb93kkvhba2rv.apps.googleusercontent.com";
 
-    // Load Google Identity Services script dynamically
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response: { credential?: string }) => {
-            if (response.credential) {
-              await verifyGoogleToken({ credential: response.credential });
-            }
-          },
-        });
-
-        const btnContainer = document.getElementById("googleBtnContainer");
-        if (btnContainer) {
-          window.google.accounts.id.renderButton(btnContainer, {
-            theme: "filled_blue",
-            size: "large",
-            text: "continue_with",
-            shape: "pill",
-            width: "320",
+    const initGsi = () => {
+      if (window.google?.accounts?.id && !(window as any)._gsiInitialized) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response: { credential?: string }) => {
+              if (response.credential) {
+                await verifyGoogleToken({ credential: response.credential });
+              }
+            },
           });
+          (window as any)._gsiInitialized = true;
+        } catch (e) {
+          console.warn("Google SI initialize warning:", e);
         }
       }
     };
-    document.body.appendChild(script);
+
+    if (window.google?.accounts) {
+      initGsi();
+      return;
+    }
+
+    let script = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+    script.addEventListener("load", initGsi);
 
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
+      script?.removeEventListener("load", initGsi);
     };
   }, []);
 
@@ -149,10 +148,10 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
   }
 
   function handleGoogleAuth() {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "777108603505-kstarddpklbbl96l54pbb93kkvhba2rv.apps.googleusercontent.com";
+    setState({ status: "submitting" });
 
-    // 1. Try Google OAuth2 Token Client popup dialog if available
-    if (clientId && window.google?.accounts?.oauth2) {
+    if (window.google?.accounts?.oauth2) {
       try {
         const client = window.google.accounts.oauth2.initTokenClient({
           client_id: clientId,
@@ -160,43 +159,40 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
           callback: async (tokenResponse: { access_token?: string; error?: string }) => {
             if (tokenResponse.access_token) {
               await verifyGoogleToken({ accessToken: tokenResponse.access_token });
-            } else if (tokenResponse.error) {
-              setShowEmailInput(true);
+            } else {
+              setState({ status: "idle", error: "Google authentication was cancelled." });
             }
           },
         });
         client.requestAccessToken();
         return;
       } catch (e) {
-        console.warn("OAuth token client popup error:", e);
+        console.warn("Failed to launch initTokenClient:", e);
       }
     }
 
-    // 2. Fallback to Google One-Tap prompt
-    if (clientId && window.google?.accounts?.id) {
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          setShowEmailInput(true);
-        }
-      });
+    // Direct synchronous popup window fallback to ensure browser popup blockers do not trigger
+    const width = 520;
+    const height = 620;
+    const left = window.screenX + (window.innerWidth - width) / 2;
+    const top = window.screenY + (window.innerHeight - height) / 2;
+
+    const redirectUri = window.location.origin;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile&prompt=select_account`;
+
+    const popup = window.open(authUrl, "GoogleSignIn", `width=${width},height=${height},top=${top},left=${left}`);
+
+    if (!popup) {
+      setState({ status: "idle", error: "Popup window was blocked by browser. Please allow popups for this site." });
       return;
     }
 
-    // 3. Fallback email entry
-    if (!showEmailInput) {
-      setShowEmailInput(true);
-      return;
-    }
-
-    if (!customEmail || !customEmail.includes("@")) {
-      setState({ status: "idle", error: "Please enter a valid Google email address." });
-      return;
-    }
-
-    verifyGoogleToken({
-      email: customEmail,
-      name: customName.trim() || undefined,
-    });
+    const checkPopup = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopup);
+        setState((prev) => (prev.status === "submitting" ? { status: "idle" } : prev));
+      }
+    }, 1000);
   }
 
   return (
@@ -228,35 +224,6 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
         </p>
       )}
 
-      {showEmailInput && (
-        <div className="mt-6 space-y-4 text-left">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
-              Captain Full Name
-            </label>
-            <input
-              type="text"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="e.g. Kavindu Chamith"
-              className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none focus:border-cyan-400/60"
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">
-              Google Account Email
-            </label>
-            <input
-              type="email"
-              value={customEmail}
-              onChange={(e) => setCustomEmail(e.target.value)}
-              placeholder="captain@gmail.com"
-              className="w-full rounded-xl border border-white/10 bg-navy-900/70 px-4 py-3 text-sm text-ivory-50 placeholder:text-ivory-400/60 outline-none focus:border-cyan-400/60"
-            />
-          </div>
-        </div>
-      )}
-
       <div className="mt-8">
         <button
           type="button"
@@ -277,7 +244,7 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <span>{showEmailInput ? "Proceed to Team Details" : "Continue with Google"}</span>
+              <span>Continue with Google</span>
             </>
           )}
         </button>
@@ -291,6 +258,7 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
 }
 
 function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOut: () => void }) {
+  const { showError, showSuccess } = useToast();
   const [step, setStep] = useState(0);
   const [submitState, setSubmitState] = useState<
     | { status: "idle" }
@@ -335,10 +303,12 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       setLogoError("Logo must be a PNG, JPEG, or WebP image");
+      showError("Logo must be a PNG, JPEG, or WebP image", "Upload Error");
       return;
     }
     if (file.size > MAX_LOGO_BYTES) {
       setLogoError("Logo must be under 1.5MB");
+      showError("Logo must be under 1.5MB", "Upload Error");
       return;
     }
     setLogoError(null);
@@ -369,7 +339,9 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
 
       setLogo({ previewUrl, key: uploadJson.logoUrl });
     } catch (err) {
-      setLogoError(err instanceof Error ? err.message : "Logo upload failed. Try again.");
+      const msg = err instanceof Error ? err.message : "Logo upload failed. Try again.";
+      setLogoError(msg);
+      showError(msg, "Upload Error");
     } finally {
       setLogoUploading(false);
     }
@@ -383,16 +355,36 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     ];
     const valid = await trigger(fieldsForStep[step]);
     if (!valid) {
-      if (step === 1 && femaleCount !== REQUIRED_FEMALE_PLAYERS) {
-        setSubmitState({
-          status: "error",
-          message: `Squad validation failed: Squad must include ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}).`,
+      if (step === 1) {
+        const currentPlayers = watch("players") || [];
+        let invalidStudentIdCount = 0;
+
+        currentPlayers.forEach((p, idx) => {
+          if (!p.studentId || !isValidStudentId(p.studentId)) {
+            invalidStudentIdCount++;
+            const pLabel = p.fullName ? `Player ${idx + 1} (${p.fullName})` : `Player ${idx + 1}`;
+            showError(`${pLabel}: Student number is not in the correct format`, "Invalid Student Number");
+          }
         });
+
+        if (femaleCount !== REQUIRED_FEMALE_PLAYERS) {
+          const msg = `Squad must include EXACTLY ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}).`;
+          setSubmitState({ status: "error", message: msg });
+          showError(msg, "Squad Requirements");
+        } else if (invalidStudentIdCount > 0) {
+          setSubmitState({
+            status: "error",
+            message: "Student number format error. Please check highlighted student IDs.",
+          });
+        } else {
+          const msg = "Please fill in all player details correctly before proceeding.";
+          setSubmitState({ status: "error", message: msg });
+          showError(msg, "Validation Error");
+        }
       } else {
-        setSubmitState({
-          status: "error",
-          message: "Please fill in all required fields correctly before proceeding.",
-        });
+        const msg = "Please fill in all required fields correctly before proceeding.";
+        setSubmitState({ status: "error", message: msg });
+        showError(msg, "Validation Error");
       }
       return;
     }
@@ -420,6 +412,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
 
       if (res.ok) {
         setSubmitState({ status: "success", teamName: data.teamName });
+        showSuccess(`Team "${data.teamName}" registered successfully!`, "Registration Complete");
         return;
       }
 
@@ -427,58 +420,74 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
         setError("teamName", { message: json.error });
         setStep(0);
         setSubmitState({ status: "idle" });
+        showError(json.error || "Team name already registered", "Registration Conflict");
         return;
       }
 
       if (res.status === 401) {
+        showError("Session expired. Please sign in again.", "Unauthorized");
         onSignOut();
         return;
       }
 
-      setSubmitState({
-        status: "error",
-        message: json.error ?? "Something went wrong. Please try again.",
-      });
+      const msg = json.error ?? "Something went wrong. Please try again.";
+      setSubmitState({ status: "error", message: msg });
+      showError(msg, "Registration Error");
     } catch {
-      setSubmitState({
-        status: "error",
-        message: "Couldn't reach the server. Check your connection and try again.",
-      });
+      const msg = "Couldn't reach the server. Check your connection and try again.";
+      setSubmitState({ status: "error", message: msg });
+      showError(msg, "Connection Error");
     }
   }
 
   function onFormError(formErrors: Record<string, any>) {
+    const currentPlayers = watch("players") || [];
+    let invalidStudentIdCount = 0;
+
+    currentPlayers.forEach((p, idx) => {
+      if (!p.studentId || !isValidStudentId(p.studentId)) {
+        invalidStudentIdCount++;
+        const pLabel = p.fullName ? `Player ${idx + 1} (${p.fullName})` : `Player ${idx + 1}`;
+        showError(`${pLabel}: Student number is not in the correct format`, "Invalid Student Number");
+      }
+    });
+
     if (femaleCount !== REQUIRED_FEMALE_PLAYERS) {
+      const msg = `Squad validation error: Squad must include ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`;
+      setSubmitState({ status: "error", message: msg });
+      showError(msg, "Squad Requirements");
+      setStep(1);
+      return;
+    }
+
+    if (invalidStudentIdCount > 0) {
       setSubmitState({
         status: "error",
-        message: `Squad validation error: Squad must include ${REQUIRED_FEMALE_PLAYERS} female players (currently ${femaleCount}). Please update squad details in Step 2.`,
+        message: "Student number format error: One or more student numbers are invalid.",
       });
       setStep(1);
       return;
     }
 
     if (formErrors.teamName || formErrors.batch || formErrors.captainName || formErrors.captainContact) {
-      setSubmitState({
-        status: "error",
-        message: "Team Details validation error: Please enter team name, captain full name, and valid Sri Lankan contact number.",
-      });
+      const msg = "Team Details validation error: Please enter team name, captain full name, and valid Sri Lankan contact number.";
+      setSubmitState({ status: "error", message: msg });
+      showError(msg, "Validation Error");
       setStep(0);
       return;
     }
 
     if (formErrors.players) {
-      setSubmitState({
-        status: "error",
-        message: "Squad Roster validation error: All 11 players must have full names, student IDs, and unique registration numbers.",
-      });
+      const msg = "Squad Roster validation error: All 11 players must have full names, valid student IDs, and unique registration numbers.";
+      setSubmitState({ status: "error", message: msg });
+      showError(msg, "Validation Error");
       setStep(1);
       return;
     }
 
-    setSubmitState({
-      status: "error",
-      message: "Please correct the highlighted form errors before submitting.",
-    });
+    const msg = "Please correct the highlighted form errors before submitting.";
+    setSubmitState({ status: "error", message: msg });
+    showError(msg, "Validation Error");
   }
 
   if (submitState.status === "success") {
@@ -539,15 +548,6 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       </div>
 
       <form onSubmit={handleSubmit(onSubmit, onFormError)} className="glass-card glow-border rounded-3xl p-6 sm:p-10">
-        {submitState.status === "error" && (
-          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200 shadow-xl">
-            <ShieldAlert size={20} className="text-red-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-red-300">Registration Error</h4>
-              <p className="mt-1 text-xs text-red-200/90">{submitState.message}</p>
-            </div>
-          </div>
-        )}
         <AnimatePresence mode="wait">
           {/* STEP 0 — Team details */}
           {step === 0 && (
@@ -713,7 +713,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     <div>
                       <input
                         className={inputClass}
-                        placeholder="Student ID"
+                        placeholder="Student ID (e.g. 21CSE1234)"
                         {...register(`players.${i}.studentId` as const)}
                       />
                       {errors.players?.[i]?.studentId && (
@@ -783,12 +783,6 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     ))}
                 </ol>
               </div>
-
-              {submitState.status === "error" && (
-                <p className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-                  <ShieldAlert size={16} /> {submitState.message}
-                </p>
-              )}
             </motion.div>
           )}
         </AnimatePresence>

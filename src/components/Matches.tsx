@@ -36,44 +36,6 @@ const CARD_BORDER = "rgba(245, 185, 66, 0.45)";
 const CARD_BORDER_GLOW = "rgba(245, 185, 66, 0.25)";
 
 function generateDefaultPlayoffs(totalTeams: number): PlayoffMatch[] {
-  // If 8 or more teams registered (e.g. 8, 12, 14, 16 teams):
-  if (totalTeams >= 8) {
-    const round1Count = totalTeams >= 14 ? 6 : 4;
-    const r1Matches: PlayoffMatch[] = Array.from({ length: round1Count }, (_, i) => ({
-      id: `r1-${i + 1}`,
-      stage: "round1",
-      label: `Round 1 · ${String.fromCharCode(65 + i)}`,
-      team_a_name: null,
-      team_b_name: null,
-      status: "scheduled",
-      winner_name: null,
-    }));
-
-    // If 14 teams (12 play in Round 1, 2 top teams paired for Direct QF Entry):
-    const directSeedsPairing: PlayoffMatch[] = totalTeams >= 14 ? [
-      {
-        id: "r1-direct",
-        stage: "round1",
-        label: "Direct QF Entry",
-        team_a_name: "Direct Seed #1",
-        team_b_name: "Direct Seed #2",
-        status: "scheduled",
-        winner_name: null,
-      }
-    ] : [];
-
-    return [
-      ...r1Matches,
-      ...directSeedsPairing,
-      { id: "qf-1", stage: "quarterfinal", label: "Game 1", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "qf-2", stage: "quarterfinal", label: "Game 2", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "qf-3", stage: "quarterfinal", label: "Game 3", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "qf-4", stage: "quarterfinal", label: "Game 4", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "sf-1", stage: "semifinal", label: "Game 5", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "sf-2", stage: "semifinal", label: "Game 6", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-      { id: "final", stage: "final", label: "Game 7 (Final)", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
-    ];
-  }
   return [
     { id: "r1-1", stage: "round1", label: "Round 1 · A", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
     { id: "r1-2", stage: "round1", label: "Round 1 · B", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
@@ -173,6 +135,47 @@ function buildMatchNodes(playoffMatches: PlayoffMatch[], totalTeams: number = 0)
 
     // Champion (Round 4)
     matches.push({ id: "champion", round: 4, label: "Champion", teamA: null, teamB: null, champion: true });
+  } else if (round1List.length > 0) {
+    roundTitles = ["First Round", "Semifinals", "Final", "Champion"];
+    roundAccents = ["#22d3ee", "#f5b942", "#f5b942", "#f5b942"];
+
+    round1List.forEach((m, i) => {
+      const sfTarget = i < Math.ceil(round1List.length / 2) ? (semifinals[0]?.id || "sf-1") : (semifinals[1]?.id || "sf-2");
+      matches.push({
+        id: m.id,
+        round: 0,
+        label: m.label || `Round 1 · ${String.fromCharCode(65 + i)}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: sfTarget,
+      });
+    });
+
+    const sfList = semifinals.length > 0 ? semifinals : [
+      { id: "sf-1", stage: "semifinal" as const, label: "Semifinal 1", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+      { id: "sf-2", stage: "semifinal" as const, label: "Semifinal 2", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+    ];
+    sfList.forEach((m, i) => {
+      matches.push({
+        id: m.id,
+        round: 1,
+        label: m.label || `Semifinal ${i + 1}`,
+        teamA: m.team_a_name ? { name: m.team_a_name } : null,
+        teamB: m.team_b_name ? { name: m.team_b_name } : null,
+        feeds: "final",
+      });
+    });
+
+    matches.push({
+      id: final?.id || "final",
+      round: 2,
+      label: final?.label || "Final",
+      teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+      teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+      feeds: "champion",
+    });
+
+    matches.push({ id: "champion", round: 3, label: "Champion", teamA: null, teamB: null, champion: true });
   } else if (quarterfinals.length > 0) {
     roundTitles = ["Quarterfinals", "Semifinals", "Final", "Champion"];
     roundAccents = ["#35d7ff", "#f5b942", "#f5b942", "#f5b942"];

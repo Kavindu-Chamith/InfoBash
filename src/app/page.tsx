@@ -83,10 +83,10 @@ export default function Home() {
 
           <Reveal delay={0.15} className="mt-8 space-y-6 text-ivory-300 text-base sm:text-lg leading-relaxed text-justify sm:text-center font-normal">
             <p>
-              <strong className="text-white font-semibold">INFO BASH 5.0</strong> is the annual cricket tournament organized by the Sports Sub Committee of the Students&apos; Union, Faculty of Computing at Sabaragamuwa University of Sri Lanka. Building on the resounding success of four previous editions, INFO BASH 5.0 serves as a flagship event designed to bring together undergraduates and academic staff in a spirit of teamwork, sportsmanship, and healthy competition while strengthening unity across the faculty.
+              <strong className="text-white font-semibold">INFO BASH V5.0   </strong> is the annual cricket tournament organized by the Sports Sub Committee of the Students&apos; Union, Faculty of Computing at Sabaragamuwa University of Sri Lanka. Building on the resounding success of four previous editions, INFO BASH V5.0 serves as a flagship event designed to bring together undergraduates and academic staff in a spirit of teamwork, sportsmanship, and healthy competition while strengthening unity across the faculty.
             </p>
             <p>
-              The primary aim of INFO BASH 5.0 is to promote holistic development by providing a vibrant platform for students and lecturers to showcase their athletic talent. Beyond the boundaries of the pitch, the tournament strives to foster confidence, leadership, decision-making, and mutual respect in an informal and engaging environment that contributes directly to personal growth and well-being.
+              The primary aim of INFO BASH V5.0 is to promote holistic development by providing a vibrant platform for students and lecturers to showcase their athletic talent. Beyond the boundaries of the pitch, the tournament strives to foster confidence, leadership, decision-making, and mutual respect in an informal and engaging environment that contributes directly to personal growth and well-being.
             </p>
           </Reveal>
         </div>

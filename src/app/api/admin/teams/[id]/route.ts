@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { ADMIN_COOKIE, verifyAdminSessionToken } from "@/lib/adminAuth";
+import { isValidStudentId } from "@/lib/validation";
 
 const VALID_BATCHES = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
@@ -128,6 +129,15 @@ export async function PUT(
       );
 
       if (Array.isArray(players) && players.length > 0) {
+        for (const p of players) {
+          const studentId = p.student_id || p.studentId || "";
+          if (!isValidStudentId(studentId)) {
+            return NextResponse.json(
+              { error: `Player ${p.full_name || p.fullName || ""}: Student number is not in the correct format` },
+              { status: 400 }
+            );
+          }
+        }
         // Delete existing players for team and insert updated squad
         await client.query(`DELETE FROM players WHERE team_id = $1`, [id]);
 
