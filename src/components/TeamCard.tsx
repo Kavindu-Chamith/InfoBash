@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   motion,
   AnimatePresence,
@@ -89,6 +90,9 @@ export function TeamDrawer({
   const femaleCount = team.players.filter((p) => p.gender === "female").length;
   const maleCount = team.players.length - femaleCount;
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -108,10 +112,12 @@ export function TeamDrawer({
     };
   }, [isOpen, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-end">
+        <div className="fixed inset-0 z-[9999] flex justify-end">
           {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -119,7 +125,7 @@ export function TeamDrawer({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={onClose}
-            className="fixed inset-0 bg-navy-950/85 backdrop-blur-md"
+            className="fixed inset-0 bg-navy-950/95 backdrop-blur-md"
           />
 
           {/* Slide-over sidebar container */}
@@ -280,7 +286,8 @@ export function TeamDrawer({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

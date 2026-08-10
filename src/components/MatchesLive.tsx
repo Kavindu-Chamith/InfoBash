@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   X,
@@ -61,6 +62,9 @@ const STAGE_LEVELS: Record<StageRound, number> = {
 const POLL_MS = 15000;
 
 export default function MatchesLive() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [matches, setMatches] = useState<MatchApiRow[]>([]);
   const [registeredTeams, setRegisteredTeams] = useState<PublicTeam[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -703,8 +707,37 @@ export default function MatchesLive() {
       {/* ══════════════════════════════════════════════════════════════
           TEAM DETAILS MODAL OVERLAY
       ══════════════════════════════════════════════════════════════ */}
-      {selectedMatch && teamADetails && teamBDetails && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/90 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+      {(() => {
+        if (!selectedMatch || !mounted) return null;
+
+        const teamAObj = registeredTeams.find(
+          (t) =>
+            (selectedMatch.team_a_id && t.id === selectedMatch.team_a_id) ||
+            (selectedMatch.team_a_name && t.team_name.toLowerCase() === selectedMatch.team_a_name.toLowerCase())
+        );
+
+        const teamBObj = registeredTeams.find(
+          (t) =>
+            (selectedMatch.team_b_id && t.id === selectedMatch.team_b_id) ||
+            (selectedMatch.team_b_name && t.team_name.toLowerCase() === selectedMatch.team_b_name.toLowerCase())
+        );
+
+        const teamADetails = {
+          name: teamAObj?.team_name ?? selectedMatch.team_a_name ?? "Team A",
+          batch: teamAObj?.batch ?? "N/A",
+          captainName: teamAObj?.captain_name ?? "TBD",
+          players: teamAObj?.players ?? [],
+        };
+
+        const teamBDetails = {
+          name: teamBObj?.team_name ?? selectedMatch.team_b_name ?? "Team B",
+          batch: teamBObj?.batch ?? "N/A",
+          captainName: teamBObj?.captain_name ?? "TBD",
+          players: teamBObj?.players ?? [],
+        };
+
+        return createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-navy-950/95 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
           <div className="relative my-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-500/40 bg-[#070e1c] p-4 shadow-2xl sm:p-5">
             <button
               type="button"
@@ -744,35 +777,35 @@ export default function MatchesLive() {
                 </div>
 
                 {/* Captain Info */}
-                <div className="mb-2.5 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
-                  <Crown size={14} className="text-emerald-400 shrink-0" />
-                  <div className="truncate">
-                    <span className="block text-[9px] uppercase text-ivory-400">Team Captain</span>
-                    <strong className="text-ivory-100 font-semibold text-xs">{teamADetails.captain}</strong>
+                <div className="mb-2 flex items-center gap-1.5 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
+                  <Crown size={14} className="shrink-0 text-emerald-400" />
+                  <div>
+                    <span className="block text-[8px] font-mono uppercase text-emerald-400 opacity-75">Team Captain</span>
+                    <span className="font-semibold">{teamADetails.captainName}</span>
                   </div>
                 </div>
 
-                {/* Squad List */}
-                <div>
-                  <h5 className="mb-1.5 flex items-center gap-1 font-mono-score text-[11px] font-semibold uppercase tracking-wider text-ivory-300">
-                    <Users size={12} className="text-emerald-400" />
-                    Playing Squad ({teamADetails.playerCount})
-                  </h5>
-                  {teamADetails.players.length === 0 ? (
-                    <p className="text-[11px] text-ivory-500 italic">No registered squad players found.</p>
-                  ) : (
-                    <ul className="max-h-36 space-y-1 overflow-y-auto pr-1 text-[11px] text-ivory-200">
-                      {teamADetails.players.map((player, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-center gap-1.5 rounded-md bg-white/[0.02] px-2 py-1 border border-white/5 truncate"
-                        >
-                          <User size={11} className="text-emerald-400 shrink-0" />
-                          <span className="font-medium text-ivory-100 truncate">{player}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                {/* Playing XI List */}
+                <div className="space-y-1">
+                  <span className="block text-[9px] font-mono uppercase tracking-wider text-ivory-400">
+                    Playing Squad ({teamADetails.players.length})
+                  </span>
+                  <div className="max-h-40 overflow-y-auto space-y-1 pr-1 text-xs text-ivory-200">
+                    {teamADetails.players.length > 0 ? (
+                      teamADetails.players.map((p: any, idx: number) => {
+                        const pName = typeof p === "string" ? p : p?.fullName || p?.full_name || "Player";
+                        const pPos = typeof p === "object" && p?.position ? `${p.position}. ` : `${idx + 1}. `;
+                        return (
+                          <div key={idx} className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1">
+                            <User size={12} className="text-emerald-400" />
+                            <span>{pPos}{pName}</span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-[11px] italic text-ivory-400">No players listed</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -791,35 +824,35 @@ export default function MatchesLive() {
                 </div>
 
                 {/* Captain Info */}
-                <div className="mb-2.5 flex items-center gap-2 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
-                  <Crown size={14} className="text-emerald-400 shrink-0" />
-                  <div className="truncate">
-                    <span className="block text-[9px] uppercase text-ivory-400">Team Captain</span>
-                    <strong className="text-ivory-100 font-semibold text-xs">{teamBDetails.captain}</strong>
+                <div className="mb-2 flex items-center gap-1.5 rounded-lg bg-emerald-500/10 p-2 text-xs text-emerald-300">
+                  <Crown size={14} className="shrink-0 text-emerald-400" />
+                  <div>
+                    <span className="block text-[8px] font-mono uppercase text-emerald-400 opacity-75">Team Captain</span>
+                    <span className="font-semibold">{teamBDetails.captainName}</span>
                   </div>
                 </div>
 
-                {/* Squad List */}
-                <div>
-                  <h5 className="mb-1.5 flex items-center gap-1 font-mono-score text-[11px] font-semibold uppercase tracking-wider text-ivory-300">
-                    <Users size={12} className="text-emerald-400" />
-                    Playing Squad ({teamBDetails.playerCount})
-                  </h5>
-                  {teamBDetails.players.length === 0 ? (
-                    <p className="text-[11px] text-ivory-500 italic">No registered squad players found.</p>
-                  ) : (
-                    <ul className="max-h-36 space-y-1 overflow-y-auto pr-1 text-[11px] text-ivory-200">
-                      {teamBDetails.players.map((player, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-center gap-1.5 rounded-md bg-white/[0.02] px-2 py-1 border border-white/5 truncate"
-                        >
-                          <User size={11} className="text-emerald-400 shrink-0" />
-                          <span className="font-medium text-ivory-100 truncate">{player}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                {/* Playing XI List */}
+                <div className="space-y-1">
+                  <span className="block text-[9px] font-mono uppercase tracking-wider text-ivory-400">
+                    Playing Squad ({teamBDetails.players.length})
+                  </span>
+                  <div className="max-h-40 overflow-y-auto space-y-1 pr-1 text-xs text-ivory-200">
+                    {teamBDetails.players.length > 0 ? (
+                      teamBDetails.players.map((p: any, idx: number) => {
+                        const pName = typeof p === "string" ? p : p?.fullName || p?.full_name || "Player";
+                        const pPos = typeof p === "object" && p?.position ? `${p.position}. ` : `${idx + 1}. `;
+                        return (
+                          <div key={idx} className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1">
+                            <User size={12} className="text-emerald-400" />
+                            <span>{pPos}{pName}</span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-[11px] italic text-ivory-400">No players listed</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -835,8 +868,10 @@ export default function MatchesLive() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      );
+    })()}
     </div>
   );
 }

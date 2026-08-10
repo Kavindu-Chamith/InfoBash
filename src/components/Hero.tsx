@@ -44,7 +44,6 @@ function PixelGrid() {
     const CELL = 13;            // Grid spacing
     const SQ = 8.5;             // Square size
     const FADE_SPEED = 0.04;    // Opacity transition speed
-    const WAVE_SPEED = 1.0;     // Wave movement speed multiplier
 
     type Sq = { r: number; c: number; x: number; y: number; wordPhase: number; isTextPixel: boolean; a: number; t: number; s: number };
     let W = 0;
@@ -67,14 +66,48 @@ function PixelGrid() {
       // 2D grid map to store text pixel associations
       const textPixelMap = new Map<string, { phase: number }>();
 
-      // List of background words to place randomly across the canvas
-      const wordPlacements = [
-        { text: "FOC", r: Math.max(3, Math.floor(rows * 0.12)), c: Math.max(3, Math.floor(cols * 0.08)), phase: 1 },
-        { text: "INFOBASH", r: Math.max(3, Math.floor(rows * 0.14)), c: Math.max(10, Math.floor(cols * 0.65)), phase: 1 },
-        { text: "V5.0", r: Math.max(5, Math.floor(rows * 0.45)), c: Math.max(3, Math.floor(cols * 0.06)), phase: 2 },
-        { text: "SUSL", r: Math.max(5, Math.floor(rows * 0.84)), c: Math.max(10, Math.floor(cols * 0.72)), phase: 3 },
-        { text: "CRICKET", r: Math.max(3, Math.floor(rows * 0.06)), c: Math.max(10, Math.floor(cols * 0.38)), phase: 2 },
+      // Helper function to position word inside one of the 4 marked side zones:
+      // Zone 1: Top-Left, Zone 2: Top-Right, Zone 3: Mid-Left, Zone 4: Mid-Right
+      const getZonePos = (word: string, zone: 1 | 2 | 3 | 4) => {
+        let width = 0;
+        for (const ch of word) {
+          const matrix = FONT_5X7[ch];
+          width += matrix ? matrix[0].length + 1 : 4;
+        }
+
+        let rRatio = 0.16;
+        let cRatio = 0.04;
+        if (zone === 1) { rRatio = 0.16; cRatio = 0.04; }
+        else if (zone === 2) { rRatio = 0.16; cRatio = 0.68; }
+        else if (zone === 3) { rRatio = 0.54; cRatio = 0.04; }
+        else if (zone === 4) { rRatio = 0.60; cRatio = 0.68; }
+
+        const r = Math.max(2, Math.floor(rows * rRatio));
+        const targetC = Math.floor(cols * cRatio);
+        const maxC = Math.max(2, cols - width - 2);
+        const c = Math.min(Math.max(2, targetC), maxC);
+
+        return { r, c };
+      };
+
+      const wordConfigs = [
+        // Phase 1: Top-Left (FOC) & Top-Right (INFOBASH)
+        { text: "FOC", zone: 1 as const, phase: 1 },
+        { text: "INFOBASH", zone: 2 as const, phase: 1 },
+
+        // Phase 2: Mid-Left (CRICKET) & Mid-Right (V5.0)
+        { text: "CRICKET", zone: 3 as const, phase: 2 },
+        { text: "V5.0", zone: 4 as const, phase: 2 },
+
+        // Phase 3: Mid-Left (SUSL) & Top-Right (INFOBASH)
+        { text: "SUSL", zone: 3 as const, phase: 3 },
+        { text: "INFOBASH", zone: 2 as const, phase: 3 },
       ];
+
+      const wordPlacements = wordConfigs.map((w) => {
+        const pos = getZonePos(w.text, w.zone);
+        return { text: w.text, r: pos.r, c: pos.c, phase: w.phase };
+      });
 
       // Populate textPixelMap from font matrices
       for (const w of wordPlacements) {
@@ -122,9 +155,7 @@ function PixelGrid() {
     function draw() {
       if (!ctx) return;
       ctx.clearRect(0, 0, W, H);
-      const now = (Date.now() - startTime) * WAVE_SPEED;
-      const centerCols = cols / 2;
-      const centerRows = rows / 2;
+      const now = Date.now() - startTime;
 
       // 12-second cycle for text phases:
       // Phase 1 (0.5s - 4.5s): FOC (Top Left) & INFOBASH (Top Right)
@@ -136,16 +167,6 @@ function PixelGrid() {
       const p3Progress = cycleTime >= 8.5 && cycleTime <= 11.5 ? Math.sin(((cycleTime - 8.5) / 3) * Math.PI) : 0;
 
       for (const s of sqs) {
-        // Background Wave Pattern 1: Moving diagonal sweep wave
-        const diagWave = Math.sin((s.c * 0.18 + s.r * 0.14) - now * 0.0028);
-
-        // Background Wave Pattern 2: Radial expanding ripple wave
-        const distFromCenter = Math.hypot(s.c - centerCols, s.r - centerRows);
-        const radialWave = Math.sin(distFromCenter * 0.22 - now * 0.0035);
-
-        const waveBoost = (diagWave > 0.72 ? (diagWave - 0.72) * 2.2 : 0) +
-          (radialWave > 0.78 ? (radialWave - 0.78) * 2.5 : 0);
-
         // Text Boost for active word phase
         let textBoost = 0;
         if (s.isTextPixel) {
@@ -155,14 +176,14 @@ function PixelGrid() {
         }
 
         if (Math.abs(s.a - s.t) < 0.02) {
-          const isIlluminated = Math.random() < (0.3 + waveBoost * 0.3 + textBoost * 0.6);
-          s.t = isIlluminated ? (0.12 + Math.random() * 0.5 + waveBoost * 0.3 + textBoost * 0.65) : 0;
-          s.s = FADE_SPEED * (0.8 + Math.random() * 0.6);
+          const isIlluminated = Math.random() < (0.24 + textBoost * 0.6);
+          s.t = isIlluminated ? (0.12 + Math.random() * 0.55 + textBoost * 0.65) : 0;
+          s.s = FADE_SPEED * (0.5 + Math.random() * 1.2);
         }
 
         s.a += (s.t - s.a) * s.s;
 
-        const finalAlpha = Math.min(0.95, Math.max(0, s.a + waveBoost * 0.3 + textBoost * 0.8));
+        const finalAlpha = Math.min(0.95, Math.max(0, s.a + textBoost * 0.8));
 
         if (finalAlpha > 0.015) {
           ctx.fillStyle = `rgba(255,107,0,${finalAlpha.toFixed(2)})`;
