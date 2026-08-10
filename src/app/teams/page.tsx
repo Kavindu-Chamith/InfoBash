@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     "See all teams registered for InfoBash V5.0, the Faculty of Computing SUSL's premier inter-batch cricket tournament.",
 };
 
-// Re-fetch every 60 seconds so the page stays fresh without a full rebuild.
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getTeams(): Promise<PublicTeam[]> {
   try {
@@ -38,7 +38,7 @@ async function getTeams(): Promise<PublicTeam[]> {
           '[]'
         ) AS players,
         g.name AS group_name,
-        (t.logo IS NOT NULL) AS has_logo
+        (t.logo IS NOT NULL OR t.logo_s3_key IS NOT NULL) AS has_logo
       FROM teams t
       LEFT JOIN players p ON p.team_id = t.id
       LEFT JOIN groups g ON g.id = t.group_id
@@ -46,7 +46,8 @@ async function getTeams(): Promise<PublicTeam[]> {
       ORDER BY t.created_at ASC
     `);
     return result.rows;
-  } catch {
+  } catch (err) {
+    console.error("TeamsPage DB fetch error:", err);
     return [];
   }
 }

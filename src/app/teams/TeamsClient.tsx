@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Search } from "lucide-react";
 import { TeamCard, FilterPill } from "@/components/TeamCard";
@@ -41,12 +41,29 @@ export default function TeamsClient({
 }: {
   initialTeams: PublicTeam[];
 }) {
+  const [teams, setTeams] = useState<PublicTeam[]>(initialTeams);
   const [activeBatch, setActiveBatch] = useState<string>("All");
   const [search, setSearch] = useState("");
 
+  /* Keep teams updated from server API */
+  useEffect(() => {
+    setTeams(initialTeams);
+  }, [initialTeams]);
+
+  useEffect(() => {
+    fetch("/api/teams")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.teams && Array.isArray(data.teams)) {
+          setTeams(data.teams);
+        }
+      })
+      .catch((err) => console.error("Client teams fetch error:", err));
+  }, []);
+
   /* Filtered teams */
   const filtered = useMemo(() => {
-    let result = initialTeams;
+    let result = teams;
     if (activeBatch !== "All") {
       result = result.filter((t) => t.batch === activeBatch);
     }
@@ -59,16 +76,16 @@ export default function TeamsClient({
       );
     }
     return result;
-  }, [initialTeams, activeBatch, search]);
+  }, [teams, activeBatch, search]);
 
   /* Per-batch counts for filter pills */
   const batchCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: initialTeams.length };
+    const counts: Record<string, number> = { All: teams.length };
     for (const b of ALL_BATCHES) {
-      counts[b] = initialTeams.filter((t) => t.batch === b).length;
+      counts[b] = teams.filter((t) => t.batch === b).length;
     }
     return counts;
-  }, [initialTeams]);
+  }, [teams]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#060c1a]">
@@ -116,8 +133,8 @@ export default function TeamsClient({
           >
             <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
             <span className="font-mono-score text-xs tracking-widest text-orange-400 font-semibold">
-              {initialTeams.length}{" "}
-              {initialTeams.length === 1 ? "Team" : "Teams"} Registered
+              {teams.length}{" "}
+              {teams.length === 1 ? "Team" : "Teams"} Registered
             </span>
           </motion.div>
         </motion.div>
@@ -193,7 +210,7 @@ export default function TeamsClient({
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center gap-5 py-28 text-center"
               >
-                {initialTeams.length === 0 ? (
+                {teams.length === 0 ? (
                   <>
                     <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/5">
                       <FontAwesomeTrophyIcon size={36} className="text-cyan-400/60" />
@@ -228,7 +245,7 @@ export default function TeamsClient({
         </div>
 
         {/* Batch breakdown bar */}
-        {initialTeams.length > 0 && (
+        {teams.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
