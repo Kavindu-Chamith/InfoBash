@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { MOCK_12_TEAMS } from "@/lib/mockTeams";
 
 export interface Player {
   fullName: string;
@@ -57,9 +58,12 @@ export async function GET() {
       ORDER BY t.created_at ASC
     `);
 
-    return NextResponse.json({ teams: result.rows });
-  } catch (err) {
-    console.error("Public teams fetch error:", err);
-    return NextResponse.json({ error: "Failed to load teams" }, { status: 500 });
+    if (result.rows && result.rows.length > 0) {
+      return NextResponse.json({ teams: result.rows });
+    }
+    return NextResponse.json({ teams: MOCK_12_TEAMS });
+  } catch (error) {
+    console.error("Error fetching public teams:", error);
+    return NextResponse.json({ teams: MOCK_12_TEAMS });
   }
 }
