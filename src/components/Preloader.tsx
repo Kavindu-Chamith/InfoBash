@@ -42,18 +42,20 @@ export default function Preloader() {
           transition={{ duration: 0.6, ease: "easeInOut" }}
           className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-navy-950"
         >
-          {/* Pitch grid, echoes hero section */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.05]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,107,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,1) 1px,transparent 1px)",
-              backgroundSize: "44px 44px",
-            }}
-          />
+          {/* Pitch grid with solid SVG lines */}
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08]">
+            <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+              <defs>
+                <pattern id="preloader-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+                  <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#dd830a" strokeWidth="1" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#preloader-grid)" />
+            </svg>
+          </div>
 
           {/* Ambient glow */}
-          <div className="pointer-events-none absolute h-[420px] w-[420px] rounded-full bg-[#FF6B00]/15 blur-[130px]" />
+          <div className="pointer-events-none absolute h-[420px] w-[420px] rounded-full bg-[#dd830a]/15 blur-[130px]" />
 
           {/* Logo + spinning rings */}
           <div className="relative z-10 flex h-32 w-32 items-center justify-center sm:h-36 sm:w-36">

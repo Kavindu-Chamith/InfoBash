@@ -25,7 +25,7 @@ export default function Footer() {
       {/* Lower Section: Site Theme Color Accent Bar (Orange/Gold/Navy Gradient) */}
       <div className="relative border-t border-orange-500/20 bg-navy-950 px-6 py-6 text-center shadow-lg">
         {/* Orange Glow Line on top of accent bar */}
-        <div className="pointer-events-none absolute top-0 left-1/2 h-[1px] w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#FF6B00] to-transparent" />
+        <div className="pointer-events-none absolute top-0 left-1/2 h-[1px] w-3/4 -translate-x-1/2 bg-[#FF6B00]/40" />
 
         <div className="mx-auto max-w-7xl space-y-2">
           <p className="text-xs uppercase tracking-[0.2em] font-semibold text-orange-400 sm:text-sm">

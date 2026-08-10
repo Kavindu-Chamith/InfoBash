@@ -302,11 +302,6 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
     stiffness: 260,
     damping: 22,
   });
-  const glareX = useTransform(px, (v) => `${v * 100}%`);
-  const glareY = useTransform(py, (v) => `${v * 100}%`);
-  const glareBackground = useTransform([glareX, glareY], ([gx, gy]) =>
-    `radial-gradient(circle at ${gx} ${gy}, ${theme.color}28, transparent 55%)`
-  );
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const rect = cardRef.current?.getBoundingClientRect();
@@ -338,7 +333,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
             rotateX,
             rotateY,
             transformStyle: "preserve-3d",
-            background: `linear-gradient(135deg, ${theme.bg}, rgba(6,12,26,0.85))`,
+            background: theme.bg,
             borderColor: theme.border,
           }}
           className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-shadow duration-300"
@@ -347,10 +342,10 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
           }}
           transition={{ duration: 0.25 }}
         >
-          {/* Holographic glare that tracks the cursor */}
+          {/* Subtle cursor highlight tint */}
           <motion.div
             className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            style={{ background: glareBackground }}
+            style={{ backgroundColor: `${theme.color}10` }}
           />
 
           <div className="p-6">

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:seed": "node scripts/seed-14-teams.mjs"
+    "db:seed": "node scripts/seed-14-teams.mjs",
+    "db:seed-admin": "node scripts/seed-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",

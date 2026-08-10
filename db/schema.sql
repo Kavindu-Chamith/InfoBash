@@ -80,3 +80,12 @@ CREATE TABLE IF NOT EXISTS tournament_settings (
   value TEXT NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Admin users table storing hashed passwords via pgcrypto / crypt
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+

@@ -203,11 +203,11 @@ export default function MemoriesGallery() {
 
         {/* Film-reel footer strip */}
         <div className="mt-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
-          <span className="font-mono-score text-[10px] uppercase tracking-[0.4em] text-ivory-500">
-            InfoBash · 2021 – 2024
+          <div className="h-px flex-1 bg-cyan-400/20" />
+          <span className="font-mono text-xs uppercase tracking-widest text-cyan-400">
+            Faculty of Computing · InfoBash V5.0
           </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+          <div className="h-px flex-1 bg-cyan-400/20" />
         </div>
       </div>
     </section>

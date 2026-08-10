@@ -15,6 +15,7 @@ import {
   PartyPopper,
   ShieldAlert,
   Users,
+  ArrowRight,
 } from "lucide-react";
 import {
   registrationSchema,
@@ -197,7 +198,7 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
 
   return (
     <div className="glass-card glow-border mx-auto max-w-md rounded-3xl p-8 text-center sm:p-10">
-      <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-600/30 to-cyan-400/30 border border-cyan-400/40 text-cyan-300 shadow-[0_0_25px_-5px_rgba(53,215,255,0.4)]">
+      <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 shadow-[0_0_25px_-5px_rgba(53,215,255,0.4)]">
         <svg className="h-8 w-8" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -498,7 +499,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
         transition={{ duration: 0.5 }}
         className="glass-card glow-border mx-auto max-w-xl rounded-3xl p-10 text-center"
       >
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 text-navy-950">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-cyan-500 text-navy-950">
           <PartyPopper size={30} />
         </div>
         <h2 className="mt-6 font-display text-4xl tracking-wide text-ivory-50">
@@ -802,15 +803,15 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
             <button
               type="button"
               onClick={goNext}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-6 py-2.5 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-6px_rgba(53,215,255,0.8)] transition-transform hover:scale-105"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B00] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105"
             >
-              Next <ChevronRight size={16} />
+              Next Step <ArrowRight size={16} />
             </button>
           ) : (
             <button
               type="submit"
               disabled={submitState.status === "submitting" || logoUploading}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 px-7 py-2.5 text-sm font-semibold text-navy-950 shadow-[0_0_20px_-6px_rgba(53,215,255,0.8)] transition-transform hover:scale-105 disabled:opacity-70"
+              className="inline-flex items-center gap-2 rounded-full bg-[#FF6B00] px-7 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105 disabled:opacity-70"
             >
               {submitState.status === "submitting" ? (
                 <>
@@ -857,7 +858,7 @@ export default function RegistrationForm() {
   if (captain.hasTeam) {
     return (
       <div className="glass-card glow-border mx-auto max-w-xl rounded-3xl p-10 text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 text-navy-950">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-cyan-500 text-navy-950">
           <PartyPopper size={30} />
         </div>
         <h2 className="mt-6 font-display text-4xl tracking-wide text-ivory-50">Already Registered</h2>
