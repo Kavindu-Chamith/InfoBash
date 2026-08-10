@@ -34,16 +34,29 @@ export async function PATCH(
     return NextResponse.json({ error: `status must be one of ${STATUSES.join(", ")}` }, { status: 422 });
   }
 
-  // Auto-derive the winner from scores if the match is marked complete and no explicit winner was given.
+  // If setting this match to live, un-set any other previous live match
+  if (body.status === "live") {
+    await pool.query(
+      `UPDATE matches SET status = 'scheduled' WHERE status = 'live' AND id != $1`,
+      [id]
+    ).catch(() => {});
+  }
+
+  // Auto-derive winner if not explicitly set and scores differ
   let winnerId = body.winnerId;
-  if (
-    body.status === "completed" &&
-    winnerId === undefined &&
-    typeof body.teamAScore === "number" &&
-    typeof body.teamBScore === "number" &&
-    body.teamAScore !== body.teamBScore
-  ) {
-    winnerId = body.teamAScore > body.teamBScore ? body.teamAId : body.teamBId;
+  if (!winnerId) {
+    if (
+      typeof body.teamAScore === "number" &&
+      typeof body.teamBScore === "number" &&
+      body.teamAScore !== body.teamBScore
+    ) {
+      const matchDb = await pool.query(`SELECT team_a_id, team_b_id FROM matches WHERE id = $1`, [id]);
+      if (matchDb.rows.length > 0) {
+        const teamAId = body.teamAId || matchDb.rows[0].team_a_id;
+        const teamBId = body.teamBId || matchDb.rows[0].team_b_id;
+        winnerId = body.teamAScore > body.teamBScore ? teamAId : teamBId;
+      }
+    }
   }
 
   const fields: string[] = [];
@@ -84,6 +97,11 @@ export async function PATCH(
     if (result.rows.length === 0) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
+
+    // Trigger auto-progression for Semifinal & Final fixtures when a match is updated/completed
+    const { autoProgressKnockoutMatches } = await import("@/lib/knockoutProgression");
+    await autoProgressKnockoutMatches();
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Match update error:", err);

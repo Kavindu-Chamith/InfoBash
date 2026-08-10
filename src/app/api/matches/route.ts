@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { autoProgressKnockoutMatches } from "@/lib/knockoutProgression";
+import { initDatabaseSchema } from "@/lib/dbInit";
 
 export async function GET() {
   try {
-    // Ensure wickets and overs columns exist if not created yet
-    await pool.query(`
-      ALTER TABLE matches 
-      ADD COLUMN IF NOT EXISTS team_a_wickets SMALLINT,
-      ADD COLUMN IF NOT EXISTS team_b_wickets SMALLINT,
-      ADD COLUMN IF NOT EXISTS team_a_overs TEXT,
-      ADD COLUMN IF NOT EXISTS team_b_overs TEXT;
-    `).catch(() => {});
+    // Auto-create missing database tables if only teams & players exist
+    await initDatabaseSchema();
+
+    // Automatically progress knockout matches (Semifinals & Final) based on completed round winners
+    await autoProgressKnockoutMatches();
 
     const result = await pool.query(`
       SELECT

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import type { GroupStandingRow } from "@/lib/knockoutProgression";
 import {
   Download,
   Loader2,
@@ -15,6 +16,7 @@ import {
   Pencil,
   X,
   AlertTriangle,
+  Flame,
   Users,
   Phone,
   Mail,
@@ -93,11 +95,218 @@ interface MatchRow {
 
 const cardClass = "rounded-2xl border border-white/10 bg-navy-900/50 p-5";
 const inputClass =
-  "w-full rounded-lg border border-white/10 bg-navy-900/70 px-3 py-2 text-sm text-ivory-50 outline-none focus:border-orange-500/80";
+  "w-full rounded-lg border border-white/10 bg-navy-900/70 px-3 py-2 text-sm text-ivory-50 outline-none focus:border-orange-500/80 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const btnPrimary =
-  "inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-[0_0_20px_-4px_rgba(255,107,0,0.6)] transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100";
+  "inline-flex items-center gap-1.5 rounded-full bg-[#FF6B00] px-4 py-2 text-xs font-bold text-white shadow-[0_0_20px_-4px_rgba(255,107,0,0.6)] transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100";
 const btnGhost =
   "inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-ivory-200 hover:border-white/30";
+
+function stepCricketOvers(currentVal: string, direction: "up" | "down"): string {
+  const clean = currentVal.trim();
+  if (!clean || clean === "0" || clean === "0.0") {
+    return direction === "up" ? "0.1" : "0.0";
+  }
+
+  const parts = clean.split(".");
+  let over = parseInt(parts[0], 10);
+  let ball = parts[1] ? parseInt(parts[1], 10) : 0;
+
+  if (isNaN(over) || over < 0) over = 0;
+  if (isNaN(ball) || ball < 0) ball = 0;
+
+  if (direction === "up") {
+    if (ball >= 5) {
+      over += 1;
+      ball = 0;
+    } else {
+      ball += 1;
+    }
+  } else {
+    if (ball > 0) {
+      ball -= 1;
+    } else if (over > 0) {
+      over -= 1;
+      ball = 5;
+    } else {
+      over = 0;
+      ball = 0;
+    }
+  }
+
+  return `${over}.${ball}`;
+}
+
+function handleRunsWheel(e: React.WheelEvent<HTMLInputElement>, val: string, setter: (v: string) => void) {
+  e.preventDefault();
+  const current = parseInt(val, 10);
+  const base = isNaN(current) ? 0 : current;
+  if (e.deltaY < 0) {
+    setter((base + 1).toString());
+  } else if (e.deltaY > 0) {
+    setter(Math.max(0, base - 1).toString());
+  }
+}
+
+function handleRunsChange(val: string, setter: (v: string) => void) {
+  if (val === "") {
+    setter("");
+    return;
+  }
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < 0) {
+    setter("0");
+  } else {
+    setter(n.toString());
+  }
+}
+
+function handleWktsWheel(e: React.WheelEvent<HTMLInputElement>, val: string, setter: (v: string) => void) {
+  e.preventDefault();
+  const current = parseInt(val, 10);
+  const base = isNaN(current) ? 0 : current;
+  if (e.deltaY < 0) {
+    setter(Math.min(10, base + 1).toString());
+  } else if (e.deltaY > 0) {
+    setter(Math.max(0, base - 1).toString());
+  }
+}
+
+function handleWktsChange(val: string, setter: (v: string) => void) {
+  if (val === "") {
+    setter("");
+    return;
+  }
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < 0) {
+    setter("0");
+  } else if (n > 10) {
+    setter("10");
+  } else {
+    setter(n.toString());
+  }
+}
+
+function handleOversWheel(e: React.WheelEvent<HTMLInputElement>, val: string, setter: (v: string) => void) {
+  e.preventDefault();
+  const direction = e.deltaY < 0 ? "up" : "down";
+  setter(stepCricketOvers(val, direction));
+}
+
+function handleOversChange(val: string, setter: (v: string) => void) {
+  if (val === "") {
+    setter("");
+    return;
+  }
+  const cleaned = val.replace("-", "");
+  setter(cleaned);
+}
+
+function handleOversKeyDown(e: React.KeyboardEvent<HTMLInputElement>, val: string, setter: (v: string) => void) {
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    setter(stepCricketOvers(val, "up"));
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    setter(stepCricketOvers(val, "down"));
+  }
+}
+
+function handleScoreKeyDown(
+  e: React.KeyboardEvent<HTMLInputElement>,
+  stepUp: () => void,
+  stepDown: () => void,
+  onSubmit?: () => void
+) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (onSubmit) onSubmit();
+  } else if (e.key === "ArrowRight") {
+    const target = e.currentTarget;
+    const container = target.closest(".grid-cols-1") || document;
+    const allInputs = Array.from(container.querySelectorAll<HTMLInputElement>("[data-score-input]"));
+    const currIdx = allInputs.indexOf(target);
+    if (currIdx !== -1 && currIdx < allInputs.length - 1) {
+      e.preventDefault();
+      const next = allInputs[currIdx + 1];
+      next.focus();
+      next.select();
+    }
+  } else if (e.key === "ArrowLeft") {
+    const target = e.currentTarget;
+    const container = target.closest(".grid-cols-1") || document;
+    const allInputs = Array.from(container.querySelectorAll<HTMLInputElement>("[data-score-input]"));
+    const currIdx = allInputs.indexOf(target);
+    if (currIdx > 0) {
+      e.preventDefault();
+      const prev = allInputs[currIdx - 1];
+      prev.focus();
+      prev.select();
+    }
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    stepUp();
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    stepDown();
+  }
+}
+
+function NonPassiveWheelInput({
+  type = "text",
+  value,
+  onChange,
+  onWheelStep,
+  onKeyDown,
+  min,
+  max,
+  placeholder,
+  className,
+  dataScoreInput,
+}: {
+  type?: string;
+  value: string;
+  onChange: (val: string) => void;
+  onWheelStep: (direction: "up" | "down") => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  className?: string;
+  dataScoreInput?: boolean;
+}) {
+  const onWheelStepRef = useRef(onWheelStep);
+  onWheelStepRef.current = onWheelStep;
+
+  const setRef = useCallback((node: HTMLInputElement | null) => {
+    if (!node) return;
+    const handleWheel = (e: WheelEvent) => {
+      // Only increase/decrease values when the text box is clicked / focused by admin!
+      if (document.activeElement === node) {
+        e.preventDefault();
+        e.stopPropagation();
+        const direction = e.deltaY < 0 ? "up" : "down";
+        onWheelStepRef.current(direction);
+      }
+    };
+
+    node.addEventListener("wheel", handleWheel, { passive: false });
+  }, []);
+
+  return (
+    <input
+      ref={setRef}
+      type={type}
+      min={min}
+      max={max}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      className={className}
+      data-score-input={dataScoreInput ? "true" : undefined}
+    />
+  );
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -1108,6 +1317,41 @@ function MatchesTab({
   const [liveWktsB, setLiveWktsB] = useState<string>("");
   const [liveOversB, setLiveOversB] = useState<string>("");
   const [updatingLive, setUpdatingLive] = useState(false);
+  const [showFinishMatchModal, setShowFinishMatchModal] = useState(false);
+  const [standingsData, setStandingsData] = useState<Record<string, GroupStandingRow[]>>({});
+
+  const fetchStandings = useCallback(() => {
+    fetch("/api/admin/standings")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.standings) setStandingsData(json.standings);
+      })
+      .catch(() => { });
+  }, []);
+
+  const handleSetQualifier = async (groupName: string, teamId: string | null) => {
+    try {
+      const res = await fetch("/api/admin/qualifiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groupName, teamId }),
+      });
+      if (res.ok) {
+        fetchStandings();
+        onChanged(
+          teamId ? `Set ${groupName} Semifinal qualifier manually.` : `Reset ${groupName} to automatic Points & Run Rate ranking.`,
+          false,
+          "Qualifier Updated"
+        );
+      }
+    } catch (err) {
+      console.error("Set qualifier error:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStandings();
+  }, [matches, fetchStandings]);
 
   // Auto-populate inputs when selecting a match in the Live Controller
   const handleLiveSelect = (matchId: string) => {
@@ -1124,9 +1368,12 @@ function MatchesTab({
     }
   };
 
-  // Sync initial live match values when match list or round changes
+  // Only sync inputs when selectedLiveId changes (e.g. admin selects another match in dropdown)
+  const prevSelectedLiveIdRef = useRef<string>("");
+
   useEffect(() => {
-    if (selectedLiveId) {
+    if (selectedLiveId && selectedLiveId !== prevSelectedLiveIdRef.current) {
+      prevSelectedLiveIdRef.current = selectedLiveId;
       const target = matches.find((m) => m.id === selectedLiveId);
       if (target) {
         setLiveWinnerId(target.winner_id ?? "");
@@ -1161,6 +1408,12 @@ function MatchesTab({
     });
     const json = await res.json();
     setUpdatingLive(false);
+    if (res.ok) {
+      prevSelectedLiveIdRef.current = "";
+      if (newStatus === "completed") {
+        setSelectedLiveId("");
+      }
+    }
     onChanged(
       res.ok
         ? newStatus === "live"
@@ -1275,7 +1528,7 @@ function MatchesTab({
       {/* ══════════════════════════════════════════════════════════════
           0. MANUAL MATCHES VISIBILITY CONTROL (UNHIDE / HIDE)
       ══════════════════════════════════════════════════════════════ */}
-      <div className="rounded-2xl border border-gold-500/30 bg-gradient-to-r from-navy-900/90 via-[#070e1c]/90 to-navy-900/90 p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-2xl border border-gold-500/30 bg-[#070e1c] p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className={`h-2.5 w-2.5 rounded-full ${matchesPublished ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
@@ -1335,7 +1588,7 @@ function MatchesTab({
             type="button"
             disabled={submittingRound}
             onClick={submitActiveLiveRound}
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider text-navy-950 hover:from-emerald-400 hover:to-cyan-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
+            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 font-mono-score text-xs font-bold uppercase tracking-wider text-navy-950 hover:bg-emerald-400 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
           >
             {submittingRound ? (
               <Loader2 size={13} className="animate-spin" />
@@ -1364,7 +1617,7 @@ function MatchesTab({
                   setSelectedLiveId("");
                 }}
                 className={`relative inline-flex items-center gap-2 rounded-full px-5 py-2 font-mono-score text-xs font-bold uppercase tracking-wider transition-all duration-200 ${isSelected
-                  ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105"
+                  ? "bg-cyan-500 text-navy-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] scale-105 font-extrabold"
                   : "border border-white/10 bg-white/[0.03] text-ivory-300 hover:border-cyan-400/40 hover:text-white"
                   }`}
               >
@@ -1415,12 +1668,42 @@ function MatchesTab({
               className={inputClass}
             >
               <option value="">-- Choose Match in Current Round --</option>
-              {roundMatches.map((m) => (
-                <option key={m.id} value={m.id}>
-                  [{m.stage.toUpperCase()}] {m.team_a_name ?? "TBD"} vs {m.team_b_name ?? "TBD"}{" "}
-                  — Status: {m.status.toUpperCase()}
-                </option>
-              ))}
+              {roundMatches
+                .filter((m) => m.status !== "completed")
+                .map((m) => {
+                  if (adminRound === "semifinal" || adminRound === "final") {
+                    const teamAObj = teams.find((t) => t.id === m.team_a_id);
+                    const teamBObj = teams.find((t) => t.id === m.team_b_id);
+
+                    const grpA = teamAObj?.group_name || teamAObj?.batch || "";
+                    const grpB = teamBObj?.group_name || teamBObj?.batch || "";
+
+                    const labelA = grpA ? ` (${grpA})` : "";
+                    const labelB = grpB ? ` (${grpB})` : "";
+
+                    const matchLabel = m.label ? `[${m.label}] ` : "";
+
+                    return (
+                      <option key={m.id} value={m.id}>
+                        {matchLabel}{m.team_a_name ?? "TBD"}{labelA} vs {m.team_b_name ?? "TBD"}{labelB}
+                      </option>
+                    );
+                  } else {
+                    const groupName =
+                      m.group_name ||
+                      (m.label && m.label.toLowerCase().includes("group") ? m.label : "") ||
+                      teams.find((t) => t.id === m.team_a_id || t.id === m.team_b_id)?.group_name ||
+                      teams.find((t) => t.id === m.team_a_id || t.id === m.team_b_id)?.batch ||
+                      "";
+                    const prefix = groupName ? `[${groupName}] ` : "";
+
+                    return (
+                      <option key={m.id} value={m.id}>
+                        {prefix}{m.team_a_name ?? "TBD"} vs {m.team_b_name ?? "TBD"}
+                      </option>
+                    );
+                  }
+                })}
             </select>
           </div>
 
@@ -1429,37 +1712,82 @@ function MatchesTab({
               {/* Team A Live Inputs */}
               <div className="space-y-2 rounded-lg border border-white/10 p-3">
                 <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  Team A: {selectedMatchObj.team_a_name ?? "Team A"}
+                  {selectedMatchObj.team_a_name ?? "Team A"}
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[10px] text-ivory-400">Runs</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Runs</label>
+                    <NonPassiveWheelInput
                       type="number"
+                      min={0}
                       value={liveRunsA}
-                      onChange={(e) => setLiveRunsA(e.target.value)}
+                      onChange={(val) => handleRunsChange(val, setLiveRunsA)}
+                      onWheelStep={(dir) =>
+                        setLiveRunsA((prev) => {
+                          const n = parseInt(prev, 10);
+                          const base = isNaN(n) ? 0 : n;
+                          return dir === "up" ? (base + 1).toString() : Math.max(0, base - 1).toString();
+                        })
+                      }
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveRunsA((prev) => (Math.max(0, parseInt(prev, 10) || 0) + 1).toString()),
+                          () => setLiveRunsA((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="142"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-ivory-400">Wickets</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Wickets</label>
+                    <NonPassiveWheelInput
                       type="number"
+                      min={0}
+                      max={10}
                       value={liveWktsA}
-                      onChange={(e) => setLiveWktsA(e.target.value)}
+                      onChange={(val) => handleWktsChange(val, setLiveWktsA)}
+                      onWheelStep={(dir) =>
+                        setLiveWktsA((prev) => {
+                          const n = parseInt(prev, 10);
+                          const base = isNaN(n) ? 0 : n;
+                          return dir === "up" ? Math.min(10, base + 1).toString() : Math.max(0, base - 1).toString();
+                        })
+                      }
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveWktsA((prev) => Math.min(10, (parseInt(prev, 10) || 0) + 1).toString()),
+                          () => setLiveWktsA((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="4"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-ivory-400">Overs</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Overs</label>
+                    <NonPassiveWheelInput
                       type="text"
                       value={liveOversA}
-                      onChange={(e) => setLiveOversA(e.target.value)}
+                      onChange={(val) => handleOversChange(val, setLiveOversA)}
+                      onWheelStep={(dir) => setLiveOversA((prev) => stepCricketOvers(prev, dir))}
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveOversA((prev) => stepCricketOvers(prev, "up")),
+                          () => setLiveOversA((prev) => stepCricketOvers(prev, "down")),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="18.2"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                 </div>
@@ -1468,37 +1796,82 @@ function MatchesTab({
               {/* Team B Live Inputs */}
               <div className="space-y-2 rounded-lg border border-white/10 p-3">
                 <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  Team B: {selectedMatchObj.team_b_name ?? "Team B"}
+                  {selectedMatchObj.team_b_name ?? "Team B"}
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[10px] text-ivory-400">Runs</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Runs</label>
+                    <NonPassiveWheelInput
                       type="number"
+                      min={0}
                       value={liveRunsB}
-                      onChange={(e) => setLiveRunsB(e.target.value)}
+                      onChange={(val) => handleRunsChange(val, setLiveRunsB)}
+                      onWheelStep={(dir) =>
+                        setLiveRunsB((prev) => {
+                          const n = parseInt(prev, 10);
+                          const base = isNaN(n) ? 0 : n;
+                          return dir === "up" ? (base + 1).toString() : Math.max(0, base - 1).toString();
+                        })
+                      }
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveRunsB((prev) => (Math.max(0, parseInt(prev, 10) || 0) + 1).toString()),
+                          () => setLiveRunsB((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="98"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-ivory-400">Wickets</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Wickets</label>
+                    <NonPassiveWheelInput
                       type="number"
+                      min={0}
+                      max={10}
                       value={liveWktsB}
-                      onChange={(e) => setLiveWktsB(e.target.value)}
+                      onChange={(val) => handleWktsChange(val, setLiveWktsB)}
+                      onWheelStep={(dir) =>
+                        setLiveWktsB((prev) => {
+                          const n = parseInt(prev, 10);
+                          const base = isNaN(n) ? 0 : n;
+                          return dir === "up" ? Math.min(10, base + 1).toString() : Math.max(0, base - 1).toString();
+                        })
+                      }
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveWktsB((prev) => Math.min(10, (parseInt(prev, 10) || 0) + 1).toString()),
+                          () => setLiveWktsB((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="2"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-ivory-400">Overs</label>
-                    <input
+                    <label className="mb-1.5 block text-[10px] text-ivory-400">Overs</label>
+                    <NonPassiveWheelInput
                       type="text"
                       value={liveOversB}
-                      onChange={(e) => setLiveOversB(e.target.value)}
+                      onChange={(val) => handleOversChange(val, setLiveOversB)}
+                      onWheelStep={(dir) => setLiveOversB((prev) => stepCricketOvers(prev, dir))}
+                      onKeyDown={(e) =>
+                        handleScoreKeyDown(
+                          e,
+                          () => setLiveOversB((prev) => stepCricketOvers(prev, "up")),
+                          () => setLiveOversB((prev) => stepCricketOvers(prev, "down")),
+                          () => updateLiveMatch("live")
+                        )
+                      }
                       placeholder="12.0"
                       className={inputClass}
+                      dataScoreInput
                     />
                   </div>
                 </div>
@@ -1517,12 +1890,12 @@ function MatchesTab({
                   <option value="">-- Auto-Derive Winner from Runs --</option>
                   {selectedMatchObj.team_a_id && (
                     <option value={selectedMatchObj.team_a_id}>
-                      🏆 {selectedMatchObj.team_a_name} (WINNER)
+                      {selectedMatchObj.team_a_name} (WINNER)
                     </option>
                   )}
                   {selectedMatchObj.team_b_id && (
                     <option value={selectedMatchObj.team_b_id}>
-                      🏆 {selectedMatchObj.team_b_name} (WINNER)
+                      {selectedMatchObj.team_b_name} (WINNER)
                     </option>
                   )}
                 </select>
@@ -1537,16 +1910,16 @@ function MatchesTab({
                   className={btnPrimary}
                 >
                   {updatingLive ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-                  ⚡ Set Live & Broadcast Score
+                  Set Live & Broadcast Score
                 </button>
 
                 <button
                   type="button"
                   disabled={updatingLive}
-                  onClick={() => updateLiveMatch("completed")}
+                  onClick={() => setShowFinishMatchModal(true)}
                   className="inline-flex items-center gap-1.5 rounded-full bg-gold-400 px-5 py-2 text-xs font-bold text-navy-950 hover:bg-gold-300 transition-colors shadow-lg"
                 >
-                  🏁 Finish Match & Move to Results Tab
+                  Finish Match & Move to Results Tab
                 </button>
               </div>
             </div>
@@ -1557,65 +1930,106 @@ function MatchesTab({
       {/* ══════════════════════════════════════════════════════════════
           3. NEW FIXTURE CREATOR FOR SELECTED ROUND
       ══════════════════════════════════════════════════════════════ */}
-      <form onSubmit={createMatch} className={`${cardClass} grid grid-cols-1 gap-4 sm:grid-cols-2`}>
-        <h3 className="col-span-full font-display text-xl tracking-wide text-ivory-50">
-          Create Match Fixture ({adminRound.toUpperCase()})
-        </h3>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Stage / Round</label>
-          <select
-            value={form.stage}
-            onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value as MatchRow["stage"] }))}
-            className={inputClass}
-          >
-            <option value="round1">1st Round</option>
-            <option value="semifinal">Semifinal</option>
-            <option value="final">Final</option>
-            <option value="group">Group Stage</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Label / Name</label>
-          <input
-            value={form.label}
-            onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-            placeholder="e.g. 1st Round · Match 02"
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Team A</label>
-          <select
-            value={form.teamAId}
-            onChange={(e) => setForm((f) => ({ ...f, teamAId: e.target.value }))}
-            className={inputClass}
-          >
-            <option value="">TBD</option>
-            {teams.map((t) => (
-              <option key={t.id} value={t.id}>{t.team_name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Team B</label>
-          <select
-            value={form.teamBId}
-            onChange={(e) => setForm((f) => ({ ...f, teamBId: e.target.value }))}
-            className={inputClass}
-          >
-            <option value="">TBD</option>
-            {teams.map((t) => (
-              <option key={t.id} value={t.id}>{t.team_name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="col-span-full">
-          <button type="submit" disabled={creating} className={btnPrimary}>
-            {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-            + Create Match Fixture
-          </button>
-        </div>
-      </form>
+      {(() => {
+        const sfTeamIds = new Set<string>();
+        if (form.stage === "semifinal") {
+          Object.values(standingsData).forEach((groupTeams) => {
+            const qualified = groupTeams.find((t) => t.isQualified) ?? groupTeams[0];
+            if (qualified) sfTeamIds.add(qualified.teamId);
+          });
+        }
+
+        const finalTeamIds = new Set<string>();
+        if (form.stage === "final") {
+          const sfMatches = matches.filter((m) => m.stage === "semifinal");
+          sfMatches.forEach((m) => {
+            if (m.winner_id) {
+              finalTeamIds.add(m.winner_id);
+            } else {
+              if (m.team_a_id) finalTeamIds.add(m.team_a_id);
+              if (m.team_b_id) finalTeamIds.add(m.team_b_id);
+            }
+          });
+        }
+
+        const selectableFixtureTeams =
+          form.stage === "semifinal" && sfTeamIds.size > 0
+            ? teams.filter((t) => sfTeamIds.has(t.id))
+            : form.stage === "final" && finalTeamIds.size > 0
+              ? teams.filter((t) => finalTeamIds.has(t.id))
+              : teams;
+
+        return (
+          <form onSubmit={createMatch} className={`${cardClass} grid grid-cols-1 gap-4 sm:grid-cols-2`}>
+            <h3 className="col-span-full font-display text-xl tracking-wide text-ivory-50">
+              Create Match Fixture ({adminRound.toUpperCase()})
+            </h3>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Stage / Round</label>
+              <select
+                value={form.stage}
+                onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value as MatchRow["stage"] }))}
+                className={inputClass}
+              >
+                <option value="round1">1st Round</option>
+                <option value="semifinal">Semifinal</option>
+                <option value="final">Final</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Label / Name</label>
+              <input
+                value={form.label}
+                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                placeholder="e.g. 1st Round · Match 02"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Team A</label>
+              <select
+                value={form.teamAId}
+                onChange={(e) => setForm((f) => ({ ...f, teamAId: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">Select Team ({selectableFixtureTeams.length} available)</option>
+                {selectableFixtureTeams.map((t) => {
+                  const grp = t.group_name || t.batch ? ` [${t.group_name || t.batch}]` : "";
+                  return (
+                    <option key={t.id} value={t.id}>
+                      {t.team_name}{grp}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ivory-300">Team B</label>
+              <select
+                value={form.teamBId}
+                onChange={(e) => setForm((f) => ({ ...f, teamBId: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">Select Team ({selectableFixtureTeams.length} available)</option>
+                {selectableFixtureTeams.map((t) => {
+                  const grp = t.group_name || t.batch ? ` [${t.group_name || t.batch}]` : "";
+                  return (
+                    <option key={t.id} value={t.id}>
+                      {t.team_name}{grp}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="col-span-full">
+              <button type="submit" disabled={creating} className={btnPrimary}>
+                {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                Create Match Fixture
+              </button>
+            </div>
+          </form>
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════════════════
           4. ALL MATCHES LIST (UPCOMING & RESULTS FOR SELECTED ROUND)
@@ -1712,6 +2126,116 @@ function MatchesTab({
             )}
           </div>
         </div>
+
+        {/* 1st Round Group Standings & Run Rate Table (Shown ONLY in 1st Round Tab) */}
+        {adminRound === "round1" && (
+          <div className="pt-4 border-t border-white/10">
+            <div className="rounded-2xl border border-cyan-500/30 bg-[#070e1c]/90 p-5 shadow-xl space-y-4 text-left">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                <div>
+                  <h4 className="font-display text-xl font-bold tracking-wide text-ivory-50 flex items-center gap-2">
+                    1st Round Group Standings &amp; Run Rate
+                  </h4>
+                  <p className="mt-0.5 text-xs text-ivory-300">
+                    Automatically calculated from completed 1st Round matches. Ranked by Points, then Run Rate tie-breaker. Highest team in each group qualifies for Semifinals.
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/15 bg-navy-950/80 text-ivory-300 font-mono uppercase tracking-wider">
+                      <th className="p-3 border border-white/10 font-semibold w-28 text-center">Group</th>
+                      <th className="p-3 border border-white/10 font-semibold">Team Name</th>
+                      <th className="p-3 border border-white/10 font-semibold text-center w-20">Points</th>
+                      <th className="p-3 border border-white/10 font-semibold text-center w-24">Run Rate</th>
+                      <th className="p-3 border border-white/10 font-semibold text-center w-36">Qualifier Selection</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(standingsData).length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-4 text-center text-ivory-400">
+                          No 1st Round group standings available yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      Object.entries(standingsData).map(([groupName, groupTeams]) =>
+                        groupTeams.map((t, idx) => {
+                          const isQualified = t.isQualified ?? (idx === 0);
+                          const isManual = t.isManualOverride ?? false;
+
+                          return (
+                            <tr
+                              key={t.teamId}
+                              className={`border-b border-white/5 transition-colors ${isQualified
+                                  ? "bg-emerald-500/10 text-emerald-300 font-semibold"
+                                  : "hover:bg-white/[0.02] text-ivory-200"
+                                }`}
+                            >
+                              {idx === 0 && (
+                                <td
+                                  rowSpan={groupTeams.length}
+                                  className="p-3 border border-white/10 align-middle text-center font-bold text-cyan-400 bg-navy-950/40 text-sm"
+                                >
+                                  {groupName}
+                                </td>
+                              )}
+                              <td className="p-3 border border-white/10 font-medium">
+                                <div className="flex items-center gap-2">
+                                  {isQualified && (
+                                    <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                      <span>SF QUALIFIED</span>
+                                      {isManual && <span className="text-[8px] text-amber-300 font-bold">(MANUAL)</span>}
+                                    </span>
+                                  )}
+                                  <span>{t.teamName}</span>
+                                </div>
+                              </td>
+                              <td className="p-3 border border-white/10 text-center font-mono font-bold text-gold-400 text-sm">
+                                {t.points}
+                              </td>
+                              <td className="p-3 border border-white/10 text-center font-mono text-cyan-300 font-semibold">
+                                {t.runRate.toFixed(1)}
+                              </td>
+                              <td className="p-3 border border-white/10 text-center">
+                                {isQualified ? (
+                                  isManual ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetQualifier(groupName, null)}
+                                      className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-300 hover:bg-amber-500/20"
+                                      title="Reset to automatic points & run-rate calculation"
+                                    >
+                                      Reset to Auto
+                                    </button>
+                                  ) : (
+                                    <span className="text-[10px] text-emerald-400 font-mono italic">
+                                      Auto-Selected
+                                    </span>
+                                  )
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetQualifier(groupName, t.teamId)}
+                                    className="rounded border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+                                  >
+                                    Set as Qualifier
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Match Team Details Modal Overlay */}
@@ -1741,6 +2265,65 @@ function MatchesTab({
           onDeleted={onChanged}
         />
       )}
+
+      {/* Finish Live Match Confirmation Modal Overlay */}
+      {showFinishMatchModal && selectedMatchObj && (
+        <FinishMatchModal
+          matchTitle={`${selectedMatchObj.team_a_name ?? "Team A"} vs ${selectedMatchObj.team_b_name ?? "Team B"}`}
+          loading={updatingLive}
+          onClose={() => setShowFinishMatchModal(false)}
+          onConfirm={async () => {
+            await updateLiveMatch("completed");
+            setShowFinishMatchModal(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function FinishMatchModal({
+  matchTitle,
+  loading,
+  onClose,
+  onConfirm,
+}: {
+  matchTitle: string;
+  loading: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/80 p-4 backdrop-blur-md">
+      <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-[#070e1c] p-6 shadow-2xl space-y-4 text-left">
+        <div className="flex items-center gap-3 text-rose-400">
+          <AlertTriangle size={24} />
+          <h3 className="font-display text-xl font-bold tracking-wide text-ivory-50">Finish Match</h3>
+        </div>
+
+        <p className="text-sm leading-relaxed text-ivory-300">
+          Are you sure you want to finish <strong className="text-white font-semibold">{matchTitle}</strong>? This will conclude live score tracking and move this match fixture into the completed match results section.
+        </p>
+
+        <div className="pt-2 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold text-ivory-200 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow-md shadow-rose-600/30 transition-all hover:bg-rose-500 active:scale-95 disabled:opacity-60"
+          >
+            {loading ? <Loader2 size={15} className="animate-spin" /> : "Finish Match"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2146,33 +2729,78 @@ function MatchEditor({
           </span>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] text-ivory-400">Runs</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Runs</label>
+              <NonPassiveWheelInput
                 type="number"
+                min={0}
                 value={scoreA}
-                onChange={(e) => setScoreA(e.target.value)}
+                onChange={(val) => handleRunsChange(val, setScoreA)}
+                onWheelStep={(dir) =>
+                  setScoreA((prev) => {
+                    const n = parseInt(prev, 10);
+                    const base = isNaN(n) ? 0 : n;
+                    return dir === "up" ? (base + 1).toString() : Math.max(0, base - 1).toString();
+                  })
+                }
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setScoreA((prev) => (Math.max(0, parseInt(prev, 10) || 0) + 1).toString()),
+                    () => setScoreA((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                    () => save()
+                  )
+                }
                 placeholder="Runs"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
             <div>
-              <label className="text-[10px] text-ivory-400">Wickets</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Wickets</label>
+              <NonPassiveWheelInput
                 type="number"
+                min={0}
+                max={10}
                 value={wktsA}
-                onChange={(e) => setWktsA(e.target.value)}
+                onChange={(val) => handleWktsChange(val, setWktsA)}
+                onWheelStep={(dir) =>
+                  setWktsA((prev) => {
+                    const n = parseInt(prev, 10);
+                    const base = isNaN(n) ? 0 : n;
+                    return dir === "up" ? Math.min(10, base + 1).toString() : Math.max(0, base - 1).toString();
+                  })
+                }
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setWktsA((prev) => Math.min(10, (parseInt(prev, 10) || 0) + 1).toString()),
+                    () => setWktsA((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                    () => save()
+                  )
+                }
                 placeholder="Wkts"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
             <div>
-              <label className="text-[10px] text-ivory-400">Overs</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Overs</label>
+              <NonPassiveWheelInput
                 type="text"
                 value={oversA}
-                onChange={(e) => setOversA(e.target.value)}
+                onChange={(val) => handleOversChange(val, setOversA)}
+                onWheelStep={(dir) => setOversA((prev) => stepCricketOvers(prev, dir))}
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setOversA((prev) => stepCricketOvers(prev, "up")),
+                    () => setOversA((prev) => stepCricketOvers(prev, "down")),
+                    () => save()
+                  )
+                }
                 placeholder="Ov"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
           </div>
@@ -2185,33 +2813,78 @@ function MatchEditor({
           </span>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] text-ivory-400">Runs</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Runs</label>
+              <NonPassiveWheelInput
                 type="number"
+                min={0}
                 value={scoreB}
-                onChange={(e) => setScoreB(e.target.value)}
+                onChange={(val) => handleRunsChange(val, setScoreB)}
+                onWheelStep={(dir) =>
+                  setScoreB((prev) => {
+                    const n = parseInt(prev, 10);
+                    const base = isNaN(n) ? 0 : n;
+                    return dir === "up" ? (base + 1).toString() : Math.max(0, base - 1).toString();
+                  })
+                }
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setScoreB((prev) => (Math.max(0, parseInt(prev, 10) || 0) + 1).toString()),
+                    () => setScoreB((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                    () => save()
+                  )
+                }
                 placeholder="Runs"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
             <div>
-              <label className="text-[10px] text-ivory-400">Wickets</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Wickets</label>
+              <NonPassiveWheelInput
                 type="number"
+                min={0}
+                max={10}
                 value={wktsB}
-                onChange={(e) => setWktsB(e.target.value)}
+                onChange={(val) => handleWktsChange(val, setWktsB)}
+                onWheelStep={(dir) =>
+                  setWktsB((prev) => {
+                    const n = parseInt(prev, 10);
+                    const base = isNaN(n) ? 0 : n;
+                    return dir === "up" ? Math.min(10, base + 1).toString() : Math.max(0, base - 1).toString();
+                  })
+                }
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setWktsB((prev) => Math.min(10, (parseInt(prev, 10) || 0) + 1).toString()),
+                    () => setWktsB((prev) => Math.max(0, (parseInt(prev, 10) || 0) - 1).toString()),
+                    () => save()
+                  )
+                }
                 placeholder="Wkts"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
             <div>
-              <label className="text-[10px] text-ivory-400">Overs</label>
-              <input
+              <label className="mb-1.5 block text-[10px] text-ivory-400">Overs</label>
+              <NonPassiveWheelInput
                 type="text"
                 value={oversB}
-                onChange={(e) => setOversB(e.target.value)}
+                onChange={(val) => handleOversChange(val, setOversB)}
+                onWheelStep={(dir) => setOversB((prev) => stepCricketOvers(prev, dir))}
+                onKeyDown={(e) =>
+                  handleScoreKeyDown(
+                    e,
+                    () => setOversB((prev) => stepCricketOvers(prev, "up")),
+                    () => setOversB((prev) => stepCricketOvers(prev, "down")),
+                    () => save()
+                  )
+                }
                 placeholder="Ov"
                 className={inputClass}
+                dataScoreInput
               />
             </div>
           </div>
@@ -2255,8 +2928,8 @@ function MatchTeamDetailsModal({
   teams: AdminTeam[];
   onClose: () => void;
 }) {
-  const teamA = teams.find((t) => t.id === match.team_a_id);
-  const teamB = teams.find((t) => t.id === match.team_b_id);
+  const teamA = teams.find((t) => (match.team_a_id && t.id === match.team_a_id) || (match.team_a_name && t.team_name.toLowerCase() === match.team_a_name.toLowerCase()));
+  const teamB = teams.find((t) => (match.team_b_id && t.id === match.team_b_id) || (match.team_b_name && t.team_name.toLowerCase() === match.team_b_name.toLowerCase()));
 
   const teamAPlayers = teamA?.players && teamA.players.length > 0
     ? [...teamA.players].sort((a, b) => (a.position || 0) - (b.position || 0))
