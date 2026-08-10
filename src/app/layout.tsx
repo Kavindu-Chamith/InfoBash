@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
-import CricketFab from "@/components/CricketFab";
 
 const teko = Teko({
   variable: "--font-teko",
@@ -54,7 +53,6 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
           <Footer />
-          <CricketFab />
         </ToastProvider>
       </body>
     </html>
