@@ -309,7 +309,7 @@ function MatchCard({
       whileHover={{ y: -3, transition: { duration: 0.18 } }}
       className="relative w-44 shrink-0 rounded-xl p-2.5 transition-all"
       style={{
-        background: "linear-gradient(145deg, rgba(16,28,66,0.85), rgba(8,14,36,0.9))",
+        background: "#142132",
         border: `1px solid ${CARD_BORDER}`,
         backdropFilter: "blur(14px)",
         boxShadow: `0 0 20px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
@@ -370,7 +370,7 @@ function ChampionCard({
       <div
         className="w-full rounded-xl px-3 py-2.5 text-center"
         style={{
-          background: "linear-gradient(145deg, rgba(16,28,66,0.9), rgba(8,14,36,0.95))",
+          background: "#142132",
           border: `1px solid ${CARD_BORDER}`,
           boxShadow: `0 0 24px -8px ${CARD_BORDER_GLOW}, inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}
@@ -385,7 +385,7 @@ function ChampionCard({
         <div
           ref={glowRef}
           className="pointer-events-none absolute inset-0 rounded-full opacity-60 blur-[24px]"
-          style={{ background: "radial-gradient(circle, rgba(245,185,66,0.55), rgba(245,155,0,0.12))" }}
+          style={{ background: "rgba(221,131,10,0.25)" }}
         />
         {/* Spinning ring — inset-0 keeps it perfectly concentric */}
         <svg
@@ -393,22 +393,15 @@ function ChampionCard({
           viewBox="0 0 100 100"
           className="pointer-events-none absolute inset-0 h-full w-full opacity-55"
         >
-          <defs>
-            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f5b942" stopOpacity="1" />
-              <stop offset="50%" stopColor="#ffd479" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#f5b942" stopOpacity="1" />
-            </linearGradient>
-          </defs>
-          <circle cx="50" cy="50" r="46" fill="none" stroke="url(#goldGrad)" strokeWidth="1.5" strokeDasharray="4 6" />
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#dd830a" strokeWidth="1.5" strokeDasharray="4 6" />
         </svg>
         {/* Gold circle with trophy image */}
         <div
           className="relative z-10 grid h-12 w-12 place-items-center rounded-full"
           style={{
-            background: "radial-gradient(circle at 40% 35%, rgba(245,185,66,0.22), rgba(10,17,40,0.95))",
-            border: "1px solid rgba(245,185,66,0.5)",
-            boxShadow: "0 0 18px -4px rgba(245,185,66,0.6), inset 0 1px 0 rgba(255,255,255,0.09)",
+            background: "#142132",
+            border: "1px solid rgba(221,131,10,0.6)",
+            boxShadow: "0 0 18px -4px rgba(221,131,10,0.6), inset 0 1px 0 rgba(255,255,255,0.09)",
           }}
         >
           <div ref={trophyRef} className="relative h-7 w-7">
@@ -583,11 +576,11 @@ export default function Bracket({
           <div key={ri} className="flex flex-col items-center gap-3">
             {/* Round label */}
             <div className="mb-2 flex items-center gap-2">
-              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, transparent, ${roundAccents[ri] || "#f5b942"})` }} />
-              <span className="font-mono-score text-[10px] uppercase tracking-[0.35em]" style={{ color: roundAccents[ri] || "#f5b942" }}>
+              <div className="h-px w-6" style={{ backgroundColor: roundAccents[ri] || "#dd830a" }} />
+              <span className="font-mono-score text-[10px] uppercase tracking-[0.35em]" style={{ color: roundAccents[ri] || "#dd830a" }}>
                 {roundTitles[ri]}
               </span>
-              <div className="h-px w-6" style={{ background: `linear-gradient(90deg, ${roundAccents[ri] || "#f5b942"}, transparent)` }} />
+              <div className="h-px w-6" style={{ backgroundColor: roundAccents[ri] || "#dd830a" }} />
             </div>
 
             <div className="flex flex-1 flex-col justify-around gap-10">

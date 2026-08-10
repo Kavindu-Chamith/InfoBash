@@ -164,12 +164,12 @@ function ToastItem({ toast, onClose }: { toast: ToastMessage; onClose: () => voi
           transition={{ duration: duration / 1000, ease: "linear" }}
           className={`h-full ${
             isError
-              ? "bg-gradient-to-r from-red-500 to-rose-400"
+              ? "bg-red-500"
               : isSuccess
-              ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+              ? "bg-emerald-500"
               : isWarning
-              ? "bg-gradient-to-r from-amber-500 to-yellow-400"
-              : "bg-gradient-to-r from-cyan-500 to-blue-400"
+              ? "bg-amber-500"
+              : "bg-cyan-500"
           }`}
         />
       </div>

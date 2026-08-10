@@ -71,7 +71,7 @@ export default function Navbar() {
                       initial={{ opacity: 0, scaleX: 0.85 }}
                       animate={{ opacity: 1, scaleX: 1 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_8px_#FF6B00]"
+                      className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-[#FF6B00] shadow-[0_0_8px_#FF6B00]"
                     />
                   )}
                 </Link>
@@ -90,7 +90,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)] transition-transform hover:scale-105"
+            className="rounded-full bg-[#FF6B00] px-5 py-2 text-sm font-semibold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)] transition-transform hover:scale-105"
           >
             Register Now
           </Link>
@@ -132,7 +132,7 @@ export default function Navbar() {
               <li className="pt-2">
                 <Link
                   href="/register"
-                  className="block rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-center text-sm font-bold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)]"
+                  className="block rounded-full bg-[#FF6B00] px-4 py-3 text-center text-sm font-bold text-white shadow-[0_0_20px_-3px_rgba(255,107,0,0.6)]"
                 >
                   Register Now
                 </Link>

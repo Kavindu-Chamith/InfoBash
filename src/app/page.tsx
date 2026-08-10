@@ -52,7 +52,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-navy-950 py-16">
         {/* Glow */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[400px] w-[700px] rounded-full bg-[#FF6B00]/10 blur-[120px]" />
+          <div className="h-[400px] w-[700px] rounded-full bg-[#dd830a]/8 blur-[160px]" />
         </div>
 
         <Reveal className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 text-center">
@@ -69,7 +69,7 @@ export default function Home() {
           ABOUT / DETAILS (Proposal Context)
       ══════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-navy-950 py-16">
-        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6B00]/10 blur-[160px]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#dd830a]/8 blur-[160px]" />
         <div className="relative mx-auto max-w-4xl px-6">
           <Reveal className="text-center">
             <span className="font-mono-score text-xs uppercase tracking-[0.35em] text-orange-400">
@@ -112,15 +112,21 @@ export default function Home() {
             <span className="font-mono-score text-[10px] uppercase tracking-[0.5em] text-ivory-500">
               Official Media Partner
             </span>
-            <div className="flex items-center gap-3">
-              <div className="h-px w-12 bg-gradient-to-r from-transparent to-gold-400/60" />
-              <span className="animate-pulse h-1.5 w-1.5 rounded-full bg-gold-400" />
-              <div className="h-px w-12 bg-gradient-to-l from-transparent to-gold-400/60" />
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-px w-12 bg-gold-400/40" />
+              <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-gold-400">
+                Official Rules &amp; Tournament Guidelines
+              </span>
+              <div className="h-px w-12 bg-gold-400/40" />
             </div>
+
+            <h2 className="mt-3 font-display text-4xl tracking-wide text-ivory-50 sm:text-5xl">
+              Rules &amp; Fair Play Policy
+            </h2>
           </div>
 
           {/* Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-gold-400/15 bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-8 shadow-[0_0_60px_-20px_rgba(212,175,55,0.15)] backdrop-blur-sm sm:p-12">
+          <div className="relative overflow-hidden rounded-3xl border border-gold-400/15 bg-[#070e1c] p-8 shadow-[0_0_60px_-20px_rgba(212,175,55,0.15)] backdrop-blur-sm sm:p-12">
             {/* Corner accents */}
             <span className="absolute left-0 top-0 h-20 w-20 rounded-br-full border-b border-r border-gold-400/20" />
             <span className="absolute bottom-0 right-0 h-20 w-20 rounded-tl-full border-l border-t border-gold-400/20" />
@@ -169,16 +175,7 @@ export default function Home() {
               >
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-pink-600/10 transition-all duration-300 group-hover:border-pink-500/50 group-hover:bg-pink-600/20 group-hover:shadow-[0_0_24px_-4px_#E1306C]">
                   <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f09433" />
-                        <stop offset="25%" stopColor="#e6683c" />
-                        <stop offset="50%" stopColor="#dc2743" />
-                        <stop offset="75%" stopColor="#cc2366" />
-                        <stop offset="100%" stopColor="#bc1888" />
-                      </linearGradient>
-                    </defs>
-                    <path fill="url(#ig-grad)" d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8 0 3.2 0 3.6-.1 4.8-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1-3.2 0-3.6 0-4.8-.1-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12c0-3.2 0-3.6.1-4.8.1-3.3 1.7-4.8 4.9-4.9 1.2-.1 1.6-.1 4.8-.1zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.0 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24c3.3 0 3.7 0 4.9-.1 4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9 0-3.3 0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z" />
+                    <path fill="#e23fa0" d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8 0 3.2 0 3.6-.1 4.8-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1-3.2 0-3.6 0-4.8-.1-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12c0-3.2 0-3.6.1-4.8.1-3.3 1.7-4.8 4.9-4.9 1.2-.1 1.6-.1 4.8-.1zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.0 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24c3.3 0 3.7 0 4.9-.1 4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9 0-3.3 0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z" />
                   </svg>
                 </div>
                 <span className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-400 transition-colors group-hover:text-pink-400">
@@ -248,7 +245,7 @@ export default function Home() {
             </h2>
             <Link
               href="/register"
-              className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105"
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#FF6B00] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_-6px_rgba(255,107,0,0.8)] transition-transform hover:scale-105"
             >
               Register Your Team <ArrowRight size={16} />
             </Link>

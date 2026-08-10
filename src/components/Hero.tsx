@@ -211,29 +211,24 @@ const itemVariants = {
 export default function Hero() {
   return (
     <section className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col items-center justify-start bg-navy-950 pt-20 sm:pt-24 pb-8 px-4">
-      {/* ── Orange animated pixel grid ── */}
-      <PixelGrid />
-
-      {/* ── Radial vignette so center text is crisp & legible ── */}
+      {/* ── Orange animated pixel grid with CSS smooth mask fade ── */}
       <div
-        className="absolute inset-0 pointer-events-none z-[2]"
+        className="absolute inset-0 pointer-events-none z-[1]"
         style={{
-          background:
-            "radial-gradient(ellipse 65% 55% at 50% 42%, rgba(6,10,23,0.45) 0%, rgba(6,10,23,0.88) 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 95%)",
+          maskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 95%)",
         }}
-      />
+      >
+        <PixelGrid />
+      </div>
 
-      {/* ── Top & bottom linear gradient fade ── */}
-      <div
-        className="absolute inset-0 pointer-events-none z-[3]"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(6,10,23,0.75) 0%, transparent 16%, transparent 60%, rgba(6,10,23,1) 100%)",
-        }}
-      />
+      {/* ── Solid backdrop vignette so center text is crisp & legible ── */}
+      <div className="absolute inset-0 pointer-events-none z-[2] bg-navy-950/60" />
 
       {/* ── Glow Orbs ── */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 z-[4] h-[450px] w-[600px] rounded-full bg-[#FF6B00]/15 blur-[160px]" />
+      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 z-[4] h-[450px] w-[600px] rounded-full bg-[#dd830a]/15 blur-[160px]" />
 
       {/* ══════════════ HERO CONTENT ══════════════ */}
       <motion.div
