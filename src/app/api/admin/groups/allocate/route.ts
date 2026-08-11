@@ -3,7 +3,7 @@ import { pool } from "@/lib/db";
 import { ADMIN_COOKIE, verifyAdminSessionToken } from "@/lib/adminAuth";
 import {
   allocateTournamentGroups,
-  GROUP_NAMES,
+  getGroupNamesForTeamCount,
   MIN_TOURNAMENT_TEAMS,
   MAX_TOURNAMENT_TEAMS,
 } from "@/lib/tournament";
@@ -32,16 +32,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Reset existing allocation and wipe group-stage fixtures so re-allocating starts clean.
+    // Reset existing allocation and wipe fixtures so re-allocating starts clean.
     await client.query(`UPDATE teams SET group_id = NULL`);
-    await client.query(`DELETE FROM matches WHERE stage IN ('group', 'round1')`);
+    await client.query(`DELETE FROM matches`);
     await client.query(`DELETE FROM groups`);
 
     const assignments = allocateTournamentGroups(teams);
+    const groupNames = getGroupNamesForTeamCount(teamCount);
     const groupIds: string[] = [];
 
     for (let i = 0; i < assignments.length; i++) {
-      const name = GROUP_NAMES[i] ?? `Group ${String.fromCharCode(65 + i)}`;
+      const name = groupNames[i] ?? `Group ${String.fromCharCode(65 + i)}`;
       const groupResult = await client.query(
         `INSERT INTO groups (name) VALUES ($1) RETURNING id`,
         [name]
@@ -54,11 +55,12 @@ export async function POST(req: NextRequest) {
     }
 
     await client.query("COMMIT");
+    const groupNamesList = assignments.length === 2 ? "Group A and Group B" : "Group A, Group B, Group C, and Group D";
     return NextResponse.json({
       success: true,
       groupCount: groupIds.length,
       teamCount,
-      message: `Successfully allocated ${teamCount} teams into Group A, Group B, Group C, and Group D.`,
+      message: `Successfully allocated ${teamCount} teams into ${groupNamesList}.`,
     });
   } catch (err) {
     await client.query("ROLLBACK");

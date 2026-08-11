@@ -184,6 +184,8 @@ export async function calculate1stRoundStandings(): Promise<Record<string, Group
 export async function autoProgressKnockoutMatches() {
   try {
     const standings = await calculate1stRoundStandings();
+    const groupKeys = Object.keys(standings);
+    if (groupKeys.length === 0) return;
 
     // Fetch manual overrides
     const overridesRes = await pool.query(
@@ -213,14 +215,51 @@ export async function autoProgressKnockoutMatches() {
       return null;
     }
 
+    // Check if tournament is in 2-group mode (Group A & Group B) or 4-group mode
+    const isTwoGroupMode = groupKeys.length <= 2;
+
+    const res = await pool.query(
+      `SELECT id, stage, round, label, status, team_a_id, team_b_id, team_a_score, team_b_score, winner_id FROM matches WHERE stage IN ('semifinal', 'final')`
+    );
+
+    if (isTwoGroupMode) {
+      // ══════════════════════════════════════════════════════════════
+      // 2-GROUP MODE: Group A Winner vs Group B Winner -> DIRECT FINAL (NO SEMIFINALS)
+      // ══════════════════════════════════════════════════════════════
+      // Remove any lingering semifinal matches in 2-group mode
+      await pool.query(`DELETE FROM matches WHERE stage = 'semifinal'`);
+
+      const topA = getTopTeamForGroup("Group A") || getTopTeamForGroup("A") || (standings[groupKeys[0]]?.[0]?.teamId ?? null);
+      const topB = getTopTeamForGroup("Group B") || getTopTeamForGroup("B") || (standings[groupKeys[1]]?.[0]?.teamId ?? null);
+
+      const finalMatches = res.rows.filter((m) => m.stage === "final");
+      const finalMatch = finalMatches[0];
+
+      if (finalMatch) {
+        if ((topA && finalMatch.team_a_id !== topA) || (topB && finalMatch.team_b_id !== topB)) {
+          const nextA = topA || finalMatch.team_a_id;
+          const nextB = topB || finalMatch.team_b_id;
+          await pool.query(`UPDATE matches SET team_a_id = $1, team_b_id = $2 WHERE id = $3`, [nextA, nextB, finalMatch.id]);
+        }
+      } else if (topA || topB) {
+        await pool.query(
+          `INSERT INTO matches (stage, round, label, team_a_id, team_b_id, status)
+           VALUES ('final', 1, 'Final', $1, $2, 'scheduled')`,
+          [topA || null, topB || null]
+        );
+      }
+      return;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // 4-GROUP MODE: SF1 (A vs C), SF2 (B vs D) -> FINAL
+    // ══════════════════════════════════════════════════════════════
     const sf1ExpectedA = getTopTeamForGroup("Group A") || getTopTeamForGroup("A");
     const sf1ExpectedB = getTopTeamForGroup("Group C") || getTopTeamForGroup("C");
 
     const sf2ExpectedA = getTopTeamForGroup("Group B") || getTopTeamForGroup("B");
     const sf2ExpectedB = getTopTeamForGroup("Group D") || getTopTeamForGroup("D");
 
-    // Fetch existing knockout matches
-    const res = await pool.query(`SELECT id, stage, round, label, status, team_a_id, team_b_id, team_a_score, team_b_score, winner_id FROM matches WHERE stage IN ('semifinal', 'final')`);
     const sfMatches = res.rows.filter((m) => m.stage === "semifinal");
 
     let sf1Match = sfMatches.find((m) => (m.label && m.label.toLowerCase().includes("semi-final 1")) || m.round === 1) || sfMatches[0];

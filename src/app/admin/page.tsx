@@ -431,6 +431,7 @@ export default function AdminDashboard() {
               <MatchesTab
                 matches={matches}
                 teams={teams}
+                groups={groups}
                 onChanged={handleChanged}
               />
             )}
@@ -1033,7 +1034,8 @@ function GroupsTab({
   const [busy, setBusy] = useState<"allocate" | "round1" | null>(null);
   const [confirmModal, setConfirmModal] = useState<"allocate" | "round1" | null>(null);
 
-  const isValidTeamCount = teamCount >= 12 && teamCount <= 16;
+  const isTwoGroupMode = teamCount < 12;
+  const isValidTeamCount = teamCount >= 4 && teamCount <= 16;
 
   async function allocate() {
     setBusy("allocate");
@@ -1045,7 +1047,7 @@ function GroupsTab({
       const json = await res.json();
       setBusy(null);
       if (res.ok) {
-        onChanged(json.message || "Successfully allocated 4 groups.", false, "Group Allocation");
+        onChanged(json.message || `Successfully allocated ${isTwoGroupMode ? "2 groups" : "4 groups"}.`, false, "Group Allocation");
       } else {
         onChanged(json.error || "Failed to allocate groups.", true, "Allocation Error");
       }
@@ -1078,10 +1080,12 @@ function GroupsTab({
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div>
             <h3 className="font-display text-2xl tracking-wide text-ivory-50">
-              Four-Group Tournament System
+              {isTwoGroupMode ? "Two-Group Tournament System" : "Four-Group Tournament System"}
             </h3>
             <p className="mt-1 text-xs text-ivory-300">
-              Allocates teams into <strong>Group A, Group B, Group C, and Group D</strong> (3 or 4 teams per group).
+              {isTwoGroupMode
+                ? "Allocates teams into Group A and Group B (top team in each group advances directly to Final)."
+                : "Allocates teams into Group A, Group B, Group C, and Group D (top team in each group advances to Semifinals)."}
             </p>
           </div>
           <div
@@ -1099,7 +1103,7 @@ function GroupsTab({
 
         {!isValidTeamCount && (
           <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-            ⚠️ Group allocation requires between <strong>12 and 16</strong> registered teams. Currently, there are <strong>{teamCount}</strong> team(s) registered.
+            ⚠️ Group allocation requires between <strong>4 and 16</strong> registered teams. Currently, there are <strong>{teamCount}</strong> team(s) registered.
           </p>
         )}
 
@@ -1110,7 +1114,7 @@ function GroupsTab({
             className={btnPrimary}
           >
             {busy === "allocate" ? <Loader2 size={14} className="animate-spin" /> : <Shuffle size={14} />}
-            Randomly Allocate 4 Groups
+            {isTwoGroupMode ? "Randomly Allocate 2 Groups" : "Randomly Allocate 4 Groups"}
           </button>
 
           <button
@@ -1124,7 +1128,7 @@ function GroupsTab({
         </div>
 
         <p className="text-[11px] text-ivory-400">
-          * Re-allocating randomly redistributes teams into Group A–D and resets any existing group fixtures.
+          * Re-allocating randomly redistributes teams into {isTwoGroupMode ? "Group A & B" : "Group A–D"} and resets any existing group fixtures.
         </p>
       </div>
 
@@ -1134,12 +1138,12 @@ function GroupsTab({
           <p className="text-sm font-medium text-ivory-300">No groups allocated yet.</p>
           <p className="mt-1 text-xs text-ivory-400">
             {isValidTeamCount
-              ? "Click 'Randomly Allocate 4 Groups' to split registered teams into Group A, B, C, and D."
-              : "Register between 12 and 16 teams to enable 4-group allocation."}
+              ? `Click '${isTwoGroupMode ? "Randomly Allocate 2 Groups" : "Randomly Allocate 4 Groups"}' to split registered teams into ${isTwoGroupMode ? "Group A and B" : "Group A, B, C, and D"}.`
+              : "Register at least 4 teams to enable group allocation."}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${groups.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
           {groups.map((g) => (
             <div key={g.id} className={`${cardClass} flex flex-col justify-between`}>
               <div>
@@ -1174,7 +1178,7 @@ function GroupsTab({
               <h3 className="font-display text-xl tracking-wide text-ivory-50">Allocate Groups</h3>
             </div>
             <p className="mt-3 text-sm text-ivory-300 leading-relaxed">
-              Are you sure you want to randomly allocate groups? This will divide the registered teams into <strong className="text-cyan-300">Group A, Group B, Group C, and Group D</strong>. Any existing group assignments or round-1 fixtures will be reset.
+              Are you sure you want to randomly allocate groups? This will divide the registered teams into <strong className="text-cyan-300">{isTwoGroupMode ? "Group A and Group B" : "Group A, Group B, Group C, and Group D"}</strong>. Any existing group assignments or round-1 fixtures will be reset.
             </p>
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
@@ -1241,18 +1245,28 @@ function GroupsTab({
 function MatchesTab({
   matches,
   teams,
+  groups,
   onChanged,
 }: {
   matches: MatchRow[];
   teams: AdminTeam[];
+  groups: Group[];
   onChanged: (message: string, isError?: boolean, title?: string) => void;
 }) {
+  const isTwoGroupMode = groups.length <= 2;
+
   // Selected Round filter in Admin Matches Tab
   const [adminRound, setAdminRound] = useState<MatchRow["stage"]>("round1");
   const [selectedMatchForDetails, setSelectedMatchForDetails] = useState<MatchRow | null>(null);
   const [editingMatchModal, setEditingMatchModal] = useState<MatchRow | null>(null);
   const [deletingMatchModal, setDeletingMatchModal] = useState<MatchRow | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+
+  useEffect(() => {
+    if (isTwoGroupMode && adminRound === "semifinal") {
+      setAdminRound("round1");
+    }
+  }, [isTwoGroupMode, adminRound]);
 
   useEffect(() => {
     setSelectedGroupFilter("all");
@@ -1338,8 +1352,9 @@ function MatchesTab({
       });
       if (res.ok) {
         fetchStandings();
+        const qualifierStage = isTwoGroupMode ? "Final" : "Semifinal";
         onChanged(
-          teamId ? `Set ${groupName} Semifinal qualifier manually.` : `Reset ${groupName} to automatic Points & Run Rate ranking.`,
+          teamId ? `Set ${groupName} ${qualifierStage} qualifier manually.` : `Reset ${groupName} to automatic Points & Run Rate ranking.`,
           false,
           "Qualifier Updated"
         );
@@ -1523,6 +1538,17 @@ function MatchesTab({
 
   const selectedMatchObj = matches.find((m) => m.id === selectedLiveId);
 
+  const roundButtonOptions = isTwoGroupMode
+    ? [
+        { id: "round1", label: "1st Round" },
+        { id: "final", label: "Final" },
+      ]
+    : [
+        { id: "round1", label: "1st Round" },
+        { id: "semifinal", label: "Semifinals" },
+        { id: "final", label: "Final" },
+      ];
+
   return (
     <div className="space-y-8">
       {/* ══════════════════════════════════════════════════════════════
@@ -1600,11 +1626,7 @@ function MatchesTab({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {[
-            { id: "round1", label: "1st Round" },
-            { id: "semifinal", label: "Semifinals" },
-            { id: "final", label: "Final" },
-          ].map((r) => {
+          {roundButtonOptions.map((r) => {
             const isSelected = adminRound === r.id;
             const isLiveOnWebsite = serverActiveRound === r.id;
 
@@ -1932,7 +1954,7 @@ function MatchesTab({
       ══════════════════════════════════════════════════════════════ */}
       {(() => {
         const sfTeamIds = new Set<string>();
-        if (form.stage === "semifinal") {
+        if (form.stage === "semifinal" && !isTwoGroupMode) {
           Object.values(standingsData).forEach((groupTeams) => {
             const qualified = groupTeams.find((t) => t.isQualified) ?? groupTeams[0];
             if (qualified) sfTeamIds.add(qualified.teamId);
@@ -1941,15 +1963,22 @@ function MatchesTab({
 
         const finalTeamIds = new Set<string>();
         if (form.stage === "final") {
-          const sfMatches = matches.filter((m) => m.stage === "semifinal");
-          sfMatches.forEach((m) => {
-            if (m.winner_id) {
-              finalTeamIds.add(m.winner_id);
-            } else {
-              if (m.team_a_id) finalTeamIds.add(m.team_a_id);
-              if (m.team_b_id) finalTeamIds.add(m.team_b_id);
-            }
-          });
+          if (isTwoGroupMode) {
+            Object.values(standingsData).forEach((groupTeams) => {
+              const qualified = groupTeams.find((t) => t.isQualified) ?? groupTeams[0];
+              if (qualified) finalTeamIds.add(qualified.teamId);
+            });
+          } else {
+            const sfMatches = matches.filter((m) => m.stage === "semifinal");
+            sfMatches.forEach((m) => {
+              if (m.winner_id) {
+                finalTeamIds.add(m.winner_id);
+              } else {
+                if (m.team_a_id) finalTeamIds.add(m.team_a_id);
+                if (m.team_b_id) finalTeamIds.add(m.team_b_id);
+              }
+            });
+          }
         }
 
         const selectableFixtureTeams =
@@ -1972,7 +2001,7 @@ function MatchesTab({
                 className={inputClass}
               >
                 <option value="round1">1st Round</option>
-                <option value="semifinal">Semifinal</option>
+                {!isTwoGroupMode && <option value="semifinal">Semifinal</option>}
                 <option value="final">Final</option>
               </select>
             </div>
@@ -2137,7 +2166,9 @@ function MatchesTab({
                     1st Round Group Standings &amp; Run Rate
                   </h4>
                   <p className="mt-0.5 text-xs text-ivory-300">
-                    Automatically calculated from completed 1st Round matches. Ranked by Points, then Run Rate tie-breaker. Highest team in each group qualifies for Semifinals.
+                    {isTwoGroupMode
+                      ? "Automatically calculated from completed 1st Round matches. Ranked by Points, then Run Rate tie-breaker. Highest team in each group qualifies directly for the Final."
+                      : "Automatically calculated from completed 1st Round matches. Ranked by Points, then Run Rate tie-breaker. Highest team in each group qualifies for Semifinals."}
                   </p>
                 </div>
               </div>
@@ -2186,7 +2217,7 @@ function MatchesTab({
                                 <div className="flex items-center gap-2">
                                   {isQualified && (
                                     <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                                      <span>SF QUALIFIED</span>
+                                      <span>{isTwoGroupMode ? "FINAL QUALIFIED" : "SF QUALIFIED"}</span>
                                       {isManual && <span className="text-[8px] text-amber-300 font-bold">(MANUAL)</span>}
                                     </span>
                                   )}

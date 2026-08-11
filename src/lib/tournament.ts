@@ -19,10 +19,15 @@ function shuffle<T>(items: T[]): T[] {
   return arr;
 }
 
-export const MIN_TOURNAMENT_TEAMS = 12;
+export const MIN_TOURNAMENT_TEAMS = 4;
 export const MAX_TOURNAMENT_TEAMS = 16;
-export const TOURNAMENT_GROUP_COUNT = 4;
-export const GROUP_NAMES = ["Group A", "Group B", "Group C", "Group D"] as const;
+export const TWO_GROUP_NAMES = ["Group A", "Group B"] as const;
+export const FOUR_GROUP_NAMES = ["Group A", "Group B", "Group C", "Group D"] as const;
+export const GROUP_NAMES = FOUR_GROUP_NAMES;
+
+export function getGroupNamesForTeamCount(teamCount: number): readonly string[] {
+  return teamCount < 12 ? TWO_GROUP_NAMES : FOUR_GROUP_NAMES;
+}
 
 export function allocateTournamentGroups(
   teams: AllocatableTeam[]
@@ -37,11 +42,42 @@ export function allocateTournamentGroups(
   // 1. Shuffle all N teams randomly
   const shuffledTeams = shuffle(teams);
 
-  // 2. Base size for each of 4 groups is 3 teams.
-  // The number of groups that receive a 4th team is (n - 12).
-  const extra4TeamGroupCount = n - MIN_TOURNAMENT_TEAMS;
+  if (n < 12) {
+    // 2-Group format (Group A and Group B)
+    const groupCount = 2;
+    const baseSize = Math.floor(n / groupCount);
+    const extraCount = n % groupCount; // 0 or 1
 
-  // 3. Randomly select which group indices get 4 teams
+    const groupIndices = [0, 1];
+    const shuffledGroupIndices = shuffle(groupIndices);
+
+    const targetSizes = [baseSize, baseSize];
+    for (let i = 0; i < extraCount; i++) {
+      const targetIdx = shuffledGroupIndices[i];
+      targetSizes[targetIdx] += 1;
+    }
+
+    const assignments: GroupAssignment[] = Array.from({ length: groupCount }, (_, i) => ({
+      groupIndex: i,
+      teamIds: [],
+    }));
+
+    let currentTeamIdx = 0;
+    for (let g = 0; g < groupCount; g++) {
+      const size = targetSizes[g];
+      for (let s = 0; s < size; s++) {
+        assignments[g].teamIds.push(shuffledTeams[currentTeamIdx].id);
+        currentTeamIdx++;
+      }
+    }
+
+    return assignments;
+  }
+
+  // 4-Group format (Group A, Group B, Group C, Group D)
+  const groupCount = 4;
+  const extra4TeamGroupCount = n - 12;
+
   const groupIndices = [0, 1, 2, 3];
   const shuffledGroupIndices = shuffle(groupIndices);
 
@@ -51,14 +87,13 @@ export function allocateTournamentGroups(
     targetSizes[targetIdx] = 4;
   }
 
-  // 4. Fill assignments according to targetSizes
-  const assignments: GroupAssignment[] = Array.from({ length: 4 }, (_, i) => ({
+  const assignments: GroupAssignment[] = Array.from({ length: groupCount }, (_, i) => ({
     groupIndex: i,
     teamIds: [],
   }));
 
   let currentTeamIdx = 0;
-  for (let g = 0; g < 4; g++) {
+  for (let g = 0; g < groupCount; g++) {
     const size = targetSizes[g];
     for (let s = 0; s < size; s++) {
       assignments[g].teamIds.push(shuffledTeams[currentTeamIdx].id);
@@ -67,27 +102,6 @@ export function allocateTournamentGroups(
   }
 
   return assignments;
-}
-
-/** Randomly splits teams into `groupCount` groups as evenly as possible. (Legacy fallback) */
-export function allocateGroups(
-  teams: AllocatableTeam[],
-  groupCount: number = 4
-): GroupAssignment[] {
-  if (teams.length >= MIN_TOURNAMENT_TEAMS && teams.length <= MAX_TOURNAMENT_TEAMS && groupCount === 4) {
-    return allocateTournamentGroups(teams);
-  }
-
-  if (groupCount < 1) throw new Error("groupCount must be at least 1");
-  const shuffled = shuffle(teams);
-  const groups: GroupAssignment[] = Array.from({ length: groupCount }, (_, i) => ({
-    groupIndex: i,
-    teamIds: [],
-  }));
-  shuffled.forEach((team, i) => {
-    groups[i % groupCount].teamIds.push(team.id);
-  });
-  return groups;
 }
 
 export interface Round1Pairing {

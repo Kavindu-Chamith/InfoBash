@@ -120,6 +120,23 @@ export default function MatchesLive() {
     };
   }, []);
 
+  // Check if tournament has semifinals or is in 2-group direct final mode
+  const hasSemifinals = matches.some((m) => m.stage === "semifinal");
+  const tournamentRounds = hasSemifinals
+    ? TOURNAMENT_ROUNDS
+    : TOURNAMENT_ROUNDS.filter((r) => r.id !== "semifinal");
+
+  const stageLevels: Record<StageRound, number> = hasSemifinals
+    ? { round1: 1, semifinal: 2, final: 3 }
+    : { round1: 1, semifinal: 99, final: 2 };
+
+  // Fallback if selectedRound is semifinal but no semifinals exist
+  useEffect(() => {
+    if (!hasSemifinals && selectedRound === "semifinal") {
+      setSelectedRound("round1");
+    }
+  }, [hasSemifinals, selectedRound]);
+
   // Detect live match in current database for active/selected round
   const liveMatchInDb = matches.find((m) => m.status === "live");
 
@@ -321,10 +338,10 @@ export default function MatchesLive() {
 
         {/* Round Selector Buttons */}
         <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[#070e1c]/90 p-1.5 shadow-2xl backdrop-blur-xl sm:gap-3 sm:rounded-full sm:p-2 sm:px-4">
-          {TOURNAMENT_ROUNDS.map((round) => {
+          {tournamentRounds.map((round) => {
             const isSelected = selectedRound === round.id;
             const isLiveNow = liveRoundId === round.id;
-            const isLocked = (STAGE_LEVELS[round.id] ?? 1) > (STAGE_LEVELS[serverLiveRound] ?? 1);
+            const isLocked = (stageLevels[round.id] ?? 1) > (stageLevels[serverLiveRound] ?? 1);
 
             return (
               <button
@@ -370,13 +387,13 @@ export default function MatchesLive() {
         <div className="mt-1 text-center font-mono-score text-[10px] sm:text-[11px] text-ivory-400">
           Current Live Round:{" "}
           <strong className="text-emerald-400 uppercase tracking-wider">
-            {TOURNAMENT_ROUNDS.find((r) => r.id === liveRoundId)?.label ?? "1st Round"}
+            {tournamentRounds.find((r) => r.id === liveRoundId)?.label ?? "1st Round"}
           </strong>
         </div>
       </div>
 
       {/* Lock Guard: Hide semifinals & final teams until that stage is set Live by admin */}
-      {(STAGE_LEVELS[selectedRound] ?? 1) > (STAGE_LEVELS[serverLiveRound] ?? 1) ? (
+      {(stageLevels[selectedRound] ?? 1) > (stageLevels[serverLiveRound] ?? 1) ? (
         <div className="mx-auto max-w-2xl py-8 sm:py-12 text-center">
           <div className="relative overflow-hidden rounded-3xl border border-gold-500/30 bg-[#070e1c]/90 p-6 sm:p-12 shadow-2xl backdrop-blur-xl space-y-3 sm:space-y-4">
             <div className="mx-auto grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-2xl bg-gold-400/10 border border-gold-400/30 text-gold-400">
@@ -421,7 +438,7 @@ export default function MatchesLive() {
             <div className="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Image
-                  src="/images/logo.png"
+                  src="/images/logo.webp"
                   alt="InfoBash logo"
                   width={26}
                   height={26}

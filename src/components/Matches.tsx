@@ -36,6 +36,13 @@ const CARD_BORDER = "rgba(245, 185, 66, 0.45)";
 const CARD_BORDER_GLOW = "rgba(245, 185, 66, 0.25)";
 
 function generateDefaultPlayoffs(totalTeams: number): PlayoffMatch[] {
+  if (totalTeams > 0 && totalTeams < 12) {
+    return [
+      { id: "r1-1", stage: "round1", label: "Round 1 · A", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "r1-2", stage: "round1", label: "Round 1 · B", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+      { id: "final", stage: "final", label: "Final", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
+    ];
+  }
   return [
     { id: "r1-1", stage: "round1", label: "Round 1 · A", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
     { id: "r1-2", stage: "round1", label: "Round 1 · B", team_a_name: null, team_b_name: null, status: "scheduled", winner_name: null },
@@ -100,7 +107,7 @@ function buildMatchNodes(playoffMatches: PlayoffMatch[], totalTeams: number = 0)
       matches.push({
         id: m.id,
         round: 1,
-        label: m.label || `Game ${i + 1}`,
+        label: m.label || `Quarterfinal ${i + 1}`,
         teamA: m.team_a_name ? { name: m.team_a_name } : null,
         teamB: m.team_b_name ? { name: m.team_b_name } : null,
         feeds: sfTarget,
@@ -136,46 +143,73 @@ function buildMatchNodes(playoffMatches: PlayoffMatch[], totalTeams: number = 0)
     // Champion (Round 4)
     matches.push({ id: "champion", round: 4, label: "Champion", teamA: null, teamB: null, champion: true });
   } else if (round1List.length > 0) {
-    roundTitles = ["First Round", "Semifinals", "Final", "Champion"];
-    roundAccents = ["#22d3ee", "#f5b942", "#f5b942", "#f5b942"];
+    if (semifinals.length > 0 || totalTeams >= 12) {
+      roundTitles = ["First Round", "Semifinals", "Final", "Champion"];
+      roundAccents = ["#22d3ee", "#f5b942", "#f5b942", "#f5b942"];
 
-    round1List.forEach((m, i) => {
-      const sfTarget = i < Math.ceil(round1List.length / 2) ? (semifinals[0]?.id || "sf-1") : (semifinals[1]?.id || "sf-2");
-      matches.push({
-        id: m.id,
-        round: 0,
-        label: m.label || `Round 1 · ${String.fromCharCode(65 + i)}`,
-        teamA: m.team_a_name ? { name: m.team_a_name } : null,
-        teamB: m.team_b_name ? { name: m.team_b_name } : null,
-        feeds: sfTarget,
+      round1List.forEach((m, i) => {
+        const sfTarget = i < Math.ceil(round1List.length / 2) ? (semifinals[0]?.id || "sf-1") : (semifinals[1]?.id || "sf-2");
+        matches.push({
+          id: m.id,
+          round: 0,
+          label: m.label || `Round 1 · ${String.fromCharCode(65 + i)}`,
+          teamA: m.team_a_name ? { name: m.team_a_name } : null,
+          teamB: m.team_b_name ? { name: m.team_b_name } : null,
+          feeds: sfTarget,
+        });
       });
-    });
 
-    const sfList = semifinals.length > 0 ? semifinals : [
-      { id: "sf-1", stage: "semifinal" as const, label: "Semifinal 1", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
-      { id: "sf-2", stage: "semifinal" as const, label: "Semifinal 2", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
-    ];
-    sfList.forEach((m, i) => {
+      const sfList = semifinals.length > 0 ? semifinals : [
+        { id: "sf-1", stage: "semifinal" as const, label: "Semifinal 1", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+        { id: "sf-2", stage: "semifinal" as const, label: "Semifinal 2", team_a_name: null, team_b_name: null, status: "scheduled" as const, winner_name: null },
+      ];
+      sfList.forEach((m, i) => {
+        matches.push({
+          id: m.id,
+          round: 1,
+          label: m.label || `Semifinal ${i + 1}`,
+          teamA: m.team_a_name ? { name: m.team_a_name } : null,
+          teamB: m.team_b_name ? { name: m.team_b_name } : null,
+          feeds: "final",
+        });
+      });
+
       matches.push({
-        id: m.id,
+        id: final?.id || "final",
+        round: 2,
+        label: final?.label || "Final",
+        teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+        teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+        feeds: "champion",
+      });
+
+      matches.push({ id: "champion", round: 3, label: "Champion", teamA: null, teamB: null, champion: true });
+    } else {
+      roundTitles = ["First Round", "Final", "Champion"];
+      roundAccents = ["#22d3ee", "#f5b942", "#f5b942"];
+
+      round1List.forEach((m, i) => {
+        matches.push({
+          id: m.id,
+          round: 0,
+          label: m.label || `Round 1 · ${String.fromCharCode(65 + i)}`,
+          teamA: m.team_a_name ? { name: m.team_a_name } : null,
+          teamB: m.team_b_name ? { name: m.team_b_name } : null,
+          feeds: "final",
+        });
+      });
+
+      matches.push({
+        id: final?.id || "final",
         round: 1,
-        label: m.label || `Semifinal ${i + 1}`,
-        teamA: m.team_a_name ? { name: m.team_a_name } : null,
-        teamB: m.team_b_name ? { name: m.team_b_name } : null,
-        feeds: "final",
+        label: final?.label || "Final",
+        teamA: final?.team_a_name ? { name: final.team_a_name } : null,
+        teamB: final?.team_b_name ? { name: final.team_b_name } : null,
+        feeds: "champion",
       });
-    });
 
-    matches.push({
-      id: final?.id || "final",
-      round: 2,
-      label: final?.label || "Final",
-      teamA: final?.team_a_name ? { name: final.team_a_name } : null,
-      teamB: final?.team_b_name ? { name: final.team_b_name } : null,
-      feeds: "champion",
-    });
-
-    matches.push({ id: "champion", round: 3, label: "Champion", teamA: null, teamB: null, champion: true });
+      matches.push({ id: "champion", round: 2, label: "Champion", teamA: null, teamB: null, champion: true });
+    }
   } else if (quarterfinals.length > 0) {
     roundTitles = ["Quarterfinals", "Semifinals", "Final", "Champion"];
     roundAccents = ["#35d7ff", "#f5b942", "#f5b942", "#f5b942"];
@@ -406,7 +440,7 @@ function ChampionCard({
         >
           <div ref={trophyRef} className="relative h-7 w-7">
             <Image
-              src="/images/Trophy.png"
+              src="/images/Trophy.webp"
               alt="Trophy"
               fill
               sizes="28px"
