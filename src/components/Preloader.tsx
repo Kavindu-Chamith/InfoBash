@@ -75,7 +75,7 @@ export default function Preloader() {
               className="relative flex h-20 w-20 items-center justify-center rounded-full bg-navy-900/60 shadow-[0_0_40px_-6px_rgba(255,107,0,0.6)] sm:h-24 sm:w-24"
             >
               <Image
-                src="/images/logo.png"
+                src="/images/logo.webp"
                 alt="InfoBash logo"
                 width={72}
                 height={72}

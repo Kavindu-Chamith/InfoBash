@@ -43,7 +43,7 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.webp"
             alt="InfoBash v5.0 logo"
             width={44}
             height={44}

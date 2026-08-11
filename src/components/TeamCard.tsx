@@ -386,6 +386,8 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
                 <img
                   src={`/api/teams/${team.id}/logo`}
                   alt={`${team.team_name} logo`}
+                  loading="lazy"
+                  decoding="async"
                   className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
                 />
               )}

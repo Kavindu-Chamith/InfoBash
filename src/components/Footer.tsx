@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Logo & Brand Title */}
         <Link href="/" className="inline-flex items-center justify-center gap-3 group">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.webp"
             alt="InfoBash v5.0 logo"
             width={36}
             height={36}

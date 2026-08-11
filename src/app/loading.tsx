@@ -21,7 +21,7 @@ export default function Loading() {
         <span className="absolute inset-2 animate-spin rounded-full border-2 border-gold-400/50 border-b-transparent [animation-direction:reverse] [animation-duration:2s]" />
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-navy-900/60 shadow-[0_0_40px_-6px_rgba(53,215,255,0.6)] animate-pulse-glow">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.webp"
             alt="InfoBash logo"
             width={72}
             height={72}
