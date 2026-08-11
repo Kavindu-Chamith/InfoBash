@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE, createAdminSessionToken } from "@/lib/adminAuth";
 import { pool } from "@/lib/db";
+import crypto from "crypto";
 
 export async function GET() {
   return NextResponse.json({ status: "active", message: "Admin login endpoint is active." });
@@ -32,10 +33,17 @@ export async function POST(req: NextRequest) {
       // Table may not exist yet if migration hasn't run
     }
 
-    // 2. Fall back to process.env.ADMIN_PASSWORD if not matched via DB
+    // 2. Fall back to process.env.ADMIN_PASSWORD — timing-safe comparison
     if (!isAuthenticated && process.env.ADMIN_PASSWORD) {
-      if (inputPassword === process.env.ADMIN_PASSWORD.trim()) {
-        isAuthenticated = true;
+      try {
+        const expected = Buffer.from(process.env.ADMIN_PASSWORD.trim());
+        const input = Buffer.from(inputPassword);
+        if (expected.length === input.length &&
+            crypto.timingSafeEqual(input, expected)) {
+          isAuthenticated = true;
+        }
+      } catch {
+        // Buffer mismatch in length check — not authenticated
       }
     }
 
@@ -53,7 +61,7 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 8,
     });
     return res;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

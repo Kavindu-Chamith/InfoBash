@@ -15,8 +15,9 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "Team ID is required" }, { status: 400 });
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid team ID format" }, { status: 400 });
   }
 
   try {
@@ -53,8 +54,9 @@ export async function PUT(
   }
 
   const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "Team ID is required" }, { status: 400 });
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid team ID format" }, { status: 400 });
   }
 
   try {

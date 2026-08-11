@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     const reqHost = req.headers.get("x-forwarded-host") || req.headers.get("host");
     const isLocal = reqHost?.includes("localhost") || reqHost?.includes("127.0.0.1");
     const reqProto = req.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
-    const defaultOrigin = isLocal ? "http://localhost:3000" : "https://infobash.onrender.com";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://infobash2026.vercel.app";
+    const defaultOrigin = isLocal ? "http://localhost:3000" : appUrl.replace(/\/$/, "");
     const detectedOrigin = req.headers.get("origin") || (reqHost ? `${reqProto}://${reqHost}` : defaultOrigin);
     const finalRedirectUri = redirectUri || detectedOrigin;
 
@@ -87,16 +88,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Fallback to passed email/name if provided
-    if (!googleEmail && body.email) {
-      googleEmail = String(body.email);
-      googleName = body.name ? String(body.name) : undefined;
-    }
-
     if (!googleEmail) {
       return NextResponse.json(
-        { error: "Valid Google authentication is required." },
-        { status: 400 }
+        { error: "Google authentication verification failed. Please sign in via Google again." },
+        { status: 401 }
       );
     }
 

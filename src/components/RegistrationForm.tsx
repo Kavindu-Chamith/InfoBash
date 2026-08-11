@@ -81,7 +81,11 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
   });
 
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "777108603505-kstarddpklbbl96l54pbb93kkvhba2rv.apps.googleusercontent.com";
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.warn("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set — Google Sign-In will not work.");
+      return;
+    }
 
     const initGsi = () => {
       if (window.google?.accounts?.id && !(window as any)._gsiInitialized) {
@@ -149,7 +153,11 @@ function CaptainAuthGate({ onAuthed }: { onAuthed: (captain: Captain) => void })
   }
 
   function handleGoogleAuth() {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "777108603505-kstarddpklbbl96l54pbb93kkvhba2rv.apps.googleusercontent.com";
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      setState({ status: "idle", error: "Google Sign-In is not configured. Please contact the organizers." });
+      return;
+    }
     setState({ status: "submitting" });
 
     if (window.google?.accounts?.oauth2) {

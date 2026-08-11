@@ -31,8 +31,6 @@ export async function GET() {
         t.team_name,
         t.batch,
         t.captain_name,
-        t.captain_email,
-        t.captain_contact,
         COUNT(p.id)::int                                          AS player_count,
         COUNT(p.id) FILTER (WHERE p.gender = 'female')::int      AS female_count,
         t.created_at                                              AS registered_at,
@@ -40,7 +38,6 @@ export async function GET() {
           json_agg(
             json_build_object(
               'fullName', p.full_name,
-              'studentId', p.student_id,
               'gender', p.gender,
               'position', p.position
             )

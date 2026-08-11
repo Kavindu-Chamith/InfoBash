@@ -32,6 +32,21 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.amazonaws.com",
+              "connect-src 'self' https://apis.google.com https://oauth2.googleapis.com https://www.googleapis.com https://*.supabase.co https://*.amazonaws.com https://api.cloudinary.com",
+              "frame-src https://accounts.google.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
         ],
       },
       {

@@ -4,8 +4,19 @@ export const CAPTAIN_COOKIE = "infobash_captain";
 const SESSION_DAYS = 30;
 const SCRYPT_KEYLEN = 64;
 
-function getSecret() {
-  const secret = process.env.CAPTAIN_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || "infobash_captain_fallback_secret_key_2026";
+function getSecret(): string {
+  const secret = process.env.CAPTAIN_SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL: CAPTAIN_SESSION_SECRET environment variable is missing in production!");
+    }
+    // In development only, fall back to admin secret if available
+    const devFallback = process.env.ADMIN_SESSION_SECRET;
+    if (!devFallback) {
+      throw new Error("CAPTAIN_SESSION_SECRET (or ADMIN_SESSION_SECRET) must be set. See .env.example.");
+    }
+    return devFallback;
+  }
   return secret;
 }
 
