@@ -379,9 +379,9 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
               )}
             </div>
 
-            {/* Team name + logo */}
+            {/* Team name */}
             <div className="mb-1 mt-4 flex items-center gap-3">
-              {team.has_logo && (
+              {/* {team.has_logo && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={`/api/teams/${team.id}/logo`}
@@ -390,7 +390,7 @@ export function TeamCard({ team, index }: { team: PublicTeam; index: number }) {
                   decoding="async"
                   className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
                 />
-              )}
+              )} */}
               <h3 className="font-display text-2xl tracking-wide text-ivory-50 transition-colors duration-200 group-hover:text-white">
                 {team.team_name}
               </h3>

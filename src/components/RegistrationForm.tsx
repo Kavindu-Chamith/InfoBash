@@ -589,7 +589,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 </div>
               </div>
 
-              {/* 🖼️ Team Logo Upload */}
+              {/* 🖼️ Team Logo Upload (Commented Out)
               <div>
                 <label className={labelClass} htmlFor="logo">Team Logo (optional)</label>
                 <div className="flex items-center gap-4">
@@ -616,6 +616,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 </div>
                 {logoError && <p className={errorClass}>{logoError}</p>}
               </div>
+              */}
 
               <div>
                 <label className={labelClass} htmlFor="teamName">Team Name</label>
