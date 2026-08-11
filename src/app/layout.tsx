@@ -30,7 +30,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InfoBash v5.0 — Faculty of Computing Cricket Tournament",
+  title: "InfoBash v5.0",
   description:
     "Register your team for InfoBash v5.0, the Faculty of Computing's annual one-day cricket tournament at Sabaragamuwa University of Sri Lanka.",
   icons: { icon: "/images/logo.png" },
