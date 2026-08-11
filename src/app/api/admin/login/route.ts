@@ -39,14 +39,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Fall back to hardcoded default passwords for local/dev usage
-    if (!isAuthenticated) {
-      const defaultValid = ["Infobash0587#", "infobash2026admin"];
-      if (defaultValid.includes(inputPassword)) {
-        isAuthenticated = true;
-      }
-    }
-
     if (!isAuthenticated) {
       return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
     }

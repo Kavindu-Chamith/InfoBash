@@ -26,7 +26,10 @@ async function main() {
     throw new Error("DATABASE_URL is not set.");
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD || "Infobash0587#";
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error("ADMIN_PASSWORD is not set in environment or .env.local.");
+  }
   const cleanConnectionString = connectionString.replace(/([?&])sslmode=[^&]*/gi, "");
   const pool = new Pool({
     connectionString: cleanConnectionString,

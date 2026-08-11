@@ -27,12 +27,17 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
-const DEFAULT_CAPTAIN_PASSWORD = "TestCaptain123!";
+const DEFAULT_CAPTAIN_PASSWORD = process.env.DEFAULT_CAPTAIN_PASSWORD || "TestCaptain123!";
 
 async function main() {
   loadEnvLocal();
   if (!process.env.DATABASE_URL) {
     console.error("Error: DATABASE_URL not set in environment or .env.local.");
+    process.exit(1);
+  }
+
+  if (process.env.NODE_ENV === "production" && !process.env.FORCE_SEED) {
+    console.error("Error: Refusing to seed mock test data in production environment. Set FORCE_SEED=1 to override.");
     process.exit(1);
   }
 
