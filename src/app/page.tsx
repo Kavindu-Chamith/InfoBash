@@ -109,19 +109,16 @@ export default function Home() {
         <Reveal className="relative z-10 mx-auto max-w-4xl px-6">
           {/* Eyebrow */}
           <div className="mb-10 flex flex-col items-center gap-2 text-center">
-            <span className="font-mono-score text-[10px] uppercase tracking-[0.5em] text-ivory-500">
-              Official Media Partner
-            </span>
             <div className="flex items-center justify-center gap-3">
               <div className="h-px w-12 bg-gold-400/40" />
               <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-gold-400">
-                Official Rules &amp; Tournament Guidelines
+                Official Media Partner
               </span>
               <div className="h-px w-12 bg-gold-400/40" />
             </div>
 
             <h2 className="mt-3 font-display text-4xl tracking-wide text-ivory-50 sm:text-5xl">
-              Rules &amp; Fair Play Policy
+              Media &amp; Live Coverage
             </h2>
           </div>
 

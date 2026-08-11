@@ -135,7 +135,7 @@ function Tile({ memory, index }: { memory: Memory; index: number }) {
         src={memory.src}
         alt={memory.title}
         fill
-        className="object-cover filter grayscale contrast-110 brightness-95 transition-all duration-500 ease-in-out group-hover:grayscale-0 group-hover:scale-105 group-hover:brightness-100"
+        className="object-cover filter grayscale-0 md:grayscale contrast-110 brightness-95 transition-all duration-500 ease-in-out md:group-hover:grayscale-0 group-hover:scale-105 group-hover:brightness-100"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
 

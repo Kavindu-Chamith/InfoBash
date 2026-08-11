@@ -28,17 +28,17 @@ export default function MatchesPage() {
       </div>
 
       {/* -- Page header ------------------------------------------ */}
-      <div className="relative z-10 border-b border-white/[0.06] px-6 pb-10 pt-20 sm:pt-24 text-center">
-        <span className="font-mono-score text-[11px] uppercase tracking-[0.45em] text-gold-400">
+      <div className="relative z-10 border-b border-white/[0.06] px-4 pb-8 pt-16 sm:px-6 sm:pb-10 sm:pt-24 text-center">
+        <span className="block font-mono-score text-[10px] uppercase tracking-[0.25em] sm:text-[11px] sm:tracking-[0.45em] text-gold-400">
           InfoBash V5.0 · Faculty of Computing · SUSL
         </span>
 
-        <h1 className="mt-3 font-display text-5xl tracking-wide text-ivory-50 sm:text-6xl">
+        <h1 className="mt-2 font-display text-4xl tracking-wide text-ivory-50 sm:mt-3 sm:text-6xl">
           Match{" "}
           <span className="text-gradient-gold">Center</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ivory-400">
+        <p className="mx-auto mt-3 max-w-xl text-xs sm:mt-4 sm:text-sm leading-relaxed text-ivory-400">
           Live cricket scores, overs, wickets, and upcoming match schedules.
         </p>
       </div>

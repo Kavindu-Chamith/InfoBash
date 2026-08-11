@@ -322,7 +322,7 @@ export default function Hero() {
           variants={itemVariants}
           className="text-[11px] sm:text-xs font-mono tracking-wider text-white/35 mb-9 max-w-md"
         >
-          Annual Inter-Faculty Tournament · Faculty of Computing
+          Annual Intra-Faculty Tournament · Faculty of Computing
         </motion.p>
 
         {/* CTA Buttons */}

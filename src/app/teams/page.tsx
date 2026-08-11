@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import TeamsClient from "@/app/teams/TeamsClient";
 import type { PublicTeam } from "@/app/api/teams/route";
-import { MOCK_12_TEAMS } from "@/lib/mockTeams";
 
 export const metadata: Metadata = {
   title: "Registered Teams — InfoBash V5.0",
@@ -46,13 +45,11 @@ async function getTeams(): Promise<PublicTeam[]> {
       GROUP BY t.id, g.name
       ORDER BY t.created_at ASC
     `);
-    if (result.rows && result.rows.length > 0) {
-      return result.rows;
-    }
+    return result.rows;
   } catch (err) {
     console.error("TeamsPage DB fetch error:", err);
+    return [];
   }
-  return MOCK_12_TEAMS;
 }
 
 export default async function TeamsPage() {
