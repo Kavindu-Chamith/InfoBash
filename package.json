@@ -9,14 +9,14 @@
     "lint": "eslint",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed-14-teams.mjs",
-    "db:seed-admin": "node scripts/seed-admin.mjs"
+    "db:seed-admin": "node scripts/seed-admin.mjs",
+    "images:optimize": "node scripts/convert-images-to-webp.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
     "@aws-sdk/s3-request-presigner": "^3.1101.0",
     "@hookform/resolvers": "^5.4.0",
     "@types/three": "^0.185.0",
-    "aos": "^2.3.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
     "gsap": "^3.15.0",
@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/aos": "^3.0.8",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
