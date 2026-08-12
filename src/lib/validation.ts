@@ -7,7 +7,7 @@ export const BATCHES = [
   "4th Year",
 ] as const;
 
-export const TEAM_SIZE = 11;
+export const TEAM_SIZE = 10;
 export const REQUIRED_FEMALE_PLAYERS = 3;
 export const MIN_FEMALE_PLAYERS = REQUIRED_FEMALE_PLAYERS;
 export const MAX_LOGO_BYTES = 1.5 * 1024 * 1024;
