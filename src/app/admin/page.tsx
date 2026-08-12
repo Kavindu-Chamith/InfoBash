@@ -805,7 +805,7 @@ function EditTeamModal({
 
   const [players, setPlayers] = useState(() => {
     const arr = [];
-    for (let i = 1; i <= 11; i++) {
+    for (let i = 1; i <= 10; i++) {
       const existing = team.players?.find((p) => p.position === i) || team.players?.[i - 1];
       arr.push({
         position: i,
@@ -972,7 +972,7 @@ function EditTeamModal({
 
           <div>
             <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-              Squad Roster (11 Players)
+              Squad Roster (10 Players)
             </h4>
             <div className="max-h-[280px] overflow-y-auto rounded-xl border border-white/10 bg-navy-900/40 p-3 space-y-3">
               {players.map((p, idx) => (
