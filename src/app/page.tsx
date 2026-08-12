@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import {
@@ -128,38 +129,23 @@ export default function Home() {
             <span className="absolute left-0 top-0 h-20 w-20 rounded-br-full border-b border-r border-gold-400/20" />
             <span className="absolute bottom-0 right-0 h-20 w-20 rounded-tl-full border-l border-t border-gold-400/20" />
 
-            {/* Partner name */}
-            <div className="mb-8 text-center">
-              <h2 className="font-display text-4xl tracking-wide text-gold-400 sm:text-5xl">
-                Lumetrix Media
-              </h2>
-              <p className="mt-2 text-sm text-ivory-400">
-                Capturing every boundary, wicket &amp; celebration — follow for live coverage
+            {/* Partner logo */}
+            <div className="mb-8 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/white.png"
+                alt="Lumetrix Media"
+                width={300}
+                height={100}
+                className="h-16 sm:h-20 w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+                priority
+              />
+              <p className="mt-4 text-sm text-ivory-400">
+                Capturing every boundary, wicket &amp; celebration. Follow for live coverage.
               </p>
             </div>
 
             {/* Social links */}
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-              {/* YouTube */}
-              <motion.a
-                href="https://www.youtube.com/@LumetrixMedia"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.08, y: -4 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ duration: 0.2 }}
-                className="group flex flex-col items-center gap-3"
-              >
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-[#FF0000]/10 transition-all duration-300 group-hover:border-[#FF0000]/50 group-hover:bg-[#FF0000]/20 group-hover:shadow-[0_0_24px_-4px_#FF0000]">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7 fill-[#FF0000]" aria-hidden="true">
-                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z" />
-                  </svg>
-                </div>
-                <span className="font-mono-score text-[10px] uppercase tracking-widest text-ivory-400 transition-colors group-hover:text-[#FF0000]">
-                  YouTube
-                </span>
-              </motion.a>
-
               {/* Instagram */}
               <motion.a
                 href="https://www.instagram.com/Lumetrix_Media/"
