@@ -6,31 +6,9 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 /* ─────────────────────────────────────────
-   Animated orange pixel-grid background canvas
-   with procedurally formed FOC & INFOBASH pixel text!
+   Animated orange pixel-wave background canvas
+   (Digital square wave pattern matching reference design)
 ───────────────────────────────────────── */
-const FONT_5X7: Record<string, number[][]> = {
-  F: [[1, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0]],
-  O: [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-  C: [[0, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [0, 1, 1, 1, 1]],
-  I: [[1, 1, 1, 1, 1], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [1, 1, 1, 1, 1]],
-  N: [[1, 0, 0, 0, 1], [1, 1, 0, 0, 1], [1, 0, 1, 0, 1], [1, 0, 0, 1, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1]],
-  B: [[1, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 0]],
-  A: [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1]],
-  S: [[0, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [0, 1, 1, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [1, 1, 1, 1, 0]],
-  H: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1]],
-  V: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 0]],
-  "5": [[1, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-  ".": [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0]],
-  "0": [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-  U: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-  L: [[1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
-  R: [[1, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 0], [1, 0, 1, 0, 0], [1, 0, 0, 1, 0], [1, 0, 0, 0, 1]],
-  K: [[1, 0, 0, 0, 1], [1, 0, 0, 1, 0], [1, 0, 1, 0, 0], [1, 1, 0, 0, 0], [1, 0, 1, 0, 0], [1, 0, 0, 1, 0], [1, 0, 0, 0, 1]],
-  E: [[1, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
-  T: [[1, 1, 1, 1, 1], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0]],
-};
-
 function PixelGrid() {
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -40,12 +18,21 @@ function PixelGrid() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    /* Manual controls */
-    const CELL = 13;            // Grid spacing
-    const SQ = 8.5;             // Square size
-    const FADE_SPEED = 0.04;    // Opacity transition speed
+    const CELL = 14;            // Grid spacing
+    const SQ = 9;               // Square size
+    const FADE_SPEED = 0.05;    // Opacity transition speed
 
-    type Sq = { r: number; c: number; x: number; y: number; wordPhase: number; isTextPixel: boolean; a: number; t: number; s: number };
+    type Sq = {
+      r: number;
+      c: number;
+      x: number;
+      y: number;
+      a: number;
+      t: number;
+      s: number;
+      noiseOffset: number;
+    };
+
     let W = 0;
     let H = 0;
     let sqs: Sq[] = [];
@@ -63,90 +50,20 @@ function PixelGrid() {
       cols = Math.ceil(W / CELL) + 1;
       rows = Math.ceil(H / CELL) + 1;
 
-      // 2D grid map to store text pixel associations
-      const textPixelMap = new Map<string, { phase: number }>();
-
-      // Helper function to position word inside one of the 4 marked side zones:
-      // Zone 1: Top-Left, Zone 2: Top-Right, Zone 3: Mid-Left, Zone 4: Mid-Right
-      const getZonePos = (word: string, zone: 1 | 2 | 3 | 4) => {
-        let width = 0;
-        for (const ch of word) {
-          const matrix = FONT_5X7[ch];
-          width += matrix ? matrix[0].length + 1 : 4;
-        }
-
-        let rRatio = 0.16;
-        let cRatio = 0.04;
-        if (zone === 1) { rRatio = 0.16; cRatio = 0.04; }
-        else if (zone === 2) { rRatio = 0.16; cRatio = 0.68; }
-        else if (zone === 3) { rRatio = 0.54; cRatio = 0.04; }
-        else if (zone === 4) { rRatio = 0.60; cRatio = 0.68; }
-
-        const r = Math.max(2, Math.floor(rows * rRatio));
-        const targetC = Math.floor(cols * cRatio);
-        const maxC = Math.max(2, cols - width - 2);
-        const c = Math.min(Math.max(2, targetC), maxC);
-
-        return { r, c };
-      };
-
-      const wordConfigs = [
-        // Phase 1: Top-Left (FOC) & Top-Right (INFOBASH)
-        { text: "FOC", zone: 1 as const, phase: 1 },
-        { text: "INFOBASH", zone: 2 as const, phase: 1 },
-
-        // Phase 2: Mid-Left (CRICKET) & Mid-Right (V5.0)
-        { text: "CRICKET", zone: 3 as const, phase: 2 },
-        { text: "V5.0", zone: 4 as const, phase: 2 },
-
-        // Phase 3: Mid-Left (SUSL) & Top-Right (INFOBASH)
-        { text: "SUSL", zone: 3 as const, phase: 3 },
-        { text: "INFOBASH", zone: 2 as const, phase: 3 },
-      ];
-
-      const wordPlacements = wordConfigs.map((w) => {
-        const pos = getZonePos(w.text, w.zone);
-        return { text: w.text, r: pos.r, c: pos.c, phase: w.phase };
-      });
-
-      // Populate textPixelMap from font matrices
-      for (const w of wordPlacements) {
-        let curC = w.c;
-        for (const ch of w.text) {
-          const matrix = FONT_5X7[ch];
-          if (matrix) {
-            for (let mr = 0; mr < matrix.length; mr++) {
-              for (let mc = 0; mc < matrix[mr].length; mc++) {
-                if (matrix[mr][mc] === 1) {
-                  const gr = w.r + mr;
-                  const gc = curC + mc;
-                  textPixelMap.set(`${gr},${gc}`, { phase: w.phase });
-                }
-              }
-            }
-            curC += matrix[0].length + 1; // Spacing between letters
-          } else {
-            curC += 4;
-          }
-        }
-      }
-
       sqs = [];
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const x = c * CELL;
           const y = r * CELL;
-          const textInfo = textPixelMap.get(`${r},${c}`);
           sqs.push({
             r,
             c,
             x,
             y,
-            wordPhase: textInfo ? textInfo.phase : 0,
-            isTextPixel: Boolean(textInfo),
-            a: Math.random() * 0.25,
-            t: Math.random() < 0.28 ? 0.12 + Math.random() * 0.55 : 0,
-            s: FADE_SPEED * (0.8 + Math.random() * 0.6),
+            a: Math.random() * 0.2,
+            t: 0,
+            s: FADE_SPEED * (0.7 + Math.random() * 0.6),
+            noiseOffset: Math.random() * 0.3 - 0.15,
           });
         }
       }
@@ -155,38 +72,51 @@ function PixelGrid() {
     function draw() {
       if (!ctx) return;
       ctx.clearRect(0, 0, W, H);
-      const now = Date.now() - startTime;
-
-      // 12-second cycle for text phases:
-      // Phase 1 (0.5s - 4.5s): FOC (Top Left) & INFOBASH (Top Right)
-      // Phase 2 (4.5s - 8.5s): V5.0 (Mid Left) & CRICKET (Center Top) & FOC (Mid Right)
-      // Phase 3 (8.5s - 11.5s): INFOBASH (Bottom Left) & SUSL (Bottom Right)
-      const cycleTime = (now * 0.00045) % 12;
-      const p1Progress = cycleTime >= 0.5 && cycleTime <= 4.5 ? Math.sin(((cycleTime - 0.5) / 4) * Math.PI) : 0;
-      const p2Progress = cycleTime >= 4.5 && cycleTime <= 8.5 ? Math.sin(((cycleTime - 4.5) / 4) * Math.PI) : 0;
-      const p3Progress = cycleTime >= 8.5 && cycleTime <= 11.5 ? Math.sin(((cycleTime - 8.5) / 3) * Math.PI) : 0;
+      const time = (Date.now() - startTime) * 0.0012;
 
       for (const s of sqs) {
-        // Text Boost for active word phase
-        let textBoost = 0;
-        if (s.isTextPixel) {
-          if (s.wordPhase === 1 && p1Progress > 0) textBoost = p1Progress * 0.95;
-          else if (s.wordPhase === 2 && p2Progress > 0) textBoost = p2Progress * 0.95;
-          else if (s.wordPhase === 3 && p3Progress > 0) textBoost = p3Progress * 0.95;
-        }
+        const normC = s.c / cols;
+        const normR = s.r / rows;
 
-        if (Math.abs(s.a - s.t) < 0.02) {
-          const isIlluminated = Math.random() < (0.24 + textBoost * 0.6);
-          s.t = isIlluminated ? (0.12 + Math.random() * 0.55 + textBoost * 0.65) : 0;
-          s.s = FADE_SPEED * (0.5 + Math.random() * 1.2);
+        // Wave 1: Main diagonal flow
+        const wave1 = Math.sin(s.c * 0.14 + s.r * 0.09 - time * 1.8);
+        
+        // Wave 2: Counter wave
+        const wave2 = Math.cos(s.c * 0.08 - s.r * 0.16 + time * 1.2);
+
+        // Wave 3: Corner accent wave concentrations (top-left & bottom-right like reference image)
+        const distTL = Math.hypot(normC, normR);
+        const distBR = Math.hypot(1 - normC, 1 - normR);
+        const cornerEnv = Math.exp(-distTL * 2.8) * 1.2 + Math.exp(-distBR * 2.8) * 1.2;
+
+        // Combine waves
+        const combinedWave = (wave1 * 0.5 + wave2 * 0.5) * 0.5 + 0.5;
+        
+        // Soft cutout in center so title stays readable
+        const centerCutout = 1 - Math.exp(-Math.pow(normC - 0.5, 2) * 8 - Math.pow(normR - 0.5, 2) * 8) * 0.65;
+
+        // Calculate dynamic wave intensity
+        let waveIntensity = (combinedWave * 0.6 + cornerEnv * 0.7 + s.noiseOffset) * centerCutout;
+        waveIntensity = Math.max(0, Math.min(1, waveIntensity));
+
+        // Thresholding for sharp pixel cluster definition
+        if (waveIntensity > 0.38) {
+          s.t = (waveIntensity - 0.35) * 1.1;
+        } else if (Math.random() < 0.02) {
+          s.t = 0.15 + Math.random() * 0.3;
+        } else {
+          s.t = 0;
         }
 
         s.a += (s.t - s.a) * s.s;
 
-        const finalAlpha = Math.min(0.95, Math.max(0, s.a + textBoost * 0.8));
-
-        if (finalAlpha > 0.015) {
-          ctx.fillStyle = `rgba(255,107,0,${finalAlpha.toFixed(2)})`;
+        if (s.a > 0.02) {
+          const alpha = Math.min(0.9, s.a);
+          if (s.a > 0.55) {
+            ctx.fillStyle = `rgba(255, 140, 30, ${alpha.toFixed(2)})`;
+          } else {
+            ctx.fillStyle = `rgba(255, 107, 0, ${alpha.toFixed(2)})`;
+          }
           ctx.fillRect(s.x, s.y, SQ, SQ);
         }
       }
@@ -339,7 +269,7 @@ export default function Hero() {
           </Link>
           <Link
             href="/matches"
-            className="inline-flex items-center justify-center text-xs sm:text-sm font-bold tracking-[0.2em] uppercase px-8 py-3.5 rounded-sm transition-all duration-200 border border-white/15 text-white/60 hover:border-orange-500/50 hover:text-white hover:bg-white/5"
+            className="inline-flex items-center justify-center text-xs sm:text-sm font-bold tracking-[0.2em] uppercase px-8 py-3.5 rounded-sm transition-all duration-200 border border-[#FF6B00]/35 text-white/60 hover:border-orange-500/50 hover:text-white hover:bg-white/5"
           >
             View Schedule
           </Link>

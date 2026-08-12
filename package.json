@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:seed": "node scripts/seed-14-teams.mjs",
     "db:seed-admin": "node scripts/seed-admin.mjs",
     "images:optimize": "node scripts/convert-images-to-webp.mjs"
   },
