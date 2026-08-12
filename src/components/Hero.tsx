@@ -231,7 +231,7 @@ const itemVariants = {
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col items-center justify-start bg-navy-950 pt-20 sm:pt-24 pb-8 px-4">
+    <section className="relative min-h-[calc(100vh-64px)] md:min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-start md:justify-center bg-navy-950 pt-20 sm:pt-24 pb-8 md:py-8 px-4">
       {/* ── Orange animated pixel grid with CSS smooth mask fade ── */}
       <div
         className="absolute inset-0 pointer-events-none z-[1]"
@@ -261,7 +261,7 @@ export default function Hero() {
         {/* Live badge */}
         <motion.div
           variants={itemVariants}
-          className="mb-7 flex items-center gap-2.5 rounded-full border border-[#FF6B00]/35 bg-[#FF6B00]/10 px-4 py-1.5 backdrop-blur-md"
+          className="mb-7 md:mb-6 flex items-center gap-2.5 rounded-full border border-[#FF6B00]/35 bg-[#FF6B00]/10 px-4 py-1.5 backdrop-blur-md"
         >
           <span
             className="h-2 w-2 rounded-full bg-[#FF6B00] shrink-0"
@@ -278,10 +278,9 @@ export default function Hero() {
         {/* Main display heading */}
         <motion.h1
           variants={itemVariants}
-          className="select-none text-center text-white leading-[1.00] mb-6 tracking-[0.04em]"
+          className="hero-heading select-none text-center text-white leading-[1.00] md:leading-[0.95] mb-6 md:mb-5 tracking-[0.04em]"
           style={{
             fontFamily: "var(--font-anton), var(--font-teko), sans-serif",
-            fontSize: "clamp(3.8rem, 10.0vw, 10.5rem)",
           }}
         >
           INFOBASH
@@ -302,7 +301,7 @@ export default function Hero() {
         {/* Accent Divider */}
         <motion.div
           variants={itemVariants}
-          className="flex items-center gap-4 mb-5 w-full max-w-xs"
+          className="flex items-center gap-4 mb-5 md:mb-4 w-full max-w-xs"
         >
           <div className="flex-1 h-px bg-[#FF6B00]/35" />
           <span className="text-[10px] font-mono tracking-[0.45em] uppercase text-white/30 shrink-0">
