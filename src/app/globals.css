@@ -197,3 +197,13 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Hero heading — original size on mobile, viewport-height-constrained on md+ */
+.hero-heading {
+  font-size: clamp(3.8rem, 10vw, 10.5rem);
+}
+@media (min-width: 768px) {
+  .hero-heading {
+    font-size: clamp(1.8rem, min(8vw, 13vh), 10.5rem);
+  }
+}
