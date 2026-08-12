@@ -487,7 +487,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     }
 
     if (formErrors.players) {
-      const msg = "Squad Roster validation error: All 11 players must have full names, valid student IDs, and unique registration numbers.";
+      const msg = `Squad Roster validation error: All ${TEAM_SIZE} players must have full names, valid student IDs, and unique registration numbers.`;
       setSubmitState({ status: "error", message: msg });
       showError(msg, "Validation Error");
       setStep(1);
@@ -692,7 +692,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 </div>
               </div>
               <p className="mb-6 text-sm text-ivory-400">
-                Every squad must have {TEAM_SIZE} players (8 male players and {REQUIRED_FEMALE_PLAYERS} female players).
+                Every squad must have {TEAM_SIZE} players ({TEAM_SIZE - REQUIRED_FEMALE_PLAYERS} male players and {REQUIRED_FEMALE_PLAYERS} female players).
               </p>
 
               {typeof errors.players?.message === "string" && (
