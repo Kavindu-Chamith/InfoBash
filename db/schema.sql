@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS teams (
 CREATE TABLE IF NOT EXISTS players (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-  position SMALLINT NOT NULL CHECK (position BETWEEN 1 AND 11),
+  position SMALLINT NOT NULL CHECK (position BETWEEN 1 AND 10),
   full_name TEXT NOT NULL,
   student_id TEXT NOT NULL,
   gender TEXT NOT NULL CHECK (gender IN ('male', 'female')),
