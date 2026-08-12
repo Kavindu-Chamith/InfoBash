@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     const teamId = teamResult.rows[0].id as string;
 
-    // Group female players together (male players positions 1-8, female players positions 9-11)
+    // Group female players together (male players positions 1-7, female players positions 8-10)
     const sortedPlayersForDb = [...data.players].sort((a, b) => {
       if (a.gender === "female" && b.gender !== "female") return 1;
       if (a.gender !== "female" && b.gender === "female") return -1;
