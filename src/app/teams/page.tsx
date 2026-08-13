@@ -29,6 +29,7 @@ async function getTeams(): Promise<PublicTeam[]> {
           json_agg(
             json_build_object(
               'fullName', p.full_name,
+              'card', p.card,
               'studentId', p.student_id,
               'gender', p.gender,
               'position', p.position

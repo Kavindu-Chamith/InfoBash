@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS players (
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   position SMALLINT NOT NULL CHECK (position BETWEEN 1 AND 10),
   full_name TEXT NOT NULL,
+  card TEXT,
   student_id TEXT NOT NULL,
   gender TEXT NOT NULL CHECK (gender IN ('male', 'female')),
   UNIQUE (team_id, position)
@@ -47,13 +48,14 @@ ALTER TABLE teams ADD COLUMN IF NOT EXISTS captain_id UUID REFERENCES captains(i
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES groups(id) ON DELETE SET NULL;
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo BYTEA;
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_mime TEXT;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS card TEXT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_captain_id ON teams(captain_id) WHERE captain_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_teams_group_id ON teams(group_id);
 
 CREATE TABLE IF NOT EXISTS matches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  stage TEXT NOT NULL CHECK (stage IN ('group', 'semifinal', 'final', 'custom')),
+  stage TEXT NOT NULL,
   group_id UUID REFERENCES groups(id) ON DELETE SET NULL,
   round SMALLINT NOT NULL DEFAULT 1,
   label TEXT,
@@ -67,6 +69,8 @@ CREATE TABLE IF NOT EXISTS matches (
   venue TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_stage_check;
 
 CREATE INDEX IF NOT EXISTS idx_matches_group_id ON matches(group_id);
 CREATE INDEX IF NOT EXISTS idx_matches_stage ON matches(stage);

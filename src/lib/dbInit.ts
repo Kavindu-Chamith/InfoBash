@@ -36,6 +36,7 @@ export async function initDatabaseSchema() {
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo BYTEA;
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_mime TEXT;
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS logo_s3_key TEXT;
+      ALTER TABLE players ADD COLUMN IF NOT EXISTS card TEXT;
     `).catch(() => {});
 
     // 5. Ensure Matches Table
@@ -62,8 +63,9 @@ export async function initDatabaseSchema() {
       );
     `);
 
-    // 6. Ensure Matches Table Columns
+    // 6. Ensure Matches Table Columns & Constraints
     await pool.query(`
+      ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_stage_check;
       ALTER TABLE matches ADD COLUMN IF NOT EXISTS team_a_wickets SMALLINT;
       ALTER TABLE matches ADD COLUMN IF NOT EXISTS team_b_wickets SMALLINT;
       ALTER TABLE matches ADD COLUMN IF NOT EXISTS team_a_overs TEXT;

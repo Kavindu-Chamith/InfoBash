@@ -250,7 +250,10 @@ export function TeamDrawer({
 
                           <div className="flex-1 min-w-0">
                             <p className="truncate text-sm font-medium text-ivory-100">
-                              {p.fullName}
+                              {p.fullName}{" "}
+                              {p.card ? (
+                                <span className="text-xs font-normal text-orange-400">({p.card})</span>
+                              ) : null}
                             </p>
                           </div>
 

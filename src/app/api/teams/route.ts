@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { initDatabaseSchema } from "@/lib/dbInit";
 
 export interface Player {
   fullName: string;
+  card?: string;
   studentId?: string;
   gender: "male" | "female";
   position?: number;
@@ -25,6 +27,7 @@ export interface PublicTeam {
 
 export async function GET() {
   try {
+    await initDatabaseSchema();
     const result = await pool.query<PublicTeam>(`
       SELECT
         t.id,
@@ -38,6 +41,7 @@ export async function GET() {
           json_agg(
             json_build_object(
               'fullName', p.full_name,
+              'card', p.card,
               'gender', p.gender,
               'position', p.position
             )

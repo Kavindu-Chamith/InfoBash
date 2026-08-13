@@ -37,7 +37,8 @@ export const captainLoginSchema = z.object({
 });
 
 export const playerSchema = z.object({
-  fullName: z.string().trim().min(2, "Enter the player's full name"),
+  fullName: z.string().trim().min(2, "Enter student name"),
+  card: z.string().trim().optional().or(z.literal("")),
   studentId: z
     .string()
     .trim()

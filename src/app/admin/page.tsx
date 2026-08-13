@@ -36,6 +36,7 @@ type Tab = "teams" | "groups" | "matches";
 interface AdminTeamPlayer {
   position?: number;
   full_name: string;
+  card?: string;
   student_id?: string;
   gender: "male" | "female" | string;
 }
@@ -679,7 +680,10 @@ function AdminTeamCard({
                     <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-1.5 text-ivory-200 last:border-0 last:pb-0">
                       <div className="flex items-center gap-2 truncate">
                         <span className="font-mono text-[10px] font-bold text-gold-400 w-5">#{idx + 1}</span>
-                        <span className="truncate">{p.full_name}</span>
+                        <span className="truncate">
+                          {p.full_name}{" "}
+                          {p.card ? <span className="text-[11px] text-orange-400 font-normal">({p.card})</span> : null}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
                         <span className="text-ivory-400">{p.student_id}</span>
@@ -810,6 +814,7 @@ function EditTeamModal({
       arr.push({
         position: i,
         full_name: existing?.full_name || "",
+        card: existing?.card || "",
         student_id: existing?.student_id || "",
         gender: existing?.gender === "female" ? "female" : "male",
       });
@@ -982,17 +987,24 @@ function EditTeamModal({
                   </span>
                   <input
                     type="text"
-                    placeholder="Full Name"
+                    placeholder="Student Name"
                     value={p.full_name}
                     onChange={(e) => updatePlayer(idx, "full_name", e.target.value)}
-                    className="flex-1 min-w-[140px] rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                    className="flex-1 min-w-[130px] rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Card (Optional)"
+                    value={p.card || ""}
+                    onChange={(e) => updatePlayer(idx, "card", e.target.value)}
+                    className="w-28 rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
                   />
                   <input
                     type="text"
                     placeholder="Student ID"
                     value={p.student_id}
                     onChange={(e) => updatePlayer(idx, "student_id", e.target.value)}
-                    className="w-32 rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
+                    className="w-28 rounded border border-white/10 bg-navy-950 px-2 py-1 text-ivory-100 outline-none focus:border-cyan-400"
                   />
                   <select
                     value={p.gender}
@@ -3035,7 +3047,9 @@ function MatchTeamDetailsModal({
                       >
                         <User size={12} className="text-emerald-400 shrink-0" />
                         <span className="font-medium truncate">
-                          {idx + 1}. {p.full_name} {isCaptain ? "(C)" : ""}
+                          {idx + 1}. {p.full_name}{" "}
+                          {p.card ? <span className="text-[11px] font-normal text-orange-400">({p.card})</span> : null}{" "}
+                          {isCaptain ? "(C)" : ""}
                         </span>
                       </li>
                     );
@@ -3087,7 +3101,9 @@ function MatchTeamDetailsModal({
                       >
                         <User size={12} className="text-emerald-400 shrink-0" />
                         <span className="font-medium truncate">
-                          {idx + 1}. {p.full_name} {isCaptain ? "(C)" : ""}
+                          {idx + 1}. {p.full_name}{" "}
+                          {p.card ? <span className="text-[11px] font-normal text-orange-400">({p.card})</span> : null}{" "}
+                          {isCaptain ? "(C)" : ""}
                         </span>
                       </li>
                     );

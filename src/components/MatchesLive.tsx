@@ -816,11 +816,15 @@ export default function MatchesLive() {
                         {teamADetails.players.length > 0 ? (
                           teamADetails.players.map((p: any, idx: number) => {
                             const pName = typeof p === "string" ? p : p?.fullName || p?.full_name || "Player";
+                            const pCard = typeof p === "object" && p?.card ? p.card : null;
                             const pPos = typeof p === "object" && p?.position ? `${p.position}. ` : `${idx + 1}. `;
                             return (
                               <div key={idx} className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1">
                                 <User size={12} className="shrink-0 text-emerald-400" />
-                                <span className="truncate">{pPos}{pName}</span>
+                                <span className="truncate">
+                                  {pPos}{pName}{" "}
+                                  {pCard ? <span className="text-[11px] font-normal text-orange-400">({pCard})</span> : null}
+                                </span>
                               </div>
                             );
                           })
@@ -863,11 +867,15 @@ export default function MatchesLive() {
                         {teamBDetails.players.length > 0 ? (
                           teamBDetails.players.map((p: any, idx: number) => {
                             const pName = typeof p === "string" ? p : p?.fullName || p?.full_name || "Player";
+                            const pCard = typeof p === "object" && p?.card ? p.card : null;
                             const pPos = typeof p === "object" && p?.position ? `${p.position}. ` : `${idx + 1}. `;
                             return (
                               <div key={idx} className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1">
                                 <User size={12} className="shrink-0 text-emerald-400" />
-                                <span className="truncate">{pPos}{pName}</span>
+                                <span className="truncate">
+                                  {pPos}{pName}{" "}
+                                  {pCard ? <span className="text-[11px] font-normal text-orange-400">({pCard})</span> : null}
+                                </span>
                               </div>
                             );
                           })

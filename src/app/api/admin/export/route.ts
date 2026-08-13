@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   try {
     const result = await pool.query(
       `SELECT t.team_name, t.batch, t.captain_name, t.captain_contact, t.captain_email,
-              t.vice_captain_name, p.position, p.full_name, p.student_id, p.gender, t.created_at
+              t.vice_captain_name, p.position, p.full_name, p.card, p.student_id, p.gender, t.created_at
        FROM teams t
        JOIN players p ON p.team_id = t.id
        ORDER BY t.created_at DESC, p.position ASC`
@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
       "Captain Email",
       "Vice Captain",
       "Player #",
-      "Player Name",
+      "Student Name",
+      "Card (Nickname)",
       "Student ID",
       "Gender",
       "Registered At",
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
         r.vice_captain_name,
         r.position,
         r.full_name,
+        r.card || "",
         r.student_id,
         r.gender,
         new Date(r.created_at).toISOString(),

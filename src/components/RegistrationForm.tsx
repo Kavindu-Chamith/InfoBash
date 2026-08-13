@@ -61,6 +61,7 @@ const errorClass = "mt-1.5 text-xs text-red-400";
 
 const defaultPlayers = Array.from({ length: TEAM_SIZE }, () => ({
   fullName: "",
+  card: "",
   studentId: "",
   gender: "male" as const,
 }));
@@ -287,6 +288,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     control,
     watch,
     getValues,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<RegistrationInput>({
@@ -397,6 +399,13 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
       }
       return;
     }
+    if (step === 0) {
+      const captainNameVal = watch("captainName");
+      const currentP0 = watch("players.0.fullName");
+      if (captainNameVal && !currentP0) {
+        setValue("players.0.fullName", captainNameVal);
+      }
+    }
     setSubmitState({ status: "idle" });
     if (!logoUploading) setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
@@ -487,7 +496,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
     }
 
     if (formErrors.players) {
-      const msg = `Squad Roster validation error: All ${TEAM_SIZE} players must have full names, valid student IDs, and unique registration numbers.`;
+      const msg = `Squad Roster validation error: All ${TEAM_SIZE} players must have student names, valid student IDs, and unique registration numbers.`;
       setSubmitState({ status: "error", message: msg });
       showError(msg, "Validation Error");
       setStep(1);
@@ -705,7 +714,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                 {fields.map((field, i) => (
                   <div
                     key={field.id}
-                    className="grid grid-cols-[auto_1fr_1fr_auto] items-start gap-3 rounded-xl border border-white/5 bg-navy-900/50 p-3"
+                    className="grid grid-cols-1 md:grid-cols-[auto_1.2fr_1fr_1fr_auto] items-start gap-3 rounded-xl border border-white/5 bg-navy-900/50 p-3"
                   >
                     <span className="mt-3 font-mono-score text-xs text-ivory-400">
                       {(i + 1).toString().padStart(2, "0")}
@@ -713,7 +722,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     <div>
                       <input
                         className={inputClass}
-                        placeholder="Player full name"
+                        placeholder={i === 0 ? "Captain Name" : "Player Name"}
                         {...register(`players.${i}.fullName` as const)}
                       />
                       {errors.players?.[i]?.fullName && (
@@ -723,7 +732,17 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     <div>
                       <input
                         className={inputClass}
-                        placeholder="Student ID (e.g. 21CSE1234)"
+                        placeholder="Card (Optional)"
+                        {...register(`players.${i}.card` as const)}
+                      />
+                      {errors.players?.[i]?.card && (
+                        <p className={errorClass}>{errors.players[i]?.card?.message}</p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        className={inputClass}
+                        placeholder="Student ID"
                         {...register(`players.${i}.studentId` as const)}
                       />
                       {errors.players?.[i]?.studentId && (
@@ -731,7 +750,7 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                       )}
                     </div>
                     <select
-                      className={`${inputClass} w-auto`}
+                      className={`${inputClass} w-full md:w-auto`}
                       {...register(`players.${i}.gender` as const)}
                     >
                       <option value="male" className="bg-navy-900">Male</option>
@@ -785,7 +804,11 @@ function RegistrationWizard({ captain, onSignOut }: { captain: Captain; onSignOu
                     })
                     .map((p, i) => (
                       <li key={i} className="flex items-center justify-between gap-2 border-b border-white/5 py-1">
-                        <span>{i + 1}. {p.fullName || "—"} <span className="text-ivory-400">({p.studentId || "—"})</span></span>
+                        <span>
+                          {i + 1}. {p.fullName || "—"}{" "}
+                          {p.card ? <span className="text-xs font-normal text-orange-400">({p.card})</span> : null}{" "}
+                          <span className="text-ivory-400">({p.studentId || "—"})</span>
+                        </span>
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded ${p.gender === "female" ? "bg-pink-500/20 text-pink-300" : "text-ivory-400"}`}>
                           {p.gender}
                         </span>

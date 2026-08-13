@@ -147,13 +147,14 @@ export async function PUT(
           const p = players[i];
           const pos = p.position || i + 1;
           const fullName = p.full_name || p.fullName || "";
+          const card = p.card ? p.card.trim() : null;
           const studentId = p.student_id || p.studentId || "";
           const gender = p.gender === "female" ? "female" : "male";
 
           await client.query(
-            `INSERT INTO players (team_id, position, full_name, student_id, gender)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [id, pos, fullName.trim(), studentId.trim(), gender]
+            `INSERT INTO players (team_id, position, full_name, card, student_id, gender)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [id, pos, fullName.trim(), card, studentId.trim(), gender]
           );
         }
       }

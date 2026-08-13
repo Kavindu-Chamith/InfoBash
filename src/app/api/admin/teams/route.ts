@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
        ORDER BY t.created_at DESC`
     );
     const playersResult = await pool.query(
-      `SELECT team_id, position, full_name, student_id, gender
+      `SELECT team_id, position, full_name, card, student_id, gender
        FROM players ORDER BY team_id, position`
     );
 

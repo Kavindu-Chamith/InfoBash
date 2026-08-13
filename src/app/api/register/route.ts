@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { initDatabaseSchema } from "@/lib/dbInit";
 import { registrationSchema } from "@/lib/validation";
 import { CAPTAIN_COOKIE, verifyCaptainSessionToken } from "@/lib/captainAuth";
 
 export async function POST(req: NextRequest) {
+  await initDatabaseSchema();
   const token = req.cookies.get(CAPTAIN_COOKIE)?.value;
   const session = verifyCaptainSessionToken(token);
   if (!session) {
@@ -91,9 +93,9 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < sortedPlayersForDb.length; i++) {
       const player = sortedPlayersForDb[i];
       await client.query(
-        `INSERT INTO players (team_id, position, full_name, student_id, gender)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [teamId, i + 1, player.fullName, player.studentId, player.gender]
+        `INSERT INTO players (team_id, position, full_name, card, student_id, gender)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [teamId, i + 1, player.fullName, player.card ? player.card.trim() : null, player.studentId, player.gender]
       );
     }
 
