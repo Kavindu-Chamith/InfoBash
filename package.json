@@ -9,6 +9,8 @@
     "lint": "eslint",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed-admin": "node scripts/seed-admin.mjs",
+    "db:seed-teams": "node scripts/seed-teams.mjs",
+    "db:clear-seeds": "node scripts/remove-seed-teams.mjs",
     "images:optimize": "node scripts/convert-images-to-webp.mjs"
   },
   "dependencies": {

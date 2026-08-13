@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { initDatabaseSchema } from "@/lib/dbInit";
 import { ADMIN_COOKIE, verifyAdminSessionToken } from "@/lib/adminAuth";
 
 const STAGES = ["group", "round1", "quarterfinal", "semifinal", "final", "custom"] as const;
@@ -9,6 +10,8 @@ export async function POST(req: NextRequest) {
   if (!verifyAdminSessionToken(token)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  await initDatabaseSchema();
 
   const body = (await req.json().catch(() => ({}))) as {
     stage?: string;
@@ -42,6 +45,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, matchId: result.rows[0].id }, { status: 201 });
   } catch (err) {
     console.error("Match creation error:", err);
-    return NextResponse.json({ error: "Failed to create match" }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Failed to create match" }, { status: 500 });
   }
 }
